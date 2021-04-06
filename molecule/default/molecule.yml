@@ -1,0 +1,18 @@
+---
+driver:
+  name: docker
+platforms:
+  - name: python-latest
+    image: python:latest
+    privileged: true
+provisioner:
+  config_options:
+    defaults:
+      remote_tmp: /tmp/.ansible-tmp-$${USER}
+  name: ansible
+  inventory:
+    group_vars:
+      all:
+        ansible_user: nobody
+verifier:
+  name: ansible
