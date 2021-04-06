@@ -1,0 +1,7 @@
+# Ansible Galaxy's requirements file.
+# To install, run: ansible-galaxy install -r meta/requirements.yml
+---
+- name: wine
+  scm: git
+  src: https://github.com/EA31337/ansible-role-wine.git
+  version: master

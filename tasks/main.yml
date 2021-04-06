@@ -1,0 +1,5 @@
+---
+- name: Validates variables
+  assert:
+    that:
+      - metatrader_setup_url | length > 0
