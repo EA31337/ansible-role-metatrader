@@ -1,4 +1,30 @@
 ---
 dependencies:
-  - role: ansible-role-wine
-    when: ansible_os_family == "Windows"
+  - name: wine
+    scm: git
+    src: https://github.com/EA31337/ansible-role-wine.git
+    version: master
+    # when: ansible_os_family != "Windows"
+galaxy_info:
+  author: EA31337 Ltd
+  description: Role to install MetaTrader platform.
+  galaxy_tags:
+    - windows
+  issue_tracker_url: https://github.com/EA31337/ansible-role-metatrader
+  license: GPLv3
+  min_ansible_version: 2.7
+  namespace: ea31337
+  platforms:
+    - name: Alpine
+      versions:
+        - 3.12
+    - name: Debian
+      versions:
+        - 10
+    - name: Ubuntu
+      versions:
+        # 18.04
+        - bionic
+        # 20.04
+        - focal
+  role_name: metatrader
