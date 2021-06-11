@@ -1,10 +1,13 @@
 ---
 driver:
   name: docker
+lint: |
+  set -e
+  #  yamllint .
+  #  ansible-lint
 platforms:
-  - name: python-latest
+  - name: debian-python-latest
     image: python:latest
-    privileged: true
 provisioner:
   config_options:
     defaults:
@@ -13,6 +16,6 @@ provisioner:
   inventory:
     group_vars:
       all:
-        ansible_user: nobody
+        #  ansible_user: nobody
 verifier:
   name: ansible
