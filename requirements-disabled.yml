@@ -2,6 +2,6 @@
 # Usage:
 # ansible-galaxy install -r requirements.yml
 ---
-#roles:
-#  - name: ea31337.wine
-#    when: ansible_os_family != "Windows"
+# roles:
+#   - name: ea31337.wine
+#     when: ansible_os_family != "Windows"
