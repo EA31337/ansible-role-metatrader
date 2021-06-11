@@ -3,3 +3,7 @@
   assert:
     that:
       - metatrader_setup_url | length > 0
+- name: Download platform
+  get_url:
+    url: "{{ metatrader_setup_url }}"
+    dest: "{{ ansible_remote_tmp | default('/var/tmp') }}"
