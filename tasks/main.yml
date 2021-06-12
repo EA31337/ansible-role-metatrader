@@ -4,7 +4,10 @@
     that:
       - metatrader_setup_url | length > 0
 - name: Download platform
-  get_url:
+  ansible.builtin.get_url:
     dest: "{{ ansible_remote_tmp | default('/var/tmp') }}/mt5setup.exe"
-    mode: 06444
+    force: false
+    mode: 0644
     url: "{{ metatrader_setup_url }}"
+  changed_when: mt_download_res.status_code != 200
+  register: mt_download_res
