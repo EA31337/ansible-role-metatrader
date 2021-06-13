@@ -5,3 +5,7 @@
     - name: Include main role
       ansible.builtin.include_role:
         name: ansible-role-metatrader
+      vars:
+        metatrader_setup_url: |
+          https://download.mql5.com/cdn/web/3315/mt4/xm4setup.exe
+        metatrader_version: 4

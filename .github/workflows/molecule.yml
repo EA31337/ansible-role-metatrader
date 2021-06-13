@@ -7,10 +7,21 @@ on:
   push:
 
 jobs:
-  Test:
+  Test-MT4:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           path: "${{ github.repository }}"
       - uses: robertdebock/molecule-action@master
+        with:
+          scenario: mt4
+  Test-MT5:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: "${{ github.repository }}"
+      - uses: robertdebock/molecule-action@master
+        with:
+          scenario: default
