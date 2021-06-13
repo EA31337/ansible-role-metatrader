@@ -1,5 +1,10 @@
+# Molecule's requirements file.
 ---
 - name: wine
   scm: git
   src: https://github.com/EA31337/ansible-role-wine.git
+  version: master
+- name: xvfb
+  scm: git
+  src: https://github.com/EA31337/ansible-role-xvfb.git
   version: master
