@@ -3,11 +3,17 @@
   assert:
     that:
       - metatrader_setup_url | length > 0
-- name: Download platform
-  ansible.builtin.get_url:
-    dest: "{{ ansible_remote_tmp | default('/var/tmp') }}/mt5setup.exe"
-    force: false
-    mode: 0644
-    url: "{{ metatrader_setup_url }}"
-  changed_when: mt_download_res.status_code != 200
-  register: mt_download_res
+- name: Install MetaTrader (via Winetricks)
+  block:
+    - name: Install verb file
+      ansible.builtin.template:
+        src: mt{{ metatrader_version }}_install.verb.j2
+        dest: /tmp/mt{{ metatrader_version }}_install.verb
+        mode: 0640
+    - name: Install MetaTrader (via verb file)
+      ansible.builtin.shell:
+        # noqa command-instead-of-shell
+        cmd: >-
+          DISPLAY=:0
+          winetricks -q -v /tmp/mt{{ metatrader_version }}_install.verb
+  when: ansible_os_family != "Windows"

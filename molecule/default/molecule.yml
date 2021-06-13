@@ -6,8 +6,8 @@ lint: |
   #  yamllint .
   #  ansible-lint
 platforms:
-  - name: debian-python-latest
-    image: python:latest
+  - name: ubuntu-latest
+    image: ubuntu:latest
 provisioner:
   config_options:
     defaults:
@@ -16,6 +16,6 @@ provisioner:
   inventory:
     group_vars:
       all:
-        #  ansible_user: nobody
+        wine_install_winetricks: true
 verifier:
   name: ansible

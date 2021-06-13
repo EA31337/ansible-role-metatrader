@@ -4,7 +4,12 @@ dependencies:
     scm: git
     src: https://github.com/EA31337/ansible-role-wine.git
     version: master
-    # when: ansible_os_family != "Windows"
+    when: ansible_os_family != "Windows"
+  - name: xvfb
+    scm: git
+    src: https://github.com/EA31337/ansible-role-xvfb.git
+    version: master
+    when: ansible_os_family != "Windows"
 galaxy_info:
   author: EA31337 Ltd
   description: Role to install MetaTrader platform.
