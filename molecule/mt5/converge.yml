@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Include main role
+      ansible.builtin.include_role:
+        name: ansible-role-metatrader
+      vars:
+        metatrader_version: 5
