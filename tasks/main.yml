@@ -13,7 +13,8 @@
     - name: Install MetaTrader (via verb file)
       ansible.builtin.shell:
         # noqa command-instead-of-shell
-        cmd: >-
-          DISPLAY=:0
+        cmd: |
+          export DISPLAY=:0
+          export WINEDLLOVERRIDES="mscoree,mshtml="
           winetricks -q -v /tmp/mt{{ metatrader_version }}_install.verb
   when: ansible_os_family != "Windows"
