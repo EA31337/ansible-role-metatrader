@@ -1,3 +1,8 @@
 ---
 - name: Verify
   hosts: all
+  tasks:
+    - name: Verify Terminal is installed
+      changed_when: false
+      command: wine reg query 'HKLM\Software\MetaQuotes Software'
+      register: cmd_wine_reg_query_mq
