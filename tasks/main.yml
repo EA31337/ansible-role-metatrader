@@ -15,6 +15,6 @@
         # noqa command-instead-of-shell
         cmd: |
           export DISPLAY=:0
-          export WINEDLLOVERRIDES="mscoree,mshtml="
+          export WINEDLLOVERRIDES="mscoree,mshtml=,winebrowser.exe="
           winetricks -q -v /tmp/mt{{ metatrader_version }}_install.verb
   when: ansible_os_family != "Windows"
