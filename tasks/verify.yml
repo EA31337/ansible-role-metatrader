@@ -1,0 +1,19 @@
+---
+- name: Check if Meta Terminal exists
+  changed_when: false
+  failed_when: find_mt_res.matched == 0
+  find:
+    paths: '{{ ansible_env.HOME }}/.wine/drive_c'
+    patterns: terminal*.exe
+    recurse: true
+  register: find_mt_res
+  when: ansible_os_family != "Windows"
+- name: Check if Meta Editor exists
+  changed_when: false
+  failed_when: find_mt_res.matched == 0
+  find:
+    paths: '{{ ansible_env.HOME }}/.wine/drive_c'
+    patterns: metaeditor*.exe
+    recurse: true
+  register: find_mte_res
+  when: ansible_os_family != "Windows"

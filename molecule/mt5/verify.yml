@@ -1,8 +1,0 @@
----
-- name: Verify (MT5)
-  hosts: all
-  tasks:
-    - name: Verify Terminal is installed
-      changed_when: false
-      command: wine dir "C:\\Program Files\\MetaTrader 5\\terminal64.exe"
-      register: terminal_result

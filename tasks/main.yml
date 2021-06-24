@@ -1,8 +1,12 @@
 ---
-- name: Validates variables
+- name: Validate variables
   assert:
     that:
       - metatrader_setup_url | length > 0
+- name: Check if platform is already installed
+  register: file_mt_installed_exists
+  stat:
+    path: ~/.wine/.installed-mt{{ metatrader_version }}
 - name: Install MetaTrader (via Winetricks)
   block:
     - name: Install verb file
@@ -21,4 +25,12 @@
         creates: ~/.wine/.installed-mt{{ metatrader_version }}
       args:
         executable: /bin/bash
-  when: ansible_os_family != "Windows"
+    - name: Remove verb file
+      ansible.builtin.file:
+        path: /tmp/mt{{ metatrader_version }}_install.verb
+        state: absent
+  when:
+    - ansible_os_family != "Windows"
+    - not file_mt_installed_exists.stat.exists
+- name: Verify
+  include: verify.yml
