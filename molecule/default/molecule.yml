@@ -6,6 +6,10 @@ lint: |
   yamllint .
   ansible-lint
 platforms:
+  - name: debian-latest
+    image: debian:latest
+  - name: ubuntu-bionic
+    image: ubuntu:bionic
   - name: ubuntu-latest
     image: ubuntu:latest
 provisioner:
