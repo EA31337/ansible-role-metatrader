@@ -7,6 +7,13 @@
   register: file_mt_installed_exists
   stat:
     path: ~/.wine/.installed-mt{{ metatrader_version }}
+- name: Ensure Curl is installed
+  ansible.builtin.package:
+    name: curl
+    state: present
+  when:
+    - ansible_os_family != "Windows"
+    - not file_mt_installed_exists.stat.exists
 - name: Install MetaTrader (via Winetricks)
   block:
     - name: Install verb file
