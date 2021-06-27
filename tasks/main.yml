@@ -22,7 +22,7 @@
         dest: /tmp/mt{{ metatrader_version }}_install.verb
         mode: 0640
     - name: Install MetaTrader (via verb file)
-      ansible.builtin.shell:
+      shell:
         # noqa command-instead-of-shell
         cmd: >
           DISPLAY=:0
