@@ -1,0 +1,38 @@
+---
+- name: Build Docker container
+  hosts: localhost
+  gather_facts: no
+  connection: community.docker.docker_api
+  vars:
+    container_name: ubuntu-worker
+    docker_image: ubuntu
+  tasks:
+    - name: Pull image
+      community.docker.docker_image:
+        name: '{{ docker_image }}'
+        source: pull
+    - name: Run container
+      community.docker.docker_container:
+        command: sleep infinity
+        container_default_behavior: compatibility
+        detach: yes
+        hostname: '{{ container_name }}'
+        image: '{{ docker_image }}'
+        name: '{{ container_name }}'
+        privileged: yes
+        state: started
+    - name: Add container as host
+      ansible.builtin.add_host:
+        hostname: '{{ container_name }}'
+
+- name: Configure container
+  hosts: all
+  gather_facts: no
+  connection: community.docker.docker_api
+  tasks:
+    - name: Apply role
+      include_role:
+        name: ./
+        tasks_from: main
+    - name: Run hostname
+      command: hostname
