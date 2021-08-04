@@ -1,11 +1,15 @@
 ---
 dependencies:
   - name: wine
+    role: wine
     scm: git
     src: https://github.com/EA31337/ansible-role-wine.git
+    vars:
+      wine_install_winetricks: true
     version: master
     when: ansible_os_family != "Windows"
   - name: xvfb
+    role: xvfb
     scm: git
     src: https://github.com/EA31337/ansible-role-xvfb.git
     version: master
