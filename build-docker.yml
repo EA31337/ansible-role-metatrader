@@ -1,7 +1,7 @@
 ---
 - name: Build Docker container
   hosts: localhost
-  gather_facts: no
+  gather_facts: false
   connection: community.docker.docker_api
   vars:
     container_name: ubuntu-worker
@@ -15,11 +15,11 @@
       community.docker.docker_container:
         command: sleep infinity
         container_default_behavior: compatibility
-        detach: yes
+        detach: true
         hostname: '{{ container_name }}'
         image: '{{ docker_image }}'
         name: '{{ container_name }}'
-        privileged: yes
+        privileged: true
         state: started
     - name: Add container as host
       ansible.builtin.add_host:
@@ -27,7 +27,7 @@
 
 - name: Configure container
   hosts: all
-  gather_facts: no
+  gather_facts: false
   connection: community.docker.docker_api
   tasks:
     - name: Apply role
