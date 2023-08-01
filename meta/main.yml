@@ -21,19 +21,16 @@ galaxy_info:
     - windows
   issue_tracker_url: https://github.com/EA31337/ansible-role-metatrader
   license: GPLv3
-  min_ansible_version: 2.7
+  min_ansible_version: "2.7"
   namespace: ea31337
   platforms:
     - name: Alpine
       versions:
-        - 3.12
+        - all
     - name: Debian
       versions:
-        - 10
+        - all
     - name: Ubuntu
       versions:
-        # 18.04
-        - bionic
-        # 20.04
-        - focal
+        - all
   role_name: metatrader
