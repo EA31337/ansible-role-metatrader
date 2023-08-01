@@ -4,4 +4,4 @@
   tasks:
     - name: Include main role
       ansible.builtin.include_role:
-        name: ansible-role-metatrader
+        name: metatrader
