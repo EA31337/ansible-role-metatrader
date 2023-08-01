@@ -31,8 +31,9 @@
   connection: community.docker.docker_api
   tasks:
     - name: Apply role
-      include_role:
+      ansible.builtin.include_role:
         name: ./
         tasks_from: main
     - name: Run hostname
-      command: hostname
+      ansible.builtin.command: hostname
+      changed_when: false

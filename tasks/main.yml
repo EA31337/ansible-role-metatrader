@@ -1,11 +1,11 @@
 ---
 - name: Validate variables
-  assert:
+  ansible.builtin.assert:
     that:
       - metatrader_setup_url | length > 0
 - name: Check if platform is already installed
   register: file_mt_installed_exists
-  stat:
+  ansible.builtin.stat:
     path: ~/.wine/.installed-mt{{ metatrader_version }}
 - name: Ensure Curl is installed
   ansible.builtin.package:
@@ -15,14 +15,17 @@
     - ansible_os_family != "Windows"
     - not file_mt_installed_exists.stat.exists
 - name: Install MetaTrader (via Winetricks)
+  when:
+    - ansible_os_family != "Windows"
+    - not file_mt_installed_exists.stat.exists
   block:
     - name: Install verb file
       ansible.builtin.template:
         src: mt{{ metatrader_version }}_install.verb.j2
         dest: /tmp/mt{{ metatrader_version }}_install.verb
-        mode: 0640
+        mode: "0640"
     - name: Install MetaTrader (via verb file)
-      shell:
+      ansible.builtin.shell:
         # noqa command-instead-of-shell
         cmd: >
           DISPLAY=:0
@@ -36,8 +39,5 @@
       ansible.builtin.file:
         path: /tmp/mt{{ metatrader_version }}_install.verb
         state: absent
-  when:
-    - ansible_os_family != "Windows"
-    - not file_mt_installed_exists.stat.exists
 - name: Verify
-  include: verify.yml
+  ansible.builtin.include_tasks: verify.yml
