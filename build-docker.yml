@@ -32,7 +32,7 @@
   tasks:
     - name: Apply role
       ansible.builtin.include_role:
-        name: ./
+        name: metatrader
         tasks_from: main
     - name: Run hostname
       ansible.builtin.command: hostname
