@@ -4,6 +4,6 @@
   tasks:
     - name: Include main role
       ansible.builtin.include_role:
-        name: metatrader
+        name: ea31337.metatrader
       vars:
         metatrader_version: 5
