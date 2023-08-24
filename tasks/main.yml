@@ -7,6 +7,8 @@
   register: file_mt_installed_exists
   ansible.builtin.stat:
     path: ~/.wine/.installed-mt{{ metatrader_version }}
+  when:
+    - ansible_os_family != "Windows"
 - name: Ensure Curl is installed
   ansible.builtin.package:
     name: curl
