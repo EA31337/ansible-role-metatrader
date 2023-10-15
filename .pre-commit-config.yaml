@@ -2,12 +2,12 @@
 repos:
 
   - repo: https://github.com/ansible-community/ansible-lint
-    rev: v6.17.2
+    rev: v6.20.3
     hooks:
       - id: ansible-lint
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: check-added-large-files
       - id: check-byte-order-marker
@@ -19,7 +19,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/igorshubovych/markdownlint-cli.git
-    rev: v0.35.0
+    rev: v0.37.0
     hooks:
       - id: markdownlint
 
