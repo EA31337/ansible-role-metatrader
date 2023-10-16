@@ -11,7 +11,7 @@ load_mt5_install()
 
     if w_workaround_wine_bug 7156 "${title} needs wingdings.ttf, installing opensymbol"
     then
-      # w_call opensymbol # GH-6
+      echo w_call opensymbol # @fixme: GH-6
     fi
 
     WINEDLLOVERRIDES="winebrowser.exe="
