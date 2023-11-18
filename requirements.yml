@@ -4,5 +4,6 @@
 ---
 roles:
   - name: EA31337.wine
+    scm: git
     src: git+https://github.com/EA31337/ansible-role-wine.git
     version: dev
