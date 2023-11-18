@@ -1,4 +1,6 @@
 ---
+collections:
+  - community.docker
 dependencies:
   - name: wine
     role: EA31337.wine
