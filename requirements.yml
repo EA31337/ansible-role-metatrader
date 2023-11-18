@@ -7,6 +7,6 @@ collections:
     version: ">=3.4.0,<4.0.0"
 roles:
   - name: EA31337.wine
+    scm: git
     src: git+https://github.com/EA31337/ansible-role-wine.git
-    type: git
     version: dev
