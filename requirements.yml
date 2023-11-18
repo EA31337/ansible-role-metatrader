@@ -1,0 +1,9 @@
+# A file containing a list of collections to be installed.
+# Usage:
+# ansible-galaxy install -r requirements.yml
+---
+roles:
+  - name: EA31337.wine
+    src: git+https://github.com/EA31337/ansible-role-wine.git
+    when: ansible_os_family != "Windows"
+    version: dev
