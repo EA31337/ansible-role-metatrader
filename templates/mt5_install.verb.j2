@@ -21,7 +21,7 @@ load_mt5_install()
     w_ahk_do "
         Run, "$(echo *.exe)"
         SetTitleMatchMode, RegEx
-        WinWait, MetaTrader 5 Setup
+        WinWait, MetaTrader 5
         Send, {Enter}
         WinWait, MetaTrader 5 Setup, Congratulations!
         Send, {Tab}{Enter}
