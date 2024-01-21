@@ -9,3 +9,6 @@
         metatrader_setup_url: |
           https://download.mql5.com/cdn/web/3315/mt4/xm4setup.exe
         metatrader_version: 4
+        # noqa: var-naming[no-role-prefix]
+        wine_winetricks_url: >-
+          https://raw.githubusercontent.com/jre-wine/winetricks/Workaround_missing_/usr/bin/wine64/src/winetricks

@@ -7,3 +7,6 @@
         name: ea31337.metatrader
       vars:
         metatrader_version: 5
+        # noqa: var-naming[no-role-prefix]
+        wine_winetricks_url: >-
+          https://raw.githubusercontent.com/jre-wine/winetricks/Workaround_missing_/usr/bin/wine64/src/winetricks
