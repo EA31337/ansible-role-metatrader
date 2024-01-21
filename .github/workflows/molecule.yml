@@ -24,4 +24,5 @@ jobs:
           ANSIBLE_STDOUT_CALLBACK: debug
         with:
           molecule_args: --scenario-name ${{ matrix.scenario }}
+          molecule_options: --verbose
           molecule_working_dir: "${{ github.repository }}"
