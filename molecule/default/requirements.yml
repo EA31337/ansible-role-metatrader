@@ -3,8 +3,8 @@
 - name: EA31337.wine
   scm: git
   src: git+https://github.com/EA31337/ansible-role-wine.git
-  version: dev
+  version: master
 - name: EA31337.xvfb
   scm: git
   src: https://github.com/EA31337/ansible-role-xvfb.git
-  version: dev
+  version: master
