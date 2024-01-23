@@ -1,0 +1,35 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+
+    - name: Retrieve information from path
+      ansible.builtin.stat:
+        path: /root/.wine/drive_c/Program Files
+      register: stat_result
+
+    - name: Verify Program Files exist
+      ansible.builtin.assert:
+        that:
+          - stat_result.stat.exists
+          - stat_result.stat.isdir
+
+    - name: Check if Meta Terminal exists
+      changed_when: false
+      failed_when: find_mt_res.matched == 0
+      ansible.builtin.find:
+        paths: '{{ ansible_env.HOME }}/.wine/drive_c'
+        patterns: terminal*.exe
+        recurse: true
+      register: find_mt_res
+      when: ansible_os_family != "Windows"
+
+    - name: Check if Meta Editor exists
+      changed_when: false
+      failed_when: find_mt_res.matched == 0
+      ansible.builtin.find:
+        paths: '{{ ansible_env.HOME }}/.wine/drive_c'
+        patterns: metaeditor*.exe
+        recurse: true
+      register: find_mte_res
+      when: ansible_os_family != "Windows"

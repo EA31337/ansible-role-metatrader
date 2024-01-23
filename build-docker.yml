@@ -1,0 +1,39 @@
+---
+- name: Build Docker container
+  hosts: localhost
+  gather_facts: false
+  connection: community.docker.docker_api
+  vars:
+    container_name: ubuntu-worker
+    docker_image: ubuntu
+  tasks:
+    - name: Pull image  # noqa: syntax-check[specific]
+      community.docker.docker_image:
+        name: '{{ docker_image }}'
+        source: pull
+    - name: Run container
+      community.docker.docker_container:
+        command: sleep infinity
+        container_default_behavior: compatibility
+        detach: true
+        hostname: '{{ container_name }}'
+        image: '{{ docker_image }}'
+        name: '{{ container_name }}'
+        privileged: true
+        state: started
+    - name: Add container as host
+      ansible.builtin.add_host:
+        hostname: '{{ container_name }}'
+
+- name: Configure container
+  hosts: all
+  gather_facts: false
+  connection: community.docker.docker_api
+  tasks:
+    - name: Apply role
+      ansible.builtin.include_role:
+        name: metatrader
+        tasks_from: main
+    - name: Run hostname
+      ansible.builtin.command: hostname
+      changed_when: false

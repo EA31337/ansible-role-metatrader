@@ -1,7 +1,0 @@
-# A file containing a list of collections to be installed.
-# Usage:
-# ansible-galaxy install -r requirements.yml
----
-# roles:
-#   - name: ea31337.wine
-#     when: ansible_os_family != "Windows"

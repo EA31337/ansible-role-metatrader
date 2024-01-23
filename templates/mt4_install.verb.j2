@@ -11,7 +11,7 @@ load_mt4_install()
 
     if w_workaround_wine_bug 7156 "${title} needs wingdings.ttf, installing opensymbol"
     then
-        w_call opensymbol
+      echo w_call opensymbol # @fixme: GH-6
     fi
 
     # Opens a webpage.

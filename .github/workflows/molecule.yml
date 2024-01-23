@@ -7,21 +7,23 @@ on:
   push:
 
 jobs:
-  Test-MT4:
+  Test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+          - mt4
+          - default
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: "${{ github.repository }}"
-      - uses: robertdebock/molecule-action@master
+      - uses: gofrolist/molecule-action@v2
+        env:
+          ANSIBLE_STDOUT_CALLBACK: debug
         with:
-          scenario: mt4
-  Test-MT5:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          path: "${{ github.repository }}"
-      - uses: robertdebock/molecule-action@master
-        with:
-          scenario: default
+          molecule_args: --scenario-name ${{ matrix.scenario }}
+          molecule_options: --verbose
+          molecule_working_dir: "${{ github.repository }}"
+    timeout-minutes: 30
