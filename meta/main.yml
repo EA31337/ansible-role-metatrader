@@ -3,7 +3,7 @@ collections:
   - community.docker
 dependencies:
   - name: ea31337.wine
-    role: EA31337.wine
+    role: ea31337.wine
     scm: git
     src: https://github.com/EA31337/ansible-role-wine.git
     vars:
@@ -11,7 +11,7 @@ dependencies:
     version: dev
     when: ansible_os_family != "Windows"
   - name: ea31337.xvfb
-    role: EA31337.xvfb
+    role: ea31337.xvfb
     scm: git
     src: https://github.com/EA31337/ansible-role-xvfb.git
     version: dev
