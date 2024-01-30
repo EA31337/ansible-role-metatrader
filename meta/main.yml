@@ -18,8 +18,13 @@ dependencies:
     when: ansible_os_family != "Windows"
 galaxy_info:
   author: EA31337 Ltd
-  description: Role to install MetaTrader platform.
+  description: |
+    Role to install MetaTrader platform.
   galaxy_tags:
+    - emulator
+    - forex
+    - trading
+    - linux
     - windows
   issue_tracker_url: https://github.com/EA31337/ansible-role-metatrader
   license: GPLv3
