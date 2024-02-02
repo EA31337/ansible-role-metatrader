@@ -1,5 +1,5 @@
 ---
-- name: Check if Meta Terminal exists
+- name: Checks if Meta Terminal exists
   changed_when: false
   failed_when: find_mt_res.matched == 0
   ansible.builtin.find:
@@ -8,7 +8,7 @@
     recurse: true
   register: find_mt_res
   when: ansible_os_family != "Windows"
-- name: Check if Meta Editor exists
+- name: Checks if Meta Editor exists
   changed_when: false
   failed_when: find_mt_res.matched == 0
   ansible.builtin.find:
