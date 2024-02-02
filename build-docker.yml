@@ -7,7 +7,7 @@
     container_name: ubuntu-worker
     docker_image: ubuntu
   tasks:
-    - name: Pull image  # noqa: syntax-check[specific]
+    - name: Pull image  # noqa: syntax-check[unknown-module]
       community.docker.docker_image:
         name: '{{ docker_image }}'
         source: pull

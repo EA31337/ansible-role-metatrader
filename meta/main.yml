@@ -3,7 +3,7 @@ collections:
   - community.docker
 dependencies:
   - name: ea31337.wine
-    role: EA31337.wine
+    role: ea31337.wine
     scm: git
     src: https://github.com/EA31337/ansible-role-wine.git
     vars:
@@ -11,15 +11,20 @@ dependencies:
     version: dev
     when: ansible_os_family != "Windows"
   - name: ea31337.xvfb
-    role: EA31337.xvfb
+    role: ea31337.xvfb
     scm: git
     src: https://github.com/EA31337/ansible-role-xvfb.git
     version: dev
     when: ansible_os_family != "Windows"
 galaxy_info:
   author: EA31337 Ltd
-  description: Role to install MetaTrader platform.
+  description: |
+    Role to install MetaTrader platform.
   galaxy_tags:
+    - emulator
+    - forex
+    - trading
+    - linux
     - windows
   issue_tracker_url: https://github.com/EA31337/ansible-role-metatrader
   license: GPLv3
