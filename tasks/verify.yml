@@ -10,7 +10,7 @@
   when: ansible_os_family != "Windows"
 - name: Checks if Meta Editor exists
   changed_when: false
-  failed_when: find_mt_res.matched == 0
+  failed_when: find_mte_res.matched == 0
   ansible.builtin.find:
     paths: '{{ ansible_env.HOME }}/.wine/drive_c'
     patterns: metaeditor*.exe
