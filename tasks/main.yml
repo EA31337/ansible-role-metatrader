@@ -43,3 +43,5 @@
         state: absent
 - name: Verifies
   ansible.builtin.include_tasks: verify.yml
+  tags:
+    - metatrader_verify
