@@ -29,7 +29,7 @@
       failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
         paths: '{{ ansible_env.HOME }}/.wine/drive_c'
-        patterns: [mM]eta[eE]ditor*.exe
+        patterns: "[mM]eta[eE]ditor*.exe"
         recurse: true
       register: find_mte_res
       when: ansible_os_family != "Windows"
