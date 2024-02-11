@@ -12,6 +12,7 @@ on:
       - '*dev*'
     paths:
       - '.github/workflows/platform.yml'
+  workflow_call:
 
 jobs:
   Install-MT4-Linux:
