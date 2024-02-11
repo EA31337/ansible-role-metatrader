@@ -4,6 +4,7 @@ name: Platform
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
   CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
+  CLEANUP_NEEDS: ${{ inputs.cleanup_needs || 'platform-linux' }}
   REPOSITORY: EA31337/ansible-role-metatrader
   VERSION: ${{ inputs.version || 5 }}
   WORKDIR: ${{ inputs.workdir || github.workspace }}
@@ -24,6 +25,11 @@ on:
       artifact:
         default: platform
         description: Artifact name
+        required: false
+        type: string
+      cleanup_needs:
+        default: platform-linux
+        description: Name of job to wait with clean-up steps
         required: false
         type: string
       ref:
@@ -78,11 +84,10 @@ jobs:
             ~/.wine/drive_c/Program Files*/**/*Meta*
     timeout-minutes: 20
   cleanup:
-    if: ${{ github.event_name != 'workflow_call' }}
     name: Clean-up
-    needs: [platform-linux]
+    needs: ${{ env.CLEANUP_NEEDS }}
     runs-on: ubuntu-latest
     steps:
       - uses: geekyeggo/delete-artifact@v4
         with:
-          name: platform*
+          name: ${{ env.ARTIFACT_NAME }}
