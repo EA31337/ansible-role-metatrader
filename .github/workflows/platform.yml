@@ -3,6 +3,8 @@ name: Platform
 
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
+  CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
+  REPOSITORY: EA31337/ansible-role-metatrader
   VERSION: ${{ inputs.version || 5 }}
   WORKDIR: ${{ inputs.workdir || github.workspace }}
 
@@ -22,6 +24,11 @@ on:
       artifact:
         default: platform
         description: Artifact name
+        required: false
+        type: string
+      ref:
+        default: dev
+        description: The branch, tag or SHA to checkout.
         required: false
         type: string
       version:
@@ -46,6 +53,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+          repository: ${{ env.REPOSITORY }}
       - name: Runs playbook
         uses: dawidd6/action-ansible-playbook@v2
         with:
