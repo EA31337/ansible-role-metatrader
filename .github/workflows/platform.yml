@@ -85,4 +85,4 @@ jobs:
     steps:
       - uses: geekyeggo/delete-artifact@v4
         with:
-          name: platform*
+          name: ${{ env.ARTIFACT_NAME }}
