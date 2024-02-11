@@ -13,6 +13,12 @@ on:
     paths:
       - '.github/workflows/platform.yml'
   workflow_call:
+    inputs:
+      workdir:
+        default: "${{ github.workspace }}"
+        description: 'Working directory'
+        required: false
+        type: string
 
 jobs:
   Install-MT4-Linux:
@@ -26,7 +32,7 @@ jobs:
             [defaults]
             nocows = false
             stdout_callback = yaml
-          directory: ${{ github.workspace }}
+          directory: ${{ inputs.workdir }}
           options: |
             --connection local
             --inventory localhost,
@@ -51,7 +57,7 @@ jobs:
             [defaults]
             nocows = false
             stdout_callback = yaml
-          directory: ${{ github.workspace }}
+          directory: ${{ inputs.workdir }}
           options: |
             --connection local
             --inventory localhost,
