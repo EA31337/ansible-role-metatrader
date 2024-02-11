@@ -33,9 +33,16 @@ on:
         description: Working directory
         required: false
         type: string
+    outputs:
+      workdir:
+        description: Working directory
+        value: ${{ jobs.platform-linux.outputs.workdir }}
 
 jobs:
-  Platform-Linux:
+  platform-linux:
+    name: Platform (Linux)
+    outputs:
+      workdir: ${{ github.workspace }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,10 +67,10 @@ jobs:
             ~/.wine/drive_c/Program Files*/**/*MT*
             ~/.wine/drive_c/Program Files*/**/*Meta*
     timeout-minutes: 20
-  Cleanup:
+  cleanup:
     if: ${{ github.event_name != 'workflow_call' }}
-    needs:
-      - Platform-Linux
+    name: Clean-up
+    needs: [platform-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: geekyeggo/delete-artifact@v4
