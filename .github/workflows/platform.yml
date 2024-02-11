@@ -33,8 +33,10 @@ jobs:
           requirements: meta/galaxy-requirements.yml
       - uses: actions/upload-artifact@v4
         with:
-          name: platform-files
-          path: ~/.wine/drive_c/Program Files*/*(Meta|MT)*
+          name: platform
+          path: |
+            ~/.wine/drive_c/Program Files*/*MT*
+            ~/.wine/drive_c/Program Files*/*Meta*
     timeout-minutes: 20
   Install-MT5:
     runs-on: ubuntu-latest
@@ -55,6 +57,8 @@ jobs:
           requirements: meta/galaxy-requirements.yml
       - uses: actions/upload-artifact@v4
         with:
-          name: platform-files
-          path: ~/.wine/drive_c/Program Files*/*{Meta|MT}*
+          name: platform
+          path: |
+            ~/.wine/drive_c/Program Files*/*MT*
+            ~/.wine/drive_c/Program Files*/*Meta*
     timeout-minutes: 20
