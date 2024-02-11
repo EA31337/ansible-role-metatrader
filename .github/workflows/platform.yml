@@ -31,6 +31,11 @@ jobs:
             --verbose
           playbook: molecule/mt4/converge.yml
           requirements: meta/galaxy-requirements.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: platform-files
+          path: ~/.wine/drive_c/Program Files*/*(Meta|MT)*
+    timeout-minutes: 20
   Install-MT5:
     runs-on: ubuntu-latest
     steps:
@@ -48,3 +53,8 @@ jobs:
             --verbose
           playbook: molecule/mt5/converge.yml
           requirements: meta/galaxy-requirements.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: platform-files
+          path: ~/.wine/drive_c/Program Files*/*{Meta|MT}*
+    timeout-minutes: 20
