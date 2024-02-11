@@ -1,19 +1,24 @@
 ---
-- name: Checks if Meta Terminal exists
-  changed_when: false
-  failed_when: find_mt_res.matched == 0
-  ansible.builtin.find:
-    paths: '{{ ansible_env.HOME }}/.wine/drive_c'
-    patterns: terminal*.exe
-    recurse: true
-  register: find_mt_res
-  when: ansible_os_family != "Windows"
-- name: Checks if Meta Editor exists
-  changed_when: false
-  failed_when: find_mt_res.matched == 0
-  ansible.builtin.find:
-    paths: '{{ ansible_env.HOME }}/.wine/drive_c'
-    patterns: metaeditor*.exe
-    recurse: true
-  register: find_mte_res
-  when: ansible_os_family != "Windows"
+- name: Verifies platform files exist
+  tags:
+    - metatrader_verify
+  block:
+    - name: Checks if platform's terminal exists
+      changed_when: false
+      failed_when: find_mt_res.matched == 0
+      ansible.builtin.find:
+        paths: '{{ ansible_env.HOME }}/.wine/drive_c'
+        patterns: terminal*.exe
+        recurse: true
+      register: find_mt_res
+      when: ansible_os_family != "Windows"
+
+    - name: Checks if platform's editor exists
+      changed_when: false
+      failed_when: find_mte_res.matched == 0
+      ansible.builtin.find:
+        paths: '{{ ansible_env.HOME }}/.wine/drive_c'
+        patterns: "[mM]eta[eE]ditor*.exe"
+        recurse: true
+      register: find_mte_res
+      when: ansible_os_family != "Windows"

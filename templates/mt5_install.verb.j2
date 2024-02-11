@@ -23,8 +23,7 @@ load_mt5_install()
         SetTitleMatchMode, RegEx
         WinWait, MetaTrader 5,, 30
         Send, {Enter}
-        WinWait, MetaTrader 5 Setup, Congratulations!
-        Send, {Tab}{Enter}
+        WinWaitClose
         Process, Wait, terminal64.exe, 30
         Process, Close, terminal64.exe
     "
