@@ -14,7 +14,7 @@ on:
       - '.github/workflows/platform.yml'
 
 jobs:
-  Install-MT4:
+  Install-MT4-Linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,12 +33,12 @@ jobs:
           requirements: meta/galaxy-requirements.yml
       - uses: actions/upload-artifact@v4
         with:
-          name: platform
+          name: platform4
           path: |
-            ~/.wine/drive_c/Program Files*/*MT*
-            ~/.wine/drive_c/Program Files*/*Meta*
+            ~/.wine/drive_c/Program Files*/**/*MT*
+            ~/.wine/drive_c/Program Files*/**/*Meta*
     timeout-minutes: 20
-  Install-MT5:
+  Install-MT5-Linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,8 +57,17 @@ jobs:
           requirements: meta/galaxy-requirements.yml
       - uses: actions/upload-artifact@v4
         with:
-          name: platform
+          name: platform5
           path: |
-            ~/.wine/drive_c/Program Files*/*MT*
-            ~/.wine/drive_c/Program Files*/*Meta*
+            ~/.wine/drive_c/Program Files*/**/*MT*
+            ~/.wine/drive_c/Program Files*/**/*Meta*
     timeout-minutes: 20
+  Cleanup-MT-Linux:
+    needs:
+      - Install-MT4-Linux
+      - Install-MT5-Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: geekyeggo/delete-artifact@v4
+        with:
+          name: platform*
