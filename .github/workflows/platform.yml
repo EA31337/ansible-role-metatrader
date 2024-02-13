@@ -1,12 +1,12 @@
 ---
-name: Platform
+name: Platform (Linux)
 
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
   CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
+  CLEANUP: ${{ inputs.cleanup || true }}
   REPOSITORY: EA31337/ansible-role-metatrader
   VERSION: ${{ inputs.version || 5 }}
-  WORKDIR: ${{ inputs.workdir || github.workspace }}
 
 # yamllint disable-line rule:truthy
 on:
@@ -26,6 +26,11 @@ on:
         description: Artifact name
         required: false
         type: string
+      cleanup:
+        default: false
+        description: Whether to run clean-up job
+        required: false
+        type: boolean
       ref:
         default: dev
         description: The branch, tag or SHA to checkout.
@@ -35,19 +40,10 @@ on:
         default: 5
         description: Version to install
         type: number
-      workdir:
-        default: ${{ github.workspace }}
-        description: Working directory
-        required: false
-        type: string
-    outputs:
-      workdir:
-        description: Working directory
-        value: ${{ jobs.platform-linux.outputs.workdir }}
 
 jobs:
   platform-linux:
-    name: Platform (Linux)
+    name: Platform
     outputs:
       workdir: ${{ github.workspace }}
     runs-on: ubuntu-latest
@@ -78,11 +74,11 @@ jobs:
             ~/.wine/drive_c/Program Files*/**/*Meta*
     timeout-minutes: 20
   cleanup:
-    if: ${{ github.event_name != 'workflow_call' }}
     name: Clean-up
     needs: [platform-linux]
     runs-on: ubuntu-latest
     steps:
       - uses: geekyeggo/delete-artifact@v4
+        if: env.CLEANUP && github.repository == env.REPOSITORY
         with:
           name: ${{ env.ARTIFACT_NAME }}
