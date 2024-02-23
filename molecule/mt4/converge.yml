@@ -3,7 +3,7 @@
   hosts: all
   tasks:
     - name: Include main role
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: ea31337.metatrader
       vars:
         metatrader_setup_url: |
