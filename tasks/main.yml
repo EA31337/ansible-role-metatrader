@@ -60,10 +60,13 @@
   ansible.builtin.include_tasks: verify.yml
   tags:
     - metatrader_verify
-- name: Stores platform paths as facts
+- name: Saves platform facts
   become: true
   when:
-    - ansible_local['metatrader'] is not defined
+    - >-
+      ansible_local['metatrader'] is not defined
+      or (find_mt_res.files[0].path | dirname)
+          != ansible_local['metatrader'][metatrader_version | string].path
   block:
     - name: Sets fact
       ansible.builtin.set_fact:

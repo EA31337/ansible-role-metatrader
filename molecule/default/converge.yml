@@ -1,6 +1,7 @@
 ---
 - name: Converge
   hosts: all
+  gather_facts: true
   tasks:
     - name: Include main role
       ansible.builtin.import_role:
