@@ -22,16 +22,3 @@
         recurse: true
       register: find_mte_res
       when: ansible_os_family != "Windows"
-- name: Stores platform paths as facts
-  block:
-    - name: Sets fact
-      ansible.builtin.set_fact:
-        metatrader: >-
-          { '{{ metatrader_version | int }}': {'path': '{{ find_mt_res.files[0].path | dirname }}'}}
-      when:
-        - find_mt_res is defined
-        - find_mt_res.files | length > 0
-        - metatrader_version is defined
-    - name: Prints current facts
-      ansible.builtin.debug:
-        var: hostvars[inventory_hostname]['metatrader']

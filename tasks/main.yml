@@ -1,31 +1,44 @@
 ---
-- name: Validates variables
-  ansible.builtin.assert:
-    that:
-      - metatrader_setup_url | length > 0
-- name: Checks if platform is already installed
-  register: file_mt_installed_exists
+- name: Collects local facts
+  ansible.builtin.setup:
+    filter:
+      - ansible_local
+  when: false
+- name: Checks if platform is already exist
   ansible.builtin.stat:
-    path: ~/.wine/.installed-mt{{ metatrader_version }}
+    path: "{{ ansible_local['metatrader'][metatrader_version | string].path }}"
+  register: stat_mt
+  when: ansible_local['metatrader'] is defined
+- name: Ensures platform is installed
   when:
-    - ansible_os_family != "Windows"
-- name: Ensures Curl is present
-  ansible.builtin.package:
-    name: curl
-    state: present
-  when:
-    - ansible_os_family != "Windows"
-    - not file_mt_installed_exists.stat.exists
-- name: Installs MetaTrader (via Winetricks)
-  when:
-    - ansible_os_family != "Windows"
-    - not file_mt_installed_exists.stat.exists
+    - ansible_local['metatrader'] is not defined
+    - ansible_os_family != "Windows"  # gather_facts is required.
+    - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
   block:
+    - name: Validates variables
+      ansible.builtin.assert:
+        that:
+          - metatrader_setup_url | length > 0
+    - name: Checks if platform is already installed
+      register: file_mt_installed_exists
+      ansible.builtin.stat:
+        path: ~/.wine/.installed-mt{{ metatrader_version }}
+      when:
+        - ansible_os_family != "Windows"
+    - name: Ensures Curl is present
+      ansible.builtin.package:
+        name: curl
+        state: present
+      when:
+        - ansible_os_family != "Windows"
+        - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
         src: mt{{ metatrader_version }}_install.verb.j2
         dest: /tmp/mt{{ metatrader_version }}_install.verb
         mode: "0640"
+      when:
+        - not file_mt_installed_exists.stat.exists
     - name: Ensures MetaTrader is installed (via verb file)
       ansible.builtin.shell:
         # noqa command-instead-of-shell
@@ -37,6 +50,8 @@
         creates: ~/.wine/.installed-mt{{ metatrader_version }}
       args:
         executable: /bin/bash
+      when:
+        - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is absent
       ansible.builtin.file:
         path: /tmp/mt{{ metatrader_version }}_install.verb
@@ -45,3 +60,32 @@
   ansible.builtin.include_tasks: verify.yml
   tags:
     - metatrader_verify
+- name: Stores platform paths as facts
+  become: true
+  when:
+    - ansible_local['metatrader'] is not defined
+  block:
+    - name: Sets fact
+      ansible.builtin.set_fact:
+        cacheable: true
+        metatrader: >-
+          {
+            '{{ metatrader_version | int }}':
+              {
+                'path': '{{ find_mt_res.files[0].path | dirname }}'
+              }
+          }
+      when:
+        - find_mt_res is defined
+        - find_mt_res.files | length > 0
+        - metatrader_version is defined
+    - name: Ensures that Ansible local facts directory exists
+      ansible.builtin.file:
+        path: /etc/ansible/facts.d
+        state: directory
+        mode: '0755'
+    - name: Saves role's facts
+      ansible.builtin.copy:
+        content: "{{ ansible_facts['metatrader'] }}"
+        dest: /etc/ansible/facts.d/metatrader.fact
+        mode: "0644"
