@@ -1,9 +1,10 @@
 ---
 - name: Converge
   hosts: all
+  gather_facts: true
   tasks:
     - name: Include main role
-      ansible.builtin.include_role:
+      ansible.builtin.import_role:
         name: ea31337.metatrader
       vars:
         # @fixme: https://github.com/Winetricks/winetricks/issues/2119

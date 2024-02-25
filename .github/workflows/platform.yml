@@ -1,0 +1,84 @@
+---
+name: Platform (Linux)
+
+env:
+  ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
+  CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
+  CLEANUP: ${{ inputs.cleanup || true }}
+  REPOSITORY: EA31337/ansible-role-metatrader
+  VERSION: ${{ inputs.version || 5 }}
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/platform.yml'
+  push:
+    branches:
+      - 'master'
+      - '*dev*'
+    paths:
+      - '.github/workflows/platform.yml'
+  workflow_call:
+    inputs:
+      artifact:
+        default: platform
+        description: Artifact name
+        required: false
+        type: string
+      cleanup:
+        default: false
+        description: Whether to run clean-up job
+        required: false
+        type: boolean
+      ref:
+        default: dev
+        description: The branch, tag or SHA to checkout.
+        required: false
+        type: string
+      version:
+        default: 5
+        description: Version to install
+        type: number
+
+jobs:
+  platform-linux:
+    name: Platform
+    outputs:
+      workdir: ${{ github.workspace }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+          repository: ${{ env.REPOSITORY }}
+      - name: Runs playbook
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          configuration: |
+            [defaults]
+            nocows = false
+            stdout_callback = yaml
+          directory: ${{ env.WORKDIR }}
+          options: |
+            --connection local
+            --inventory localhost,
+            --verbose
+          playbook: molecule/mt${{ env.VERSION }}/converge.yml
+          requirements: meta/galaxy-requirements.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: |
+            ~/.wine/drive_c/Program Files*/**/*MT*
+            ~/.wine/drive_c/Program Files*/**/*Meta*
+    timeout-minutes: 20
+  cleanup:
+    name: Clean-up
+    needs: [platform-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: geekyeggo/delete-artifact@v4
+        if: env.CLEANUP && github.repository == env.REPOSITORY
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
