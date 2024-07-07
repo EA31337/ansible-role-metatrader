@@ -8,8 +8,8 @@ lint: |
 platforms:
   - name: debian-latest
     image: debian:latest
-  - name: ubuntu-latest
-    image: ubuntu:latest
+  - name: ubuntu-jammy
+    image: ubuntu:jammy
 provisioner:
   config_options:
     defaults:
