@@ -2,14 +2,14 @@
 # .ansible-lint
 exclude_paths:
   - "*.yml.swp"
-  - .cache/ # implicit unless exclude_paths is defined in config
+  - .cache/  # implicit unless exclude_paths is defined in config
 # Ansible-lint does not automatically load rules that have the 'opt-in' tag.
 # You must enable opt-in rules by listing each rule 'id' below.
 enable_list:
   - args
-  - empty-string-compare # opt-in
-  - no-log-password # opt-in
-  - no-same-owner # opt-in
+  - empty-string-compare  # opt-in
+  - no-log-password  # opt-in
+  - no-same-owner  # opt-in
   # - name[prefix] # opt-in
   # add yaml here if you want to avoid ignoring yaml checks when yamllint
   # library is missing. Normally its absence just skips using that rule.
