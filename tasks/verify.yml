@@ -7,41 +7,73 @@
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.builtin.find:
-        paths: '{{ ansible_env.HOME }}/.wine/drive_c'
+        paths: "{{ ansible_env.HOME }}/.wine/drive_c"
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
       when: ansible_os_family != "Windows"
+
+    - name: Store platform's path (Unix)
+      ansible.builtin.set_fact:
+        find_mt_path: '"{{ find_mt_res.files[0].path }}"'
+        find_mt_path_folder: "{{ find_mt_res.files[0].path | dirname }}"
+      when:
+        - ansible_os_family != "Windows"
+        - find_mt_res.files | length > 0
 
     - name: Checks if platform's terminal exists (Windows)
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.windows.win_find:
-        paths: 'C:/Program Files/MetaTrader 5'
+        paths: C:/Program Files/MetaTrader 5
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
       when: ansible_os_family == "Windows"
 
+    - name: Store platform's path (Windows)
+      ansible.builtin.set_fact:
+        find_mt_path: "{{ find_mt_res.files[0].path }}"
+        find_mt_path_folder: "{{ find_mt_res.files[0].path | win_dirname }}"
+      when:
+        - ansible_os_family == "Windows"
+        - find_mt_res.files | length > 0
+
     - name: Checks if platform's editor exists (Unix)
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
-        paths: '{{ ansible_env.HOME }}/.wine/drive_c'
+        paths: "{{ ansible_env.HOME }}/.wine/drive_c"
         patterns: "[mM]eta[eE]ditor*.exe"
         recurse: true
       register: find_mte_res
       when: ansible_os_family != "Windows"
 
+    - name: Store platform's editor path (Unix)
+      ansible.builtin.set_fact:
+        find_mte_path: "{{ find_mte_res.files[0].path }}"
+        find_mte_path_folder: "{{ find_mte_res.files[0].path | dirname }}"
+      when:
+        - ansible_os_family != "Windows"
+        - find_mte_res.files | length > 0
+
     - name: Checks if platform's editor exists (Windows)
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.windows.win_find:
-        paths: 'C:/Program Files/MetaTrader 5'
+        paths: C:/Program Files/MetaTrader 5
         patterns: "[mM]eta[eE]ditor*.exe"
         recurse: true
       register: find_mte_res
       when: ansible_os_family == "Windows"
+
+    - name: Store platform's editor path (Windows)
+      ansible.builtin.set_fact:
+        find_mte_path: "{{ find_mte_res.files[0].path }}"
+        find_mte_path_folder: "{{ find_mte_res.files[0].path | win_dirname }}"
+      when:
+        - ansible_os_family == "Windows"
+        - find_mte_res.files | length > 0
 
     - name: Check WSL's default distribution name (Windows)
       changed_when: false
@@ -55,8 +87,7 @@
 
     - name: Store WSL's default distribution name (Windows)
       ansible.builtin.set_fact:
-        wsl_distribution_name: '{{ wsl_distribution_name_result.output[0]
-          | regex_replace("\u0000", "") }}'
+        wsl_distribution_name: '{{ wsl_distribution_name_result.output[0] | regex_replace("\u0000", "") }}'
       when: ansible_os_family == "Windows"
 
     - name: Check WSL's default user name (Windows)

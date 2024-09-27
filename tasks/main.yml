@@ -12,7 +12,7 @@
 - name: Ensures platform is installed
   when:
     - ansible_local['metatrader'] is not defined
-    - ansible_os_family != "Windows"  # gather_facts is required.
+    - ansible_os_family != "Windows" # gather_facts is required.
     - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
   block:
     - name: Validates variables
@@ -65,49 +65,32 @@
   when:
     - >-
       ansible_local['metatrader'] is not defined
-      or (find_mt_res.files[0].path | dirname)
-          != ansible_local['metatrader'][metatrader_version | string].path
+      or (find_mt_path_folder)
+      != ansible_local['metatrader'][metatrader_version | string].path
   block:
-    - name: Sets fact (Unix)
+    - name: Sets fact
       ansible.builtin.set_fact:
         cacheable: true
         metatrader: >-
           {
             '{{ metatrader_version | int }}':
               {
-                'path': '{{ find_mt_res.files[0].path | dirname }}'
+                'path': '{{ find_mt_path_folder | dirname }}'
               }
           }
       when:
-        - find_mt_res is defined
-        - find_mt_res.files | length > 0
+        - find_mt_path_folder is defined
+        - find_mt_path_folder | length > 0
         - metatrader_version is defined
-        - ansible_os_family != "Windows"
-    - name: Sets fact (Windows)
-      ansible.builtin.set_fact:
-        cacheable: true
-        metatrader: >-
-          {
-            '{{ metatrader_version | int }}':
-              {
-                'path': '{{ find_mt_res.files[0].path | win_dirname }}'
-              }
-          }
-      when:
-        - find_mt_res is defined
-        - find_mt_res.files | length > 0
-        - metatrader_version is defined
-        - ansible_os_family == "Windows"
     - name: Ensures that Ansible local facts directory exists (Unix)
       ansible.builtin.file:
         path: /etc/ansible/facts.d
         state: directory
-        mode: '0755'
+        mode: "0755"
       when: ansible_os_family != "Windows"
     - name: Ensures that Ansible local facts directory exists (Windows)
       ansible.windows.win_file:
-        path: '\\wsl.localhost\{{ wsl_distribution_name }}\home\{{
-          wsl_user_name }}\ansible\facts'
+        path: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts
         state: directory
       become: true
       become_method: ansible.builtin.runas
@@ -122,8 +105,7 @@
     - name: Saves role's facts (Windows)
       ansible.windows.win_copy:
         content: "{{ ansible_facts['metatrader'] }}"
-        dest: '\\wsl.localhost\{{ wsl_distribution_name }}\home\{{
-          wsl_user_name }}\ansible\facts\metatrader.fact'
+        dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
       become_method: ansible.builtin.runas
       become_user: "{{ ansible_env.USERNAME }}"

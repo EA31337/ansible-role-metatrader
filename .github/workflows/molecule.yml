@@ -5,7 +5,6 @@ name: Molecule
 on:
   pull_request:
   push:
-
 jobs:
   Test:
     runs-on: ubuntu-latest
@@ -16,17 +15,18 @@ jobs:
           - default
           - mt4
           - mt5
+          - mt5-win
     steps:
       - uses: actions/checkout@v4
         with:
-          path: "${{ github.repository }}"
+          path: ${{ github.repository }}
       - uses: gofrolist/molecule-action@v2
         env:
-          ANSIBLE_FORCE_COLOR: '1'
+          ANSIBLE_FORCE_COLOR: "1"
           ANSIBLE_STDOUT_CALLBACK: debug
         with:
           molecule_args: --scenario-name ${{ matrix.scenario }}
           molecule_command: test
           molecule_options: --verbose
-          molecule_working_dir: "${{ github.repository }}"
+          molecule_working_dir: ${{ github.repository }}
     timeout-minutes: 20
