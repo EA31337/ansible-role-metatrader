@@ -87,7 +87,9 @@
 
     - name: Store WSL's default distribution name (Windows)
       ansible.builtin.set_fact:
-        wsl_distribution_name: '{{ wsl_distribution_name_result.output[0] | regex_replace("\u0000", "") }}'
+        wsl_distribution_name: >-
+          {{ wsl_distribution_name_result.output[0]
+          | regex_replace("\u0000", "") }}
       when: ansible_os_family == "Windows"
 
     - name: Check WSL's default user name (Windows)
