@@ -1,0 +1,4 @@
+# .ansible-lint-windows.yml
+---
+skip_list:
+  - '302'  # Ignore rules specific to Linux or not applicable for Windows.
