@@ -2,7 +2,7 @@
 repos:
 
   - repo: https://github.com/ansible-community/ansible-lint
-    rev: v24.6.1
+    rev: v24.9.2
     hooks:
       - id: ansible-lint
 
@@ -19,7 +19,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/igorshubovych/markdownlint-cli.git
-    rev: v0.41.0
+    rev: v0.42.0
     hooks:
       - id: markdownlint
 
