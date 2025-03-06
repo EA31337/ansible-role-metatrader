@@ -16,7 +16,8 @@ on:
   push:
     branches:
       - master
-      - "*dev*"
+      - "dev"
+      - "dev-*"
     paths:
       - .github/workflows/platform.yml
   workflow_call:
