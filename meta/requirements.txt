@@ -1,0 +1,5 @@
+# Python's requirements
+# Usage: pip install -r requirements.txt
+docker==4.4
+molecule
+molecule-docker

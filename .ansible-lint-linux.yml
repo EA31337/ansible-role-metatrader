@@ -1,0 +1,4 @@
+# .ansible-lint-linux.yml
+---
+skip_list:
+  - '301'  # Ignore rules that are platform-specific or not relevant for Linux

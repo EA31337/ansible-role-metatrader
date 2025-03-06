@@ -1,3 +1,4 @@
+# ansible-lint: syntax-check
 ---
 driver:
   name: docker
@@ -6,10 +7,8 @@ lint: |
   yamllint .
   ansible-lint
 platforms:
-  - name: debian-latest
-    image: debian:latest
-  - name: ubuntu-jammy
-    image: ubuntu:jammy
+  - name: windows
+    image: mcr.microsoft.com/windows/servercore:ltsc2022
 provisioner:
   config_options:
     defaults:

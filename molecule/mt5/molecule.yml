@@ -1,1 +1,23 @@
-../default/molecule.yml
+---
+driver:
+  name: docker
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+platforms:
+  - name: debian-latest
+    image: debian:latest
+  - name: ubuntu-jammy
+    image: ubuntu:jammy
+provisioner:
+  config_options:
+    defaults:
+      remote_tmp: /tmp/.ansible-tmp-$${USER}
+  name: ansible
+  inventory:
+    group_vars:
+      all:
+        wine_install_winetricks: true
+verifier:
+  name: ansible

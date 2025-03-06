@@ -12,13 +12,14 @@ env:
 on:
   pull_request:
     paths:
-      - '.github/workflows/platform.yml'
+      - .github/workflows/platform.yml
   push:
     branches:
-      - 'master'
-      - '*dev*'
+      - master
+      - "dev"
+      - "dev-*"
     paths:
-      - '.github/workflows/platform.yml'
+      - .github/workflows/platform.yml
   workflow_call:
     inputs:
       artifact:
@@ -46,7 +47,7 @@ jobs:
     name: Platform
     outputs:
       workdir: ${{ github.workspace }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,7 +59,8 @@ jobs:
           configuration: |
             [defaults]
             nocows = false
-            stdout_callback = yaml
+            stdout_callback = default
+            callback_result_format = yaml
           directory: ${{ env.WORKDIR }}
           options: |
             --connection local

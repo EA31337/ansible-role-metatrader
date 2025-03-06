@@ -65,8 +65,8 @@
   when:
     - >-
       ansible_local['metatrader'] is not defined
-      or (find_mt_res.files[0].path | dirname)
-          != ansible_local['metatrader'][metatrader_version | string].path
+      or (find_mt_path_folder)
+      != ansible_local['metatrader'][metatrader_version | string].path
   block:
     - name: Sets fact
       ansible.builtin.set_fact:
@@ -75,20 +75,40 @@
           {
             '{{ metatrader_version | int }}':
               {
-                'path': '{{ find_mt_res.files[0].path | dirname }}'
+                'path': '{{ find_mt_path_folder | dirname }}'
               }
           }
       when:
-        - find_mt_res is defined
-        - find_mt_res.files | length > 0
+        - find_mt_path_folder is defined
+        - find_mt_path_folder | length > 0
         - metatrader_version is defined
-    - name: Ensures that Ansible local facts directory exists
+    - name: Ensures that Ansible local facts directory exists (Unix)
       ansible.builtin.file:
         path: /etc/ansible/facts.d
         state: directory
-        mode: '0755'
-    - name: Saves role's facts
+        mode: "0755"
+      when: ansible_os_family != "Windows"
+    - name: Ensures that Ansible local facts directory exists (Windows)
+      ansible.windows.win_file:
+        # yamllint disable-line rule:line-length
+        path: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts
+        state: directory
+      become: true
+      become_method: ansible.builtin.runas
+      become_user: "{{ ansible_env.USERNAME }}"
+      when: ansible_os_family == "Windows"
+    - name: Saves role's facts (Unix)
       ansible.builtin.copy:
         content: "{{ ansible_facts['metatrader'] }}"
         dest: /etc/ansible/facts.d/metatrader.fact
         mode: "0644"
+      when: ansible_os_family != "Windows"
+    - name: Saves role's facts (Windows)
+      ansible.windows.win_copy:
+        content: "{{ ansible_facts['metatrader'] }}"
+        # yamllint disable-line rule:line-length
+        dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
+      become: true
+      become_method: ansible.builtin.runas
+      become_user: "{{ ansible_env.USERNAME }}"
+      when: ansible_os_family == "Windows"
