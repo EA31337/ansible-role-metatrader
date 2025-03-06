@@ -1,1 +1,4 @@
-../default/prepare.yml
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
