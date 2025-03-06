@@ -7,9 +7,5 @@
         name: ea31337.metatrader
       vars:
         metatrader_version: 5
-        # @fixme: https://github.com/Winetricks/winetricks/issues/2119
-        # noqa: var-naming[no-role-prefix]
-        wine_winetricks_url: >-
-          https://raw.githubusercontent.com/kenorb-contrib/winetricks/GH-2119-fix/src/winetricks
         # noqa: var-naming[no-role-prefix]
         wine_winetricks_winver: win10
