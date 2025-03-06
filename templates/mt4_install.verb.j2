@@ -11,7 +11,7 @@ load_mt4_install()
 
     if w_workaround_wine_bug 7156 "${title} needs wingdings.ttf, installing opensymbol"
     then
-      echo w_call opensymbol # @fixme: https://github.com/Winetricks/winetricks/issues/2236
+      w_call opensymbol
     fi
 
     # Opens a webpage.
