@@ -1,4 +1,3 @@
-# ansible-lint: syntax-check
 ---
 driver:
   name: docker
