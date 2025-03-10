@@ -10,6 +10,8 @@ platforms:
     image: debian:latest
   - name: ubuntu-jammy
     image: ubuntu:jammy
+  - name: ubuntu-noble
+    image: ubuntu:noble
 provisioner:
   config_options:
     defaults:
