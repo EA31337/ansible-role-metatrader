@@ -8,7 +8,7 @@ dependencies:
     src: https://github.com/EA31337/ansible-role-wine.git
     vars:
       wine_install_winetricks: true
-    version: v1.0.0
+    version: v1.0.1
     when: ansible_os_family != "Windows"
   - name: ea31337.xvfb
     role: ea31337.xvfb
