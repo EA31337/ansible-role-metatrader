@@ -1,5 +1,7 @@
 # Python's requirements
 # Usage: pip install -r requirements.txt
-docker==4.4
+docker
+pipenv
 molecule
 molecule-docker
+requests==2.31.0
