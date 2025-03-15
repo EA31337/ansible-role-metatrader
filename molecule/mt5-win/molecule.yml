@@ -1,1 +1,26 @@
-../default/molecule-win.yml
+---
+driver:
+  name: docker
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+platforms:
+  - name: windows
+    image: mcr.microsoft.com/windows/servercore:ltsc2022
+provisioner:
+  config_options:
+    defaults:
+      callback_result_format: yaml
+      remote_tmp: /tmp/.ansible-tmp-$${USER}
+  name: ansible
+  inventory:
+    group_vars:
+      all:
+        wine_install_winetricks: true
+      options:
+        v: true
+      playbooks:
+        prepare: ../default/prepare.yml
+verifier:
+  name: ansible
