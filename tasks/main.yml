@@ -30,7 +30,7 @@
         name: curl
         state: present
       when:
-        - ansible_os_family != "Windows"
+        - ansible_os_family not in ["Windows", "OtherLinux"]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
