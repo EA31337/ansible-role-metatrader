@@ -23,6 +23,7 @@ platforms:
 provisioner:
   config_options:
     defaults:
+      callback_result_format: yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
   name: ansible
   inventory:
