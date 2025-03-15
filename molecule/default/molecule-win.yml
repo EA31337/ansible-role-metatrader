@@ -18,5 +18,9 @@ provisioner:
     group_vars:
       all:
         wine_install_winetricks: true
+      options:
+        v: true
+      playbooks:
+        prepare: ../default/prepare.yml
 verifier:
   name: ansible
