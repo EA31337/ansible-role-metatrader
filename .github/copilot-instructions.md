@@ -40,6 +40,7 @@ You are expected to be an expert in:
 Rules:
 
 - yaml[truthy]: Truthy value should be one of [false, true]
+- When writing inline code, add a new line at the end to maintain proper indentation
 
 ## Project Specifics
 
