@@ -46,8 +46,6 @@
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
           && touch ~/.wine/.installed-mt{{ metatrader_version }}
         creates: ~/.wine/.installed-mt{{ metatrader_version }}
-      args:
-        executable: /bin/bash
       environment:
         DISPLAY: ":0"
         WINEDLLOVERRIDES: mscoree,mshtml=,winebrowser.exe=
