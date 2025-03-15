@@ -5,8 +5,10 @@ name: Molecule
 on:
   pull_request:
   push:
+
 jobs:
-  Test:
+  test:
+    name: Test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,11 +24,23 @@ jobs:
           path: ${{ github.repository }}
       - uses: gofrolist/molecule-action@v2
         env:
-          ANSIBLE_FORCE_COLOR: "1"
+          ANSIBLE_FORCE_COLOR: '1'
           ANSIBLE_STDOUT_CALLBACK: debug
         with:
           molecule_args: --scenario-name ${{ matrix.scenario }}
           molecule_command: test
           molecule_options: --verbose
           molecule_working_dir: ${{ github.repository }}
+      # Debug with tmate on failure when debug logging is enabled.
+      - if: ${{ failure() && runner.debug == '1' }}
+        uses: mxschmitt/action-tmate@v3
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## Molecule Test Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Scenario:** ${{ matrix.scenario }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "For more details, please check the full logs in the Actions tab." >> $GITHUB_STEP_SUMMARY
     timeout-minutes: 20
