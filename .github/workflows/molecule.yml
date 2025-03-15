@@ -13,9 +13,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - platform: nixos-latest
-            scenario: default
         platform:
           - debian-latest
           - nixos-latest
@@ -23,6 +20,7 @@ jobs:
           - ubuntu-noble
           - ubuntu-latest
         scenario:
+          - default
           - mt4
           - mt5
           # - mt5-win
