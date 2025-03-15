@@ -1,18 +1,4 @@
 ---
 - name: Prepare
   hosts: all
-  gather_facts: true
-
-  tasks:
-
-    - name: Ensure Awk is present (Linux)
-      ansible.builtin.package:
-        name: awk  # Required for winetricks.
-        state: present
-      when:
-        - ansible_os_family not in ["Windows", "OtherLinux"]
-
-    - name: Check if Nix store exists
-      ansible.builtin.stat:
-        path: /nix/store
-      register: nix_store_stat
+  gather_facts: false
