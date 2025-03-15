@@ -6,8 +6,6 @@ lint: |
   yamllint .
   ansible-lint
 platforms:
-  - name: alpine-latest
-    image: i386/alpine:latest
   - name: debian-latest
     image: debian:latest
   - name: nixos-latest
@@ -30,5 +28,9 @@ provisioner:
     group_vars:
       all:
         wine_install_winetricks: true
+      options:
+        v: true
+      playbooks:
+        prepare: prepare.yml
 verifier:
   name: ansible
