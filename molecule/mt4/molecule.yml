@@ -8,16 +8,10 @@ lint: |
 platforms:
   - name: debian-latest
     image: debian:latest
-  - name: nixos-latest
-    dockerfile: ../resources/playbooks/Dockerfile.j2
-    image: nixos/nix:latest
-    pre_build_image: false
   - name: ubuntu-jammy
     image: ubuntu:jammy
   - name: ubuntu-noble
     image: ubuntu:noble
-  - name: ubuntu-latest
-    image: ubuntu:latest
 provisioner:
   config_options:
     defaults:
