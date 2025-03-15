@@ -13,11 +13,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        platform:
+          - debian-latest
+          - nixos-latest
+          - ubuntu-jammy
+          - ubuntu-noble
+          - ubuntu-latest
         scenario:
           - default
           - mt4
           - mt5
           # - mt5-win
+      max-parallel: 8
     steps:
       - uses: actions/checkout@v4
         with:
