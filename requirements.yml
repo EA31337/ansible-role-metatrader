@@ -10,8 +10,8 @@ roles:
   - name: ea31337.wine
     scm: git
     src: git+https://github.com/EA31337/ansible-role-wine.git
-    version: v1.0.1
+    version: 468fc6e4307e0e2c63ac7b06562d83e83fa9f023
   - name: ea31337.xvfb
     scm: git
     src: git+https://github.com/EA31337/ansible-role-xvfb.git
-    version: v1.0.0
+    version: 6bf9c85423fc48ae4c01158eb0ba64fe767dec4b
