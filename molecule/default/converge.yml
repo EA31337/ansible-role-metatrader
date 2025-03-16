@@ -6,6 +6,3 @@
     - name: Include main role
       ansible.builtin.import_role:
         name: ea31337.metatrader
-      vars:
-        # noqa: var-naming[no-role-prefix]
-        wine_winetricks_winver: win10

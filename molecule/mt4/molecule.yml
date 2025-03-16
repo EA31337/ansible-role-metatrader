@@ -8,10 +8,16 @@ lint: |
 platforms:
   - name: debian-latest
     image: debian:latest
+  - name: nixos-latest
+    dockerfile: ../resources/playbooks/Dockerfile.j2
+    image: nixos/nix:latest
+    pre_build_image: false
   - name: ubuntu-jammy
     image: ubuntu:jammy
   - name: ubuntu-noble
     image: ubuntu:noble
+  - name: ubuntu-latest
+    image: ubuntu:latest
 provisioner:
   config_options:
     defaults:
@@ -21,10 +27,16 @@ provisioner:
   inventory:
     group_vars:
       all:
+        metatrader_setup_url: |
+          https://download.mql5.com/cdn/web/3315/mt4/xm4setup.exe
+        metatrader_version: 4
+        # noqa: var-naming[no-role-prefix]
         wine_install_winetricks: true
+        wine_winetricks_winver: win10
       options:
         v: true
       playbooks:
+        converge: ../default/converge.yml
         prepare: ../default/prepare.yml
 verifier:
   name: ansible

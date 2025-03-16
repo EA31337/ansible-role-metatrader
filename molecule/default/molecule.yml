@@ -28,6 +28,8 @@ provisioner:
     group_vars:
       all:
         wine_install_winetricks: true
+        wine_release: staging
+        wine_winetricks_winver: win10
       options:
         v: true
       playbooks:
