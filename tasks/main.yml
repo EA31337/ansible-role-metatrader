@@ -15,16 +15,50 @@
     - ansible_os_family != "Windows"  # gather_facts is required.
     - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
   block:
+
     - name: Validates variables
       ansible.builtin.assert:
         that:
           - metatrader_setup_url | length > 0
+
     - name: Checks if platform is already installed
       register: file_mt_installed_exists
       ansible.builtin.stat:
         path: ~/.wine/.installed-mt{{ metatrader_version }}
       when:
         - ansible_os_family != "Windows"
+
+    - name: Check if Nix store exists
+      ansible.builtin.stat:
+        path: /nix/store
+      register: nix_store_stat
+      when: ansible_os_family == "OtherLinux"
+
+    - name: Check if gawk is already installed (Nix)
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          nix-env -q | grep -q gawk
+      changed_when: false
+      failed_when: awk_check.rc not in [0, 1]
+      register: awk_check
+      when: nix_store_stat.stat.exists
+
+    - name: Ensure gawk is installed (Nix)
+      ansible.builtin.command: nix-env -iA nixpkgs.gawk
+      when:
+        - nix_store_stat.stat.exists
+        - awk_check.rc != 0
+      register: awk_install
+      changed_when: awk_install.rc == 0
+
+    - name: Ensure gawk is present (Linux)
+      ansible.builtin.package:
+        name: gawk  # Required for winetricks.
+        state: present
+      when:
+        - ansible_os_family not in ["Windows", "OtherLinux"]
+
     - name: Ensures Curl is present
       ansible.builtin.package:
         name: curl
@@ -32,6 +66,7 @@
       when:
         - ansible_os_family not in ["Windows", "OtherLinux"]
         - not file_mt_installed_exists.stat.exists
+
     - name: Ensures verb installation file is present
       ansible.builtin.template:
         src: mt{{ metatrader_version }}_install.verb.j2
