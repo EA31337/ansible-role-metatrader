@@ -1,4 +1,4 @@
-# Copilot Instructions for ansible-role-wine
+# Copilot Instructions for ansible-role-metatrader
 
 You are expected to be an expert in:
 
@@ -44,10 +44,10 @@ Rules:
 
 ## Project Specifics
 
-This role installs and configures wine package with distribution-specific approaches:
+This role installs and configures packages with distribution-specific approaches:
 
-- **Alpine Linux**: Uses Apk package manager
-- **Debian/Ubuntu**: Uses Apt package manager
+- **Alpine Linux**: Uses apk package manager
+- **Debian/Ubuntu**: Uses apt package manager
 - **Nix**: Uses nix-env in lightweight Nix environments
 
 Notes:
