@@ -42,7 +42,10 @@
       changed_when: false
       failed_when: awk_check.rc not in [0, 1]
       register: awk_check
-      when: nix_store_stat.stat.exists
+      when:
+        - ansible_os_family == "OtherLinux"
+        - nix_store_stat is defined
+        - nix_store_stat.stat.exists
 
     - name: Ensure gawk is installed (Nix)
       ansible.builtin.command: nix-env -iA nixpkgs.gawk
