@@ -28,48 +28,10 @@
       when:
         - ansible_os_family != "Windows"
 
-    - name: Check if Nix store exists
-      ansible.builtin.stat:
-        path: /nix/store
-      register: nix_store_stat
-      when: ansible_os_family == "OtherLinux"
-
-    - name: Check if gawk is already installed (Nix)
-      ansible.builtin.shell:
-        cmd: |
-          set -o pipefail
-          nix-env -q | grep -q gawk
-      changed_when: false
-      failed_when: awk_check.rc not in [0, 1]
-      register: awk_check
+    - name: Install dependencies ({{ ansible_os_family }})
+      ansible.builtin.include_tasks:
+        file: install-deps-{{ ansible_os_family }}.yml
       when:
-        - ansible_os_family == "OtherLinux"
-        - nix_store_stat is defined
-        - nix_store_stat.stat.exists
-
-    - name: Ensure gawk is installed (Nix)
-      ansible.builtin.command: nix-env -iA nixpkgs.gawk
-      when:
-        - awk_check is defined
-        - awk_check.rc != 0
-        - nix_store_stat is defined
-        - nix_store_stat.stat.exists
-      register: awk_install
-      changed_when: awk_install.rc == 0
-
-    - name: Ensure gawk is present (Linux)
-      ansible.builtin.package:
-        name: gawk  # Required for winetricks.
-        state: present
-      when:
-        - ansible_os_family not in ["Windows", "OtherLinux"]
-
-    - name: Ensures Curl is present
-      ansible.builtin.package:
-        name: curl
-        state: present
-      when:
-        - ansible_os_family not in ["Windows", "OtherLinux"]
         - not file_mt_installed_exists.stat.exists
 
     - name: Ensures verb installation file is present
@@ -79,6 +41,7 @@
         mode: "0640"
       when:
         - not file_mt_installed_exists.stat.exists
+
     - name: Ensures MetaTrader is installed (via verb file)
       ansible.builtin.shell:
         # noqa command-instead-of-shell
@@ -92,14 +55,17 @@
         WINETRICKS_DOWNLOADER: curl
       when:
         - not file_mt_installed_exists.stat.exists
+
     - name: Ensures verb installation file is absent
       ansible.builtin.file:
         path: /tmp/mt{{ metatrader_version }}_install.verb
         state: absent
+
 - name: Verifies
   ansible.builtin.include_tasks: verify.yml
   tags:
     - metatrader_verify
+
 - name: Saves platform facts
   become: true
   when:

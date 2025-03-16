@@ -1,0 +1,14 @@
+---
+- name: Ensures that dependencies are installed ({{ ansible_os_family }})
+  become: "{{ ansible_user_id != 'root' }}"
+  block:
+
+    - name: Ensures curl is present
+      ansible.builtin.package:
+        name: curl
+        state: present
+
+    - name: Ensure gawk is present (Linux)
+      ansible.builtin.package:
+        name: gawk  # Required for winetricks.
+        state: present

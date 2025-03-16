@@ -1,0 +1,29 @@
+---
+- name: Ensures that dependencies are installed ({{ ansible_os_family }})
+  become: "{{ ansible_user_id != 'root' }}"
+  block:
+
+    - name: Check if Nix store exists
+      ansible.builtin.stat:
+        path: /nix/store
+      register: nix_store_stat
+
+    - name: Check if gawk is already installed (Nix)
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          nix-env -q | grep -q gawk
+      changed_when: false
+      failed_when: awk_check.rc not in [0, 1]
+      register: awk_check
+      when:
+        - nix_store_stat.stat.exists
+
+    - name: Ensure gawk is installed (Nix)
+      ansible.builtin.command: nix-env -iA nixpkgs.gawk
+      when:
+        - awk_check is defined
+        - awk_check.rc != 0
+        - nix_store_stat.stat.exists
+      register: awk_install
+      changed_when: awk_install.rc == 0
