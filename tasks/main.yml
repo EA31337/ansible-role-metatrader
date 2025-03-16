@@ -28,12 +28,6 @@
       when:
         - ansible_os_family != "Windows"
 
-    - name: Install dependencies ({{ ansible_os_family }})
-      ansible.builtin.include_tasks:
-        file: install-deps-{{ ansible_os_family }}.yml
-      when:
-        - not file_mt_installed_exists.stat.exists
-
     - name: Ensures verb installation file is present
       ansible.builtin.template:
         src: mt{{ metatrader_version }}_install.verb.j2
