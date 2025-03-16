@@ -29,6 +29,7 @@ provisioner:
       all:
         metatrader_version: 5
         wine_install_winetricks: true
+        wine_release: stable
         wine_winetricks_winver: win10
   options:
     v: true

@@ -32,6 +32,7 @@ provisioner:
         metatrader_version: 4
         # noqa: var-naming[no-role-prefix]
         wine_install_winetricks: true
+        wine_release: stable
         wine_winetricks_winver: win10
   options:
     v: true
