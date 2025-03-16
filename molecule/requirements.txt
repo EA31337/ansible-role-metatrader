@@ -1,6 +1,6 @@
 # Python's requirements
 # Usage: pip install -r requirements.txt
-docker
+docker>=7.1.0
 pipenv
 molecule
 molecule-docker
