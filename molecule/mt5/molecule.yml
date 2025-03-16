@@ -30,10 +30,10 @@ provisioner:
         metatrader_version: 5
         wine_install_winetricks: true
         wine_winetricks_winver: win10
-      options:
-        v: true
-      playbooks:
-        converge: ../default/converge.yml
-        prepare: ../default/prepare.yml
+  options:
+    v: true
+  playbooks:
+    converge: ../default/converge.yml
+    prepare: ../default/prepare.yml
 verifier:
   name: ansible
