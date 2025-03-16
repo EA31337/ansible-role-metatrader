@@ -24,6 +24,8 @@ provisioner:
       callback_result_format: yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
   name: ansible
+  env:
+    MOLECULE_REPORT: molecule-report.html
   inventory:
     group_vars:
       all:
