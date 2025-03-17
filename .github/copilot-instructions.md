@@ -11,6 +11,7 @@ You are expected to be an expert in:
 
 ## Code Standards
 
+- Avoid writing trailing whitespace
 - Follow PEP 8 for Python.
 - Include docstrings and type hints where applicable
 - Maintain consistent YAML indentation
@@ -31,24 +32,23 @@ You are expected to be an expert in:
 ## Ansible Guidelines
 
 - Ensure idempotency in all tasks
+- Ensure indentation is correct, especially for arguments used for ansible modules.
 - Follow standard role structure: tasks/, handlers/, templates/, defaults/, meta/
 - Use ansible-lint and write Molecule tests for verification
 - Use descriptive task names and include helpful comments
 
 ## YAML Guidelines
 
-Rules:
+Ensure the following rules are strictly followed:
 
+- yaml[indentation]: Avoid wrong indentation
+- yaml[line-length]: No long lines (max. 120 characters)
 - yaml[truthy]: Truthy value should be one of [false, true]
-- When writing inline code, add a new line at the end to maintain proper indentation
 
 ## Project Specifics
 
-This role installs and configures packages with distribution-specific approaches:
-
-- **Alpine Linux**: Uses apk package manager
-- **Debian/Ubuntu**: Uses apt package manager
-- **Nix**: Uses nix-env in lightweight Nix environments
+This role installs and configures trading platform
+which runs using wine and xvfb.
 
 Notes:
 
