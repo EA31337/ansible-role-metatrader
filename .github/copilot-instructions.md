@@ -44,6 +44,7 @@ Ensure the following rules are strictly followed:
 - yaml[indentation]: Avoid wrong indentation
 - yaml[line-length]: No long lines (max. 120 characters)
 - yaml[truthy]: Truthy value should be one of [false, true]
+- When writing inline code, add a new line at the end to maintain proper indentation
 
 ## Project Specifics
 
@@ -65,7 +66,7 @@ Variables are defined in defaults/main.yml and vars/main.yml files.
 
 Notes:
 
-- On variable changes, update main.yml files and README.md accordingly.
+- On variable changes, update main.yml and README.md files accordingly.
 
 ### Testing Approach
 

@@ -4,7 +4,15 @@ name: Molecule
 # yamllint disable-line rule:truthy
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '*.yaml'
+      - Pipfile*
   push:
+    paths-ignore:
+      - '**.md'
+      - '*.yaml'
+      - Pipfile*
 
 jobs:
   test:
