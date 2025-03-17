@@ -21,7 +21,9 @@ platforms:
 provisioner:
   config_options:
     defaults:
-      callback_result_format: yaml
+      # Use the built-in default callback with result_format instead of community.general.yaml
+      stdout_callback: ansible.builtin.default
+      result_format: yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
   name: ansible
   inventory:
