@@ -14,4 +14,4 @@ roles:
   - name: ea31337.xvfb
     scm: git
     src: git+https://github.com/EA31337/ansible-role-xvfb.git
-    version: v1.0.1
+    version: v1.0.2
