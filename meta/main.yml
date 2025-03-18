@@ -14,7 +14,7 @@ dependencies:
     role: ea31337.xvfb
     scm: git
     src: https://github.com/EA31337/ansible-role-xvfb.git
-    version: v1.0.0
+    version: v1.0.1
     when: ansible_os_family != "Windows"
 galaxy_info:
   author: EA31337 Ltd
