@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+docker = ">=7.1"
+pipenv = "*"
+molecule = "*"
+molecule-docker = "*"
+requests = "==2.31.0"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"

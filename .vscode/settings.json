@@ -1,0 +1,14 @@
+{
+    "code-runner.executorMap": {
+        "javascript": "node",
+        "pre-commit": "pre-commit run --all-files",
+        "python": "python -u",
+        // "yaml": "molecule"
+    },
+    "code-runner.executorMapByGlob": {
+        "**/molecule.yml": "scenario=$(cd $dir && echo $(basename $dir)) && cd $workspaceRoot && molecule test -s $scenario"
+    },
+    "code-runner.runInTerminal": true,
+    "code-runner.saveFileBeforeRun": true,
+    "code-runner.fileDirectoryAsCwd": true
+}

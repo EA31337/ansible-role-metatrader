@@ -11,20 +11,24 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "vscodevim.vim",
                 "DavidAnson.vscode-markdownlint",
+                "elagil.pre-commit-helper",
+                "formulahendry.code-runner-copilot",
+                "formulahendry.code-runner",
                 "GitHub.copilot-chat",
                 "GitHub.copilot",
+                "github.vscode-github-actions",
                 "ms-python.python",
-                "sourcery.sourcery"
-            ],
+                "sourcery.sourcery",
+                "vscodevim.vim"
+            ]
         }
     },
     // Features to add to the dev container. More info: https://containers.dev/features.
     "features": {
         // "ghcr.io/maks1ms/devcontainers-features/wine:0": {},
         "ghcr.io/devcontainers/features/python:1": {},
-		"ghcr.io/devcontainers-extra/features/pipx-package:1": {},
+        "ghcr.io/devcontainers-extra/features/pipx-package:1": {},
         "ghcr.io/guiyomh/features/vim:0": {},
         "ghcr.io/jungaretti/features/ripgrep:1": {},
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
@@ -36,7 +40,8 @@
     // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
     "image": "mcr.microsoft.com/devcontainers/base:jammy",
     "name": "ansible-role-metatrader",
-    "postCreateCommand": "pip install -r .devcontainer/requirements.txt",
+    // Install dependencies and pre-commit hooks.
+    "postCreateCommand": "pip install -r .devcontainer/requirements.txt && pre-commit install",
     // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
     "remoteUser": "vscode"
 }

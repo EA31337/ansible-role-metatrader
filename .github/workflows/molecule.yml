@@ -4,9 +4,19 @@ name: Molecule
 # yamllint disable-line rule:truthy
 on:
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - '*.yaml'
+      - Pipfile*
   push:
+    paths-ignore:
+      - '**.md'
+      - '*.yaml'
+      - Pipfile*
+
 jobs:
-  Test:
+  test:
+    name: Test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,11 +32,24 @@ jobs:
           path: ${{ github.repository }}
       - uses: gofrolist/molecule-action@v2
         env:
-          ANSIBLE_FORCE_COLOR: "1"
-          ANSIBLE_STDOUT_CALLBACK: debug
+          ANSIBLE_FORCE_COLOR: '1'
+          ANSIBLE_STDOUT_CALLBACK: ${{ runner.debug == '1' && 'debug' || 'oneline' }}
+          MOLECULE_REPORT: molecule-${{ matrix.scenario }}-report.html
         with:
           molecule_args: --scenario-name ${{ matrix.scenario }}
           molecule_command: test
-          molecule_options: --verbose
+          molecule_options: ${{ runner.debug == '1' && '--verbose' || '' }}
           molecule_working_dir: ${{ github.repository }}
+      - if: always()
+        name: Ensure report file permissions are correct
+        run: sudo chmod 644 molecule-${{ matrix.scenario }}-report.html
+        working-directory: ${{ github.repository }}
+      - if: always()
+        name: Converts test report
+        uses: patrick-werner/fhir-html-validation-to-markdown@1.0.0
+        with:
+          input_file: ${{ github.repository }}/molecule-${{ matrix.scenario }}-report.html
+      # Debug with tmate on failure when debug logging is enabled.
+      - if: ${{ failure() && runner.debug == '1' }}
+        uses: mxschmitt/action-tmate@v3
     timeout-minutes: 20

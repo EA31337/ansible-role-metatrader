@@ -12,14 +12,22 @@ platforms:
     image: ubuntu:jammy
   - name: ubuntu-noble
     image: ubuntu:noble
+  - name: ubuntu-latest
+    image: ubuntu:latest
 provisioner:
   config_options:
     defaults:
+      callback_result_format: yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
   name: ansible
   inventory:
     group_vars:
       all:
         wine_install_winetricks: true
+  options:
+    v: true
+  playbooks:
+    converge: converge.yml
+    prepare: prepare.yml
 verifier:
   name: ansible
