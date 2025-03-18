@@ -12,6 +12,8 @@ platforms:
     image: ubuntu:jammy
   - name: ubuntu-noble
     image: ubuntu:noble
+  - name: ubuntu-latest
+    image: ubuntu:latest
 provisioner:
   config_options:
     defaults:
