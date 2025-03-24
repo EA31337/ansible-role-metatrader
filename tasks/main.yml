@@ -29,15 +29,16 @@
   tags:
     - metatrader_paths
 
-- name: Checks if platform is already exist
+- name: Checks if platform already exist
   ansible.builtin.stat:
-    path: "{{ ansible_local['metatrader'][metatrader_version | string].path }}"
+    path: "{{ mt_runner_mt_path_host }}"
   register: stat_mt
-  when: ansible_local['metatrader'] is defined and ansible_local['metatrader'][metatrader_version | string].path is defined
 
 - name: Ensures platform is installed
   when:
-    - ansible_local['metatrader'] is not defined
+    - (ansible_local['metatrader'] is not defined)
+      or (ansible_local['metatrader'][metatrader_version | string] is not defined)
+      or (ansible_local['metatrader'][metatrader_version | string].path == '')
     - detected_os_family != "Windows" # gather_facts is required.
     - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
   block:
@@ -135,8 +136,6 @@
         # noqa command-instead-of-shell
         cmd: >
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
-          && touch ~/.wine/.installed-mt{{ metatrader_version }}
-        creates: ~/.wine/.installed-mt{{ metatrader_version }}
       args:
         executable: /bin/bash
       environment:
@@ -261,10 +260,7 @@
 
     - name: Run installation with AutoHotkey (Cygwin)
       shell:
-        cmd: >
-          '{{ ahk_stat.stat.path }} `cygpath -w /tmp/mt{{ metatrader_version }}_install.ahk`'
-          && touch /tmp/.installed-mt{{ metatrader_version }}
-        creates: '/tmp/.installed-mt{{ metatrader_version }}'
+        cmd: "{{ ahk_stat.stat.path }} \"$(cygpath -w /tmp/mt{{ metatrader_version }}_install.ahk)\""
       args:
         executable: /bin/bash
         chdir: "{{ ansible_env.HOME }}/ahk-portable/mt"
@@ -278,8 +274,7 @@
     - name: Run installation with AutoHotkey (Windows)
       win_shell:
         cmd:
-          '{{ ahk_stat.stat.path }} C:\Temp\mt{{ metatrader_version }}_install.ahk; if ($?) { New-Item -Path "C:\Temp\.installed-mt{{ metatrader_version }}" -ItemType File -Force }'
-        creates: 'C:\Temp\.installed-mt{{ metatrader_version }}'
+          '{{ ahk_stat.stat.path }} C:\Temp\mt{{ metatrader_version }}_install.ahk'
       args:
         executable: cmd
         chdir: "{{ ansible_env.HOME }}/ahk-portable/mt"
@@ -348,7 +343,7 @@
       become_user: "{{ ansible_env.USERNAME }}"
       when: platform_name == "Windows"
 
-    - name: Saves role's facts (Unix)
+    - name: Saves role's facts (Unix, Cygwin)
       ansible.builtin.copy:
         content: '{{ metatrader | to_nice_json }}'
         dest: /etc/ansible/facts.d/metatrader.fact

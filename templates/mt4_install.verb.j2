@@ -56,11 +56,15 @@ load_mt4_install()
     w_try wine reg add "HKLM\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
     w_try wine reg add "HKCU\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
 
+    # Opens a webpage.
+    WINEDLLOVERRIDES="mshtml=,winebrowser.exe="
+    export WINEDLLOVERRIDES
+
     # No documented silent install option, unfortunately.
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
         ; Maximum time for setup to complete.
-        Timeout := 200000 ; 3.3 min.
+        Timeout := 600000 ; 10 min.
 
         ; Searching for a setup's EXE file.
         loop, Files, *.exe
