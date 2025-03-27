@@ -14,7 +14,7 @@ load_mt5_install()
       w_call opensymbol
     fi
 
-    WINEDLLOVERRIDES="winebrowser.exe="
+    WINEDLLOVERRIDES="mshtml=,winebrowser.exe="
     export WINEDLLOVERRIDES
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
