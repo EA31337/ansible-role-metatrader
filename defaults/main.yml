@@ -2,3 +2,5 @@
 ---
 metatrader_setup_url: https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe
 metatrader_version: 5
+is_unix: "{{ ansible_os_family != 'Windows' and not ansible_os_family.startswith('CYGWIN') }}"
+platform_name: "{{ 'Windows' if ansible_os_family == 'Windows' else 'Cygwin' if ansible_os_family.startswith('CYGWIN') else ansible_os_family }}"

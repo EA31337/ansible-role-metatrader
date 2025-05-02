@@ -15,7 +15,7 @@ load_mt4_install()
     fi
 
     # Opens a webpage.
-    WINEDLLOVERRIDES="winebrowser.exe="
+    WINEDLLOVERRIDES="mshtml=,winebrowser.exe="
     export WINEDLLOVERRIDES
 
     # No documented silent install option, unfortunately.

@@ -1,0 +1,56 @@
+; Maximum time for setup to complete.
+Timeout := 600000 ; 10 min.
+
+; Searching for a setup's EXE file.
+loop, Files, *.exe
+{
+    ExePath := A_LoopFileFullPath
+    break
+}
+
+; Running setup.
+Run, %ExePath%
+SetTitleMatchMode, RegEx
+
+; Awaiting for setup window to appear.
+WinWait, MetaTrader 5,, 30
+
+; Clicking "Next".
+Send, !n
+
+StartTime := A_TickCount
+
+loop
+{
+    ; Check if timout have passed.
+    if (A_TickCount - StartTime > Timeout)
+    {
+        break
+    }
+
+    ; Is "Finish" button visible?
+    ControlGet, FinishVisible, Visible,, Finish
+
+    if (FinishVisible)
+    {
+        break
+    }
+
+    ; Sleeping for a short while before checking again.
+    Sleep, 1000
+}
+
+; Clicking "Finish".
+Send, {Enter}
+
+; Awaiting for terminal process and window to appear.
+Process, Wait, terminal.exe, 5
+
+; Closing dialogs and exiting from the terminal.
+Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4
+
+; Awaiting terminal window to close for 2s.
+WinWaitClose, ahk_exe terminal64.exe, 2
+
+; If terminal didn't close in 2s then we're forcing it to close.
+Process, Close, terminal64.exe

@@ -3,33 +3,37 @@
   tags:
     - metatrader_verify
   block:
+    - name: Populate paths
+      ansible.builtin.include_tasks: paths.yml
+      tags:
+        - metatrader_paths
     - name: Checks if platform's terminal exists (Unix)
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.builtin.find:
-        paths: "{{ ansible_env.HOME }}/.wine/drive_c"
+        paths: '{{ mt_runner_mt_path_unix }}'
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
-      when: ansible_os_family != "Windows"
+      when: is_unix
 
     - name: Store platform's path (Unix)
       ansible.builtin.set_fact:
         find_mt_path: '"{{ find_mt_res.files[0].path }}"'
         find_mt_path_folder: "{{ find_mt_res.files[0].path | dirname }}"
       when:
-        - ansible_os_family != "Windows"
+        - is_unix
         - find_mt_res.files | length > 0
 
     - name: Checks if platform's terminal exists (Windows)
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.windows.win_find:
-        paths: C:/Program Files/MetaTrader 5
+        paths: '{{ mt_runner_mt_path }}'
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
-      when: ansible_os_family == "Windows"
+      when: platform_name == "Windows"
 
     - name: Store platform's path (Windows)
       ansible.builtin.set_fact:
@@ -39,40 +43,80 @@
         - ansible_os_family == "Windows"
         - find_mt_res.files | length > 0
 
+    - name: Checks if platform's terminal exists (Cygwin)
+      changed_when: false
+      failed_when: find_mt_res.matched == 0
+      ansible.builtin.find:
+        paths: '{{ mt_runner_mt_path_cygwin }}'
+        patterns: terminal*.exe
+        recurse: true
+      register: find_mt_res
+      when: platform_name == "Cygwin"
+
+    - name: Store platform's path (Cygwin)
+      ansible.builtin.set_fact:
+        find_mt_path: '"{{ find_mt_res.files[0].path }}"'
+        find_mt_path_folder: "{{ find_mt_res.files[0].path | dirname }}"
+      when:
+        - platform_name == "Cygwin"
+        - find_mt_res.files | length > 0
+
     - name: Checks if platform's editor exists (Unix)
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
-        paths: "{{ ansible_env.HOME }}/.wine/drive_c"
+        paths: '{{ mt_runner_mt_path_unix }}'
         patterns: "[mM]eta[eE]ditor*.exe"
         recurse: true
       register: find_mte_res
-      when: ansible_os_family != "Windows"
+      when: is_unix
 
     - name: Store platform's editor path (Unix)
       ansible.builtin.set_fact:
         find_mte_path: "{{ find_mte_res.files[0].path }}"
         find_mte_path_folder: "{{ find_mte_res.files[0].path | dirname }}"
       when:
-        - ansible_os_family != "Windows"
+        - is_unix
         - find_mte_res.files | length > 0
 
     - name: Checks if platform's editor exists (Windows)
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.windows.win_find:
-        paths: C:/Program Files/MetaTrader 5
+        paths:
+          - C:/Program Files/MetaTrader 5
+          - C:/Program Files (x86)/MetaTrader 4
         patterns: "[mM]eta[eE]ditor*.exe"
         recurse: true
       register: find_mte_res
-      when: ansible_os_family == "Windows"
+      when: platform_name == "Windows"
 
     - name: Store platform's editor path (Windows)
       ansible.builtin.set_fact:
         find_mte_path: "{{ find_mte_res.files[0].path }}"
         find_mte_path_folder: "{{ find_mte_res.files[0].path | win_dirname }}"
       when:
-        - ansible_os_family == "Windows"
+        - platform_name == "Windows"
+        - find_mte_res.files | length > 0
+
+    - name: Checks if platform's editor exists (Cygwin)
+      changed_when: false
+      failed_when: find_mte_res.matched == 0
+      ansible.builtin.find:
+        paths:
+          - /cygdrive/c/Program Files/MetaTrader 5          
+          - /cygdrive/c/Program Files (x86)/MetaTrader 4
+        patterns: "[mM]eta[eE]ditor*.exe"
+        recurse: true
+      register: find_mte_res
+      when: platform_name == "Cygwin"
+
+    - name: Store platform's editor path (Cygwin)
+      ansible.builtin.set_fact:
+        find_mte_path: "{{ find_mte_res.files[0].path }}"
+        find_mte_path_folder: "{{ find_mte_res.files[0].path | dirname }}"
+      when:
+        - platform_name == "Cygwin"
         - find_mte_res.files | length > 0
 
     - name: Check WSL's default distribution name (Windows)
@@ -83,23 +127,23 @@
           wsl -l -v | Select-String -Pattern '\*'
           | ForEach-Object { ($_ -split '\s+')[1] }
       register: wsl_distribution_name_result
-      when: ansible_os_family == "Windows"
+      when: platform_name == "Windows"
 
     - name: Store WSL's default distribution name (Windows)
       ansible.builtin.set_fact:
         wsl_distribution_name: >-
           {{ wsl_distribution_name_result.output[0]
           | regex_replace("\u0000", "") }}
-      when: ansible_os_family == "Windows"
+      when: platform_name == "Windows"
 
     - name: Check WSL's default user name (Windows)
       changed_when: false
       failed_when: not wsl_user_name_result
       ansible.windows.win_command: ubuntu -c "whoami"
       register: wsl_user_name_result
-      when: ansible_os_family == "Windows"
+      when: platform_name == "Windows"
 
     - name: Store WSL's default user name (Windows)
       ansible.builtin.set_fact:
         wsl_user_name: "{{ wsl_user_name_result.stdout_lines[0] }}"
-      when: ansible_os_family == "Windows"
+      when: platform_name == "Windows"
