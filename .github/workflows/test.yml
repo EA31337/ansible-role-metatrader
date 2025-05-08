@@ -1,0 +1,63 @@
+---
+name: Test
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '*.yaml'
+      - Pipfile*
+  push:
+    paths-ignore:
+      - '**.md'
+      - '*.yaml'
+      - Pipfile*
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ github.repository }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python's requirements
+        run: pip install -r .devcontainer/requirements.txt
+        working-directory: ${{ github.repository }}
+
+      - name: Install Ansible Galaxy requirements
+        run: ansible-galaxy install -r requirements.yml
+        working-directory: ${{ github.repository }}
+
+      - name: Install Ansible Galaxy local requirements
+        run: |
+          jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
+          ansible-galaxy install -r requirements-local.yml && rm requirements-local.yml
+        working-directory: ${{ github.repository }}
+
+      - name: Check Ansible syntax
+        run: >-
+            ansible-playbook --syntax-check
+            -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
+        working-directory: ${{ github.repository }}
+
+      - name: Run Ansible lint
+        run: ansible-lint tests/playbooks/docker-containers.yml
+        working-directory: ${{ github.repository }}
+
+      - name: Run Ansible playbook
+        run: |
+          ansible-playbook -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
+        working-directory: ${{ github.repository }}
+
+      # Debug with tmate on failure when debug logging is enabled.
+      - if: ${{ failure() && runner.debug == '1' }}
+        uses: mxschmitt/action-tmate@v3
+    timeout-minutes: 20

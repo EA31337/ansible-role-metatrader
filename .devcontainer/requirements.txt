@@ -3,6 +3,7 @@
 ansible
 ansible-lint
 docker>=7.1
+jinja2-cli
 molecule
 molecule-docker
 pipenv

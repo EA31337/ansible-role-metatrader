@@ -12,16 +12,15 @@
         "vscode": {
             "extensions": [
                 "DavidAnson.vscode-markdownlint",
-                "elagil.pre-commit-helper",
-                "formulahendry.code-runner-copilot",
-                "formulahendry.code-runner",
-                "GitHub.copilot-chat",
                 "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "elagil.pre-commit-helper",
+                "formulahendry.code-runner",
+                "formulahendry.code-runner-copilot",
                 "github.vscode-github-actions",
                 "ms-python.python",
-                "sourcery.sourcery",
                 "vscodevim.vim"
-            ]
+            ],
         }
     },
     // Features to add to the dev container. More info: https://containers.dev/features.

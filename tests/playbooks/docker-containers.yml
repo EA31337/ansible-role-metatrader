@@ -1,0 +1,64 @@
+---
+- name: Configure Docker container
+  hosts: metatrader-on-ubuntu-latest,metatrader-on-ubuntu-jammy,metatrader-on-ubuntu-noble
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    container_image_map:
+      metatrader-on-ubuntu-latest: ubuntu:latest
+      metatrader-on-ubuntu-jammy: ubuntu:jammy
+      metatrader-on-ubuntu-noble: ubuntu:noble
+    container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:latest') }}"
+  pre_tasks:
+    - name: Check if container is running
+      ansible.builtin.command: docker ps -q -f name={{ inventory_hostname }}
+      register: container_status
+      delegate_to: localhost
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure container is running or start it
+      ansible.builtin.command: >
+        docker run -d --name {{ inventory_hostname }} {{ container_image }} sleep infinity
+      changed_when: container_run_result.rc == 0
+      delegate_to: localhost
+      register: container_run_result
+      when: not container_status.stdout
+
+    - name: Wait for container to be ready
+      ansible.builtin.command: docker inspect -f '{{ "{{.State.Running}}" }}' {{ inventory_hostname }}
+      register: inspect_result
+      until: inspect_result.stdout == "true"
+      retries: 5
+      delay: 2
+      delegate_to: localhost
+      changed_when: false
+
+    - name: Install Python 3
+      ansible.builtin.raw: >-
+        test -e "{{ ansible_python_interpreter }}"
+        || (apt-get update && apt-get install -y python3 python3-pip)
+      become: "{{ lookup('env', 'UID') | int != 0 }}"
+      changed_when: false
+
+    - name: Gather facts
+      become: "{{ lookup('env', 'UID') | int != 0 }}"
+      ansible.builtin.setup:
+
+    - name: Install Python packages for Ubuntu
+      ansible.builtin.apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-setuptools
+        state: present
+        update_cache: true
+      become: "{{ lookup('env', 'UID') | int != 0 }}"
+
+- name: Install ea31337.metatrader role on all containers
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Installs ea31337.metatrader role
+      ansible.builtin.import_role:
+        name: ea31337.metatrader

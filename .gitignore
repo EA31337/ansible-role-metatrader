@@ -1,4 +1,9 @@
-*.verb
 .ansible
+*.bak
 .cache
+*.html
+*.orig
+*.png
 __pycache__
+requirements-local.yml
+*.verb

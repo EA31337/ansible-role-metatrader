@@ -1,0 +1,11 @@
+# A file containing a list of collections to be installed.
+# Usage:
+# jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
+# ansible-galaxy install -r requirements-local.yml
+---
+roles:
+  # Use a static or shell-expanded path; Jinja2 is not supported here
+  - name: ea31337.metatrader
+    scm: git
+    src: "file://{{ pwd }}"
+    version: HEAD
