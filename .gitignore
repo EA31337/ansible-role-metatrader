@@ -2,6 +2,7 @@
 *.bak
 .cache
 *.html
+*.org
 *.orig
 *.png
 __pycache__

@@ -17,6 +17,7 @@ reviews:
   high_level_summary: true
   path_filters:
     - "**/*.j2"
+    - "**/*.md"
     - "**/*.py"
     - "**/*.yaml"
     - "**/*.yml"

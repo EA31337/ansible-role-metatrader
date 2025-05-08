@@ -1,32 +1,27 @@
 ---
 - name: Configure Docker container
-  hosts: metatrader-on-ubuntu-latest,metatrader-on-ubuntu-jammy,metatrader-on-ubuntu-noble
+  hosts: docker_containers, !wine-on-nixos-latest
   gather_facts: false
   vars:
     ansible_python_interpreter: /usr/bin/python3
     container_image_map:
-      metatrader-on-ubuntu-latest: ubuntu:latest
+      metatrader-on-alpine-latest: alpine:latest
+      metatrader-on-debian-latest: debian:latest
+      metatrader-on-nixos-latest: nixos/nix
       metatrader-on-ubuntu-jammy: ubuntu:jammy
+      metatrader-on-ubuntu-latest: ubuntu:latest
       metatrader-on-ubuntu-noble: ubuntu:noble
     container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:latest') }}"
   pre_tasks:
-    - name: Check if container is running
-      ansible.builtin.command: docker ps -q -f name={{ inventory_hostname }}
-      register: container_status
+    - name: Ensure container is started
+      community.docker.docker_container:
+        name: "{{ inventory_hostname }}"
+        image: "{{ container_image }}"
+        state: started
+        command: sleep infinity
       delegate_to: localhost
-      changed_when: false
-      failed_when: false
-
-    - name: Ensure container is running or start it
-      ansible.builtin.command: >
-        docker run -d --name {{ inventory_hostname }} {{ container_image }} sleep infinity
-      changed_when: container_run_result.rc == 0
-      delegate_to: localhost
-      register: container_run_result
-      when: not container_status.stdout
-
     - name: Wait for container to be ready
-      ansible.builtin.command: docker inspect -f '{{ "{{.State.Running}}" }}' {{ inventory_hostname }}
+      ansible.builtin.command: docker inspect -f "{% raw %}{{.State.Running}}{% endraw %}" {{ inventory_hostname }}
       register: inspect_result
       until: inspect_result.stdout == "true"
       retries: 5
@@ -34,18 +29,30 @@
       delegate_to: localhost
       changed_when: false
 
-    - name: Install Python 3
+    - name: Install Python 3 on Alpine
+      ansible.builtin.raw: >-
+        test -e "{{ ansible_python_interpreter }}"
+        || (apk update && apk add --no-cache python3 py3-pip)
+      become: "{{ (ansible_user_id is defined and ansible_user_id != 'root') or (lookup('env', 'UID') | int != 0) }}"
+      become_method: ansible.builtin.su
+      changed_when: false
+      when: container_image is search("alpine")
+
+    - name: Install Python 3 on Ubuntu/Debian
       ansible.builtin.raw: >-
         test -e "{{ ansible_python_interpreter }}"
         || (apt-get update && apt-get install -y python3 python3-pip)
-      become: "{{ lookup('env', 'UID') | int != 0 }}"
+      become: "{{ (ansible_user_id is defined and ansible_user_id != 'root') or (lookup('env', 'UID') | int != 0) }}"
+      become_method: ansible.builtin.su
       changed_when: false
+      when: container_image is search("ubuntu") or container_image is search("debian")
 
     - name: Gather facts
-      become: "{{ lookup('env', 'UID') | int != 0 }}"
+      become: "{{ (ansible_user_id is defined and ansible_user_id != 'root') or (lookup('env', 'UID') | int != 0) }}"
+      become_method: ansible.builtin.su
       ansible.builtin.setup:
 
-    - name: Install Python packages for Ubuntu
+    - name: Install Python packages for Ubuntu/Debian
       ansible.builtin.apt:
         name:
           - python3
@@ -53,10 +60,12 @@
           - python3-setuptools
         state: present
         update_cache: true
-      become: "{{ lookup('env', 'UID') | int != 0 }}"
+      become: "{{ (ansible_user_id is defined and ansible_user_id != 'root') or (lookup('env', 'UID') | int != 0) }}"
+      become_method: ansible.builtin.su
+      when: container_image is search("ubuntu") or container_image is search("debian")
 
 - name: Install ea31337.metatrader role on all containers
-  hosts: all
+  hosts: docker_containers
   gather_facts: true
   tasks:
     - name: Installs ea31337.metatrader role

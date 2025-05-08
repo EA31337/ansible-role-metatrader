@@ -5,13 +5,15 @@ name: Test
 on:
   pull_request:
     paths-ignore:
-      - '**.md'
-      - '*.yaml'
+      - '**/*.md'
+      - '**/*.yml'
+      - '**/*.yaml'
       - Pipfile*
   push:
     paths-ignore:
-      - '**.md'
-      - '*.yaml'
+      - '**/*.md'
+      - '**/*.yml'
+      - '**/*.yaml'
       - Pipfile*
 
 jobs:
@@ -46,6 +48,7 @@ jobs:
         run: >-
             ansible-playbook --syntax-check
             -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
+            --verbose
         working-directory: ${{ github.repository }}
 
       - name: Run Ansible lint

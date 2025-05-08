@@ -4,7 +4,6 @@
 ---
 collections:
   - name: community.docker
-    version: ">=3.4.0,<4.0.0"
   - name: ansible.windows
 roles:
   - name: ea31337.wine

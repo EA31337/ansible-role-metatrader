@@ -1,15 +1,29 @@
 ---
 all:
-  hosts:
-    metatrader-on-ubuntu-latest:
-      ansible_connection: docker
-      ansible_host: metatrader-on-ubuntu-latest
-      ansible_python_interpreter: /usr/bin/python3
-    metatrader-on-ubuntu-noble:
-      ansible_connection: docker
-      ansible_host: metatrader-on-ubuntu-noble
-      ansible_python_interpreter: /usr/bin/python3
-    metatrader-on-ubuntu-jammy:
-      ansible_connection: docker
-      ansible_host: metatrader-on-ubuntu-jammy
-      ansible_python_interpreter: /usr/bin/python3
+  children:
+    docker_containers:
+      hosts:
+        metatrader-on-ubuntu-latest:
+          ansible_connection: docker
+          ansible_host: metatrader-on-ubuntu-latest
+          ansible_python_interpreter: /usr/bin/python3
+        metatrader-on-ubuntu-noble:
+          ansible_connection: docker
+          ansible_host: metatrader-on-ubuntu-noble
+          ansible_python_interpreter: /usr/bin/python3
+        metatrader-on-ubuntu-jammy:
+          ansible_connection: docker
+          ansible_host: metatrader-on-ubuntu-jammy
+          ansible_python_interpreter: /usr/bin/python3
+        metatrader-on-debian-latest:
+          ansible_connection: docker
+          ansible_host: metatrader-on-debian-latest
+          ansible_python_interpreter: /usr/bin/python3
+        metatrader-on-alpine-latest:
+          ansible_connection: docker
+          ansible_host: metatrader-on-alpine-latest
+          ansible_python_interpreter: /usr/bin/python3
+        metatrader-on-nixos-latest:
+          ansible_connection: docker
+          ansible_host: metatrader-on-nixos-latest
+          ansible_python_interpreter: /usr/bin/python3
