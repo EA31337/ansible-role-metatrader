@@ -71,3 +71,11 @@
     - name: Installs ea31337.metatrader role
       ansible.builtin.import_role:
         name: ea31337.metatrader
+
+  post_tasks:
+    - name: Stop Docker containers
+      community.docker.docker_container:
+        name: "{{ inventory_hostname }}"
+        state: stopped
+      delegate_to: localhost
+      failed_when: false
