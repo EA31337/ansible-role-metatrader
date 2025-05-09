@@ -61,7 +61,8 @@
     - metatrader_verify
 
 - name: Saves platform facts
-  become: true
+  become: "{{ (ansible_user_id is defined and ansible_user_id != 'root') or (ansible_os_family == 'Windows') }}"
+  become_method: ansible.builtin.su
   when:
     - >-
       ansible_local['metatrader'] is not defined
