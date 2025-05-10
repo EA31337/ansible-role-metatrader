@@ -74,7 +74,7 @@
       when: container_image is search("ubuntu") or container_image is search("debian")
 
 - name: Install ea31337.metatrader role on all containers
-  hosts: docker_containers
+  hosts: docker_containers,!metatrader-on-nixos-latest
   gather_facts: true
   tasks:
     - name: Installs ea31337.metatrader role
