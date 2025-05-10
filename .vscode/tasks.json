@@ -1,19 +1,70 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"label": "Run pre-commit checks",
-			"type": "shell",
-			"command": "pre-commit run --all-files",
-			"group": {
-				"kind": "test",
-				"isDefault": true
-			},
-			"presentation": {
-				"reveal": "always",
-				"panel": "shared"
-			},
-			"problemMatcher": []
-		}
-	]
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "ansible-lint: check ",
+            "type": "shell",
+            "command": "ansible-lint",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "ansible-playbook: run test in containers",
+            "type": "shell",
+            "command": "ansible-playbook -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "molecule: run test",
+            "type": "shell",
+            "command": "molecule test",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "molecule: syntax check",
+            "type": "shell",
+            "command": "molecule syntax",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "pre-commit: run all checks",
+            "type": "shell",
+            "command": "pre-commit run -a",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "focus": true
+            },
+            "problemMatcher": []
+        }
+    ]
 }
