@@ -1,6 +1,6 @@
 ---
 - name: Configure Docker container
-  hosts: docker_containers
+  hosts: docker_containers,!metatrader-on-nixos-latest
   gather_facts: false
   vars:
     become_for_container: >-
