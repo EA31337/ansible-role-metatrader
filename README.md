@@ -41,11 +41,22 @@ See: [./defaults/main.yml](./defaults/main.yml)
 
 ### Docker
 
-To test on Docker containers, run:
+Steps to test role on Docker containers.
 
-```shell
-ansible-playbook -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
-```
+1. Install the current role by running the following commands in shell:
+
+    ```shell
+    ansible-galaxy install -r requirements.yml
+    jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
+    ansible-galaxy install -r requirements-local.yml
+    ```
+
+2. Ensure Docker service (e.g. Docker Desktop) is running.
+3. Run playbook from `tests/`:
+
+    ```shell
+    ansible-playbook -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
+    ```
 
 ### Molecule
 
