@@ -1,7 +1,7 @@
 # Ansible Role: Metatrader
 
 [![CodeRabbit PR Reviews](https://img.shields.io/coderabbit/prs/github/EA31337/ansible-role-metatrader?utm_source=oss&utm_medium=github&utm_campaign=EA31337%2Fansible-role-metatrader&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+PR+Reviews)](https://github.com/EA31337/ansible-role-metatrader/pulls)
-[![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPLv3-brightgreen.svg)](LICENSE)
 
 Ansible role to install MetaTrader platform.
 
@@ -60,3 +60,5 @@ molecule test
 GNU GPL v3
 
 See: [LICENSE](./LICENSE)
+
+<!-- Named links -->
