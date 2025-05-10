@@ -7,13 +7,13 @@ on:
     paths-ignore:
       - '**/*.cfg'
       - '**/*.md'
-      - '**/.*'
+      - '.*'
       - Pipfile*
   push:
     paths-ignore:
       - '**/*.cfg'
       - '**/*.md'
-      - '**/.*'
+      - '.*'
       - Pipfile*
 
 jobs:
