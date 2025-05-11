@@ -11,7 +11,6 @@ platforms:
 provisioner:
   config_options:
     defaults:
-      # Use the built-in default callback with result_format instead of community.general.yaml
       stdout_callback: ansible.builtin.default
       remote_tmp: /tmp/.ansible-tmp-$${USER}
   name: ansible
@@ -19,6 +18,7 @@ provisioner:
     group_vars:
       all:
         metatrader_version: 5
+        wine_install_winetricks: true
   options:
     v: true
   playbooks:

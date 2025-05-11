@@ -27,7 +27,13 @@
         path: ~/.wine/.installed-mt{{ metatrader_version }}
       when:
         - ansible_os_family != "Windows"
-
+    - name: Ensures Curl is present
+      ansible.builtin.package:
+        name: curl
+        state: present
+      when:
+        - ansible_os_family not in ["Windows", "OtherLinux"]
+        - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
         src: mt{{ metatrader_version }}_install.verb.j2
