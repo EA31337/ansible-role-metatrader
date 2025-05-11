@@ -6,20 +6,18 @@ on:
   pull_request:
     paths-ignore:
       - '!.github/workflows/**'
-      - '**/*.cfg'
-      - '**/*.md'
+      - '**.cfg'
       - '**.md'
       - '.*'
-      - '*.yaml'
+      - LICENSE
       - Pipfile*
   push:
     paths-ignore:
       - '!.github/workflows/**'
+      - '**.cfg'
       - '**.md'
-      - '**/*.cfg'
-      - '**/*.md'
-      - '*.yaml'
       - '.*'
+      - LICENSE
       - Pipfile*
 
 jobs:
