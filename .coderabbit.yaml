@@ -1,3 +1,4 @@
+
 ---
 # CodeRabbit configuration
 chat:
@@ -33,5 +34,13 @@ reviews:
     yamllint:
       enabled: true
     shellcheck:
+      enabled: true
+    markdownlint:
+      enabled: true
+    hadolint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    actionlint:
       enabled: true
 version: 1
