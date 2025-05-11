@@ -12,6 +12,11 @@ repos:
     hooks:
       - id: ansible-lint
 
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
+
   - repo: https://github.com/igorshubovych/markdownlint-cli.git
     rev: v0.44.0
     hooks:
