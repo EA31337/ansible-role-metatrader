@@ -37,6 +37,12 @@ You are expected to be an expert in:
 - Use ansible-lint and write Molecule tests for verification
 - Use descriptive task names and include helpful comments
 
+## Ansible Linting
+
+Ensure enforcing the following rules:
+
+- fqcn[keyword]: Avoid `collections` keyword by using FQCN for all plugins, modules, roles and playbooks
+
 ## YAML Guidelines
 
 Ensure the following rules are strictly followed:
@@ -44,6 +50,7 @@ Ensure the following rules are strictly followed:
 - yaml[empty-lines]: Avoid too many blank lines (1 > 0)
 - yaml[indentation]: Avoid wrong indentation
 - yaml[line-length]: No long lines (max. 120 characters)
+- yaml[new-line-at-end-of-file]: Enforce new line character at the end of file
 - yaml[truthy]: Truthy value should be one of [false, true]
 - Ensure items are in lexicographical order when possible.
 - When writing inline code, add a new line at the end to maintain proper indentation
