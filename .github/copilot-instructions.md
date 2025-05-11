@@ -41,6 +41,7 @@ You are expected to be an expert in:
 
 Ensure the following rules are strictly followed:
 
+- yaml[empty-lines]: Avoid too many blank lines (1 > 0)
 - yaml[indentation]: Avoid wrong indentation
 - yaml[line-length]: No long lines (max. 120 characters)
 - yaml[truthy]: Truthy value should be one of [false, true]
