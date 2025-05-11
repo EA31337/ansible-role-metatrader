@@ -38,6 +38,7 @@
 
     - name: Ensures MetaTrader is installed (via verb file)
       ansible.builtin.shell:
+        # @todo: The winetricks command is executed directly without specifying the executable.
         # noqa command-instead-of-shell
         cmd: >
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
