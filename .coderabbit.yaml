@@ -30,7 +30,8 @@ reviews:
   path_instructions:
     - path: "**/*.yml"
       instructions: |
-        For Ansible files, review the YAML code against the Ansible best practices and point out any mismatches.
+        - For Ansible files, review the YAML code against the Ansible best practices and point out any mismatches.
+        - Ensure keys are in lexicographical order when possible.
   poem: true
   request_changes_workflow: false
   review_status: true
