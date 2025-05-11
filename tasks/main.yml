@@ -63,7 +63,7 @@
 
 - name: Saves platform facts
   become: "{{ (ansible_user_id is defined and ansible_user_id != 'root') or (ansible_os_family == 'Windows') }}"
-  become_method: ansible.builtin.su
+  become_method: "{{ metatrader_become_method[ansible_os_family] }}"
   when:
     - >-
       ansible_local['metatrader'] is not defined
@@ -96,7 +96,7 @@
         path: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts
         state: directory
       become: true
-      become_method: ansible.builtin.runas
+      become_method: "{{ metatrader_become_method[ansible_os_family] }}"
       become_user: "{{ ansible_env.USERNAME }}"
       when: ansible_os_family == "Windows"
     - name: Saves role's facts (Unix)
@@ -111,6 +111,6 @@
         # yamllint disable-line rule:line-length
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
-      become_method: ansible.builtin.runas
+      become_method: "{{ metatrader_become_method[ansible_os_family] }}"
       become_user: "{{ ansible_env.USERNAME }}"
       when: ansible_os_family == "Windows"
