@@ -2,7 +2,5 @@
 - name: Converge
   hosts: all
   gather_facts: true
-  tasks:
-    - name: Include main role
-      ansible.builtin.import_role:
-        name: ea31337.metatrader
+  roles:
+    - role: ea31337.metatrader
