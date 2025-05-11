@@ -1,19 +1,17 @@
 ---
 - name: Configure Docker container
-  become: "{{ (ansible_user_id is defined and ansible_user_id != 'root') or (lookup('env', 'UID') | int != 0) }}"
+  # Note: Since facts are not gathered, we're checking for ansible_user_id, connection_user or UID instead.
+  become: >-
+    {{ (connection_user is defined and connection_user != 'root')
+    or (ansible_user_id is defined and ansible_user_id != 'root')
+    or (lookup('env', 'UID') | int != 0)
+    }}
+  # Use su as become_method as sudo is not available in all containers.
   become_method: ansible.builtin.su
   # @todo: Add support for NixOS container.
-  hosts: docker_containers,!metatrader-on-nixos-latest
   gather_facts: false
-  vars:
-    container_image_map:
-      metatrader-on-alpine-latest: alpine:latest
-      metatrader-on-debian-latest: debian:latest
-      metatrader-on-nixos-latest: nixos/nix
-      metatrader-on-ubuntu-jammy: ubuntu:jammy
-      metatrader-on-ubuntu-latest: ubuntu:latest
-      metatrader-on-ubuntu-noble: ubuntu:noble
-    container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:latest') }}"
+  hosts: docker_containers,!metatrader-on-nixos-latest
+
   pre_tasks:
     - name: Ensure container is started
       community.docker.docker_container:
@@ -24,14 +22,16 @@
       delegate_to: localhost
 
     - name: Wait for container to be ready
-      ansible.builtin.command: >
-        docker inspect -f "{% raw %}{{.State.Running}}{% endraw %}" {{ inventory_hostname }}
-      register: inspect_result
-      until: inspect_result.stdout == "true"
-      retries: 5
+      community.docker.docker_container_info:
+        name: "{{ inventory_hostname }}"
+      register: container_info
+      until:
+        - container_info is defined
+        - container_info.container.State.Running | default(false) | bool
+      changed_when: false
       delay: 2
       delegate_to: localhost
-      changed_when: false
+      retries: 10
 
     - name: Install Python 3 on Alpine
       ansible.builtin.raw: |
@@ -64,9 +64,23 @@
         update_cache: true
       when: container_image is search("ubuntu") or container_image is search("debian")
 
+  tags: always
+  vars:
+    container_image_map:
+      metatrader-on-alpine-latest: alpine:latest
+      metatrader-on-debian-latest: debian:latest
+      metatrader-on-nixos-latest: nixos/nix
+      metatrader-on-ubuntu-jammy: ubuntu:jammy
+      metatrader-on-ubuntu-latest: ubuntu:latest
+      metatrader-on-ubuntu-noble: ubuntu:noble
+    container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:latest') }}"
+  vars_files:
+    - ../../vars/main.yml
+
 - name: Install ea31337.metatrader role on all containers
   hosts: docker_containers,!metatrader-on-nixos-latest
   gather_facts: true
+  tags: always
   tasks:
     - name: Installs ea31337.metatrader role
       ansible.builtin.import_role:
@@ -79,3 +93,6 @@
         state: stopped
       delegate_to: localhost
       failed_when: false
+
+  vars:
+    wine_install_winetricks: true
