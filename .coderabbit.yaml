@@ -27,6 +27,10 @@ reviews:
     - "molecule/**"
     - "tasks/**"
     - "vars/**"
+  path_instructions:
+    - path: "**/*.yml"
+      instructions: |
+        For Ansible files, review the YAML code against the Ansible best practices and point out any mismatches.
   poem: true
   request_changes_workflow: false
   review_status: true
