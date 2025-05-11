@@ -4,6 +4,7 @@
 ---
 collections:
   - name: community.docker
+  - name: community.general  # Required for apk, from_ini and supervisorctl modules.
     version: ">=3.4.0,<4.0.0"
   - name: ansible.windows
 roles:
