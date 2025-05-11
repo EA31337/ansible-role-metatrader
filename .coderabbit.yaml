@@ -1,4 +1,3 @@
-
 ---
 # CodeRabbit configuration
 chat:
@@ -36,16 +35,16 @@ reviews:
   request_changes_workflow: false
   review_status: true
   tools:
-    yamllint:
-      enabled: true
-    shellcheck:
-      enabled: true
-    markdownlint:
-      enabled: true
-    hadolint:
+    actionlint:
       enabled: true
     gitleaks:
       enabled: true
-    actionlint:
+    hadolint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    yamllint:
       enabled: true
 version: 1
