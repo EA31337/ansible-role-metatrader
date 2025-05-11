@@ -1,4 +1,5 @@
 ---
+# Vars file for metatrader role.
 metatrader_become_method:
   Alpine: ansible.builtin.su
   Darwin: ansible.builtin.sudo

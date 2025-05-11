@@ -21,7 +21,9 @@ platforms:
 provisioner:
   config_options:
     defaults:
+      # Use the built-in default callback with result_format instead of community.general.yaml
       stdout_callback: ansible.builtin.default
+      result_format: yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
   name: ansible
   inventory:
@@ -30,10 +32,5 @@ provisioner:
         wine_install_winetricks: true
         wine_release: stable
         wine_winetricks_winver: win10
-  options:
-    v: true
-  playbooks:
-    converge: converge.yml
-    prepare: prepare.yml
 verifier:
   name: ansible
