@@ -19,6 +19,8 @@ This role requires:
 
 ## Install
 
+### Install from GitHub
+
 To install this role, you can use the following terminal command:
 
 ```shell
@@ -49,6 +51,12 @@ Steps to test role on Docker containers.
     ansible-galaxy install -r requirements.yml
     jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
     ansible-galaxy install -r requirements-local.yml
+    ```
+
+    Alternatively, for development purposes, you can consider using symbolic link, e.g.
+
+    ```shell
+    ln -vs "$PWD" ~/.ansible/roles/ea31337.metatrader
     ```
 
 2. Ensure Docker service (e.g. Docker Desktop) is running.
