@@ -19,9 +19,8 @@
                 "formulahendry.code-runner-copilot",
                 "github.vscode-github-actions",
                 "ms-python.python",
-                "sourcery.sourcery",
                 "vscodevim.vim"
-            ]
+            ],
         }
     },
     // Features to add to the dev container. More info: https://containers.dev/features.
