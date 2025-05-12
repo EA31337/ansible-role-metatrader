@@ -19,6 +19,14 @@ This role requires:
 
 ## Install
 
+### Install from Ansible Galaxy
+
+To install this role from Ansible Galaxy, run the following command:
+
+```console
+ansible-galaxy install ea31337.metatrader
+```
+
 ### Install from GitHub
 
 To install this role, you can use the following terminal command:
@@ -29,7 +37,8 @@ ansible-galaxy install git+https://github.com/EA31337/ansible-role-metatrader.gi
 
 ## Role Variables
 
-See: [./defaults/main.yml](./defaults/main.yml)
+For available variables,
+check [`defaults/main.yml`](defaults/main.yml).
 
 ### Variables
 
