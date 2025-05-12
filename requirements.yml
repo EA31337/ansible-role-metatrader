@@ -3,16 +3,18 @@
 # ansible-galaxy install -r requirements.yml
 ---
 collections:
+  - name: ansible.windows
   - name: community.docker
   - name: community.general  # Required for apk, from_ini and supervisorctl modules.
     version: ">=3.4.0,<4.0.0"
-  - name: ansible.windows
 roles:
   - name: ea31337.wine
     scm: git
     src: git+https://github.com/EA31337/ansible-role-wine.git
+    # This should match version in meta/main.yml
     version: v1.0.3
   - name: ea31337.xvfb
     scm: git
     src: git+https://github.com/EA31337/ansible-role-xvfb.git
+    # This should match version in meta/main.yml
     version: v1.0.3
