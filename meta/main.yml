@@ -1,21 +1,22 @@
 ---
 collections:
+  - ansible.windows
   - community.docker
-  - community.general
+  - community.general  # Required for apk, from_ini and supervisorctl modules.
 dependencies:
   - name: ea31337.wine
     role: ea31337.wine
     scm: git
-    src: https://github.com/EA31337/ansible-role-wine.git
+    src: git+https://github.com/EA31337/ansible-role-wine.git
     vars:
       wine_install_winetricks: true
-    version: v1.0.2
+    version: v1.0.3
     when: ansible_os_family != "Windows"
   - name: ea31337.xvfb
     role: ea31337.xvfb
     scm: git
-    src: https://github.com/EA31337/ansible-role-xvfb.git
-    version: v1.0.2
+    src: git+https://github.com/EA31337/ansible-role-xvfb.git
+    version: v1.0.3
     when: ansible_os_family != "Windows"
 galaxy_info:
   author: kenorb
