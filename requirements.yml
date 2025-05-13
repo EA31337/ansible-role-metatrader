@@ -6,7 +6,7 @@ collections:
   - name: ansible.windows
   - name: community.docker
   - name: community.general  # Required for apk, from_ini and supervisorctl modules.
-    version: ">=3.4.0,<4.0.0"
+    version: ">=6.0.0"
 roles:
   - name: ea31337.wine
     scm: git
