@@ -5,13 +5,19 @@ name: Molecule
 on:
   pull_request:
     paths-ignore:
+      - '!.github/workflows/**'
+      - '**.cfg'
       - '**.md'
-      - '*.yaml'
+      - '.*'
+      - LICENSE
       - Pipfile*
   push:
     paths-ignore:
+      - '!.github/workflows/**'
+      - '**.cfg'
       - '**.md'
-      - '*.yaml'
+      - '.*'
+      - LICENSE
       - Pipfile*
 
 jobs:
@@ -21,6 +27,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        platform:
+          - debian-latest
+          # - nixos-latest  # NixOS is not supported by this version of the role.
+          - ubuntu-jammy
+          - ubuntu-latest
+          - ubuntu-noble
         scenario:
           - default
           - mt4
@@ -36,7 +48,9 @@ jobs:
           ANSIBLE_STDOUT_CALLBACK: ${{ runner.debug == '1' && 'debug' || 'oneline' }}
           MOLECULE_REPORT: molecule-${{ matrix.scenario }}-report.html
         with:
-          molecule_args: --scenario-name ${{ matrix.scenario }}
+          molecule_args: >-
+            --platform-name ${{ matrix.platform }}
+            --scenario-name ${{ matrix.scenario }}
           molecule_command: test
           molecule_options: ${{ runner.debug == '1' && '--verbose' || '' }}
           molecule_working_dir: ${{ github.repository }}

@@ -12,26 +12,26 @@
         "vscode": {
             "extensions": [
                 "DavidAnson.vscode-markdownlint",
-                "elagil.pre-commit-helper",
-                "formulahendry.code-runner-copilot",
-                "formulahendry.code-runner",
-                "GitHub.copilot-chat",
                 "GitHub.copilot",
+                "GitHub.copilot-chat",
+                "elagil.pre-commit-helper",
+                "formulahendry.code-runner",
+                "formulahendry.code-runner-copilot",
                 "github.vscode-github-actions",
                 "ms-python.python",
-                "sourcery.sourcery",
                 "vscodevim.vim"
-            ]
+            ],
         }
     },
     // Features to add to the dev container. More info: https://containers.dev/features.
     "features": {
         // "ghcr.io/maks1ms/devcontainers-features/wine:0": {},
-        "ghcr.io/devcontainers/features/python:1": {},
+        "ghcr.io/devcontainers-contrib/features/actionlint:1": {},
         "ghcr.io/devcontainers-extra/features/pipx-package:1": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/python:1": {},
         "ghcr.io/guiyomh/features/vim:0": {},
-        "ghcr.io/jungaretti/features/ripgrep:1": {},
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+        "ghcr.io/jungaretti/features/ripgrep:1": {}
     },
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],

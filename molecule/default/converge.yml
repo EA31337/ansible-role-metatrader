@@ -2,10 +2,5 @@
 - name: Converge
   hosts: all
   gather_facts: true
-  tasks:
-    - name: Include main role
-      ansible.builtin.import_role:
-        name: ea31337.metatrader
-      vars:
-        # noqa: var-naming[no-role-prefix]
-        wine_winetricks_winver: win10
+  roles:
+    - role: ea31337.metatrader

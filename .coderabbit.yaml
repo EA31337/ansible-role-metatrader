@@ -1,0 +1,50 @@
+---
+# CodeRabbit configuration
+chat:
+  auto_reply: true
+early_access: true
+reviews:
+  auto_review:
+    base_branches:
+      - "dev*"
+      - "main"
+      - "master"
+    drafts: false
+    enabled: true
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+  high_level_summary: true
+  path_filters:
+    - "**/*.j2"
+    - "**/*.md"
+    - "**/*.py"
+    - "**/*.yaml"
+    - "**/*.yml"
+    - "defaults/**"
+    - "meta/**"
+    - "molecule/**"
+    - "tasks/**"
+    - "vars/**"
+  path_instructions:
+    - path: "**/*.yml"
+      instructions: |
+        - For Ansible files, review the YAML code against the Ansible best practices and point out any mismatches.
+        - Ensure keys are in lexicographical order when possible.
+  poem: true
+  request_changes_workflow: false
+  review_status: true
+  tools:
+    actionlint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    hadolint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    yamllint:
+      enabled: true
+version: 1

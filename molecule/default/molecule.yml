@@ -8,6 +8,10 @@ lint: |
 platforms:
   - name: debian-latest
     image: debian:latest
+  - name: nixos-latest
+    dockerfile: ../resources/playbooks/Dockerfile.j2
+    image: nixos/nix:latest
+    pre_build_image: false
   - name: ubuntu-jammy
     image: ubuntu:jammy
   - name: ubuntu-noble
@@ -17,17 +21,16 @@ platforms:
 provisioner:
   config_options:
     defaults:
-      callback_result_format: yaml
+      # Use the built-in default callback with result_format instead of community.general.yaml
+      stdout_callback: ansible.builtin.default
+      result_format: yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
   name: ansible
   inventory:
     group_vars:
       all:
         wine_install_winetricks: true
-  options:
-    v: true
-  playbooks:
-    converge: converge.yml
-    prepare: prepare.yml
+        wine_release: stable
+        wine_winetricks_winver: win10
 verifier:
   name: ansible

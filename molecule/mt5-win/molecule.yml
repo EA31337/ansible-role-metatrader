@@ -11,12 +11,13 @@ platforms:
 provisioner:
   config_options:
     defaults:
-      callback_result_format: yaml
+      stdout_callback: ansible.builtin.default
       remote_tmp: /tmp/.ansible-tmp-$${USER}
   name: ansible
   inventory:
     group_vars:
       all:
+        metatrader_version: 5
         wine_install_winetricks: true
   options:
     v: true

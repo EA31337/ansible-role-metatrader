@@ -15,10 +15,12 @@
     - ansible_os_family != "Windows"  # gather_facts is required.
     - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
   block:
+
     - name: Validates variables
       ansible.builtin.assert:
         that:
           - metatrader_setup_url | length > 0
+
     - name: Checks if platform is already installed
       register: file_mt_installed_exists
       ansible.builtin.stat:
@@ -39,8 +41,10 @@
         mode: "0640"
       when:
         - not file_mt_installed_exists.stat.exists
+
     - name: Ensures MetaTrader is installed (via verb file)
       ansible.builtin.shell:
+        # @todo: The winetricks command is executed directly without specifying the executable.
         # noqa command-instead-of-shell
         cmd: >
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
@@ -52,16 +56,20 @@
         WINETRICKS_DOWNLOADER: curl
       when:
         - not file_mt_installed_exists.stat.exists
+
     - name: Ensures verb installation file is absent
       ansible.builtin.file:
         path: /tmp/mt{{ metatrader_version }}_install.verb
         state: absent
+
 - name: Verifies
   ansible.builtin.include_tasks: verify.yml
   tags:
     - metatrader_verify
+
 - name: Saves platform facts
-  become: true
+  become: "{{ (ansible_user_id is defined and ansible_user_id != 'root') or (ansible_os_family == 'Windows') }}"
+  become_method: "{{ metatrader_become_method[ansible_os_family] }}"
   when:
     - >-
       ansible_local['metatrader'] is not defined
@@ -94,7 +102,7 @@
         path: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts
         state: directory
       become: true
-      become_method: ansible.builtin.runas
+      become_method: "{{ metatrader_become_method[ansible_os_family] }}"
       become_user: "{{ ansible_env.USERNAME }}"
       when: ansible_os_family == "Windows"
     - name: Saves role's facts (Unix)
@@ -109,6 +117,6 @@
         # yamllint disable-line rule:line-length
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
-      become_method: ansible.builtin.runas
+      become_method: "{{ metatrader_become_method[ansible_os_family] }}"
       become_user: "{{ ansible_env.USERNAME }}"
       when: ansible_os_family == "Windows"
