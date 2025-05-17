@@ -1,9 +1,10 @@
+# Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
 ---
 dependencies:
   - name: ea31337.wine
     role: ea31337.wine
     scm: git
-    src: git+https://github.com/EA31337/ansible-role-wine.git
+    src: https://github.com/EA31337/ansible-role-wine.git
     vars:
       wine_install_winetricks: true
     version: v1.0.3  # This should match version in requirements.yml
@@ -11,7 +12,7 @@ dependencies:
   - name: ea31337.xvfb
     role: ea31337.xvfb
     scm: git
-    src: git+https://github.com/EA31337/ansible-role-xvfb.git
+    src: https://github.com/EA31337/ansible-role-xvfb.git
     version: v1.0.3  # This should match version in requirements.yml
     when: ansible_os_family != "Windows"
 galaxy_info:
