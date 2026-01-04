@@ -25,5 +25,5 @@ all:
           ansible_python_interpreter: /usr/bin/python3
         metatrader-on-nixos-latest:
           ansible_connection: docker
-          ansible_host: metatrader-on-nixos-latest
-          ansible_python_interpreter: /nix/var/nix/profiles/default/bin/python3
+          ansible_host: template-on-nixos-latest
+          ansible_python_interpreter: /root/.nix-profile/bin/python3

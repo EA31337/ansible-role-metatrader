@@ -20,6 +20,9 @@
         state: started
         command: sleep infinity
       delegate_to: localhost
+      vars:
+        # Use system Python with requests installed for controller-side Docker modules.
+        ansible_python_interpreter: "{{ controller_python }}"
 
     - name: Wait for container to be ready
       community.docker.docker_container_info:
@@ -32,6 +35,9 @@
       delay: 2
       delegate_to: localhost
       retries: 10
+      vars:
+        # Use system Python with requests installed for controller-side Docker modules.
+        ansible_python_interpreter: "{{ controller_python }}"
 
     - name: Install Python 3 on Alpine
       ansible.builtin.raw: |
@@ -66,6 +72,7 @@
 
   tags: always
   vars:
+    controller_python: "{{ ansible_playbook_python }}"
     container_image_map:
       metatrader-on-alpine-latest: alpine:latest
       metatrader-on-debian-latest: debian:latest
@@ -95,4 +102,5 @@
       failed_when: false
 
   vars:
+    controller_python: "{{ ansible_playbook_python }}"
     wine_install_winetricks: true

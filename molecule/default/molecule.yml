@@ -1,9 +1,20 @@
 ---
+# Molecule configuration file.
+# Dependency management (download roles/collections)
+# Note: Keep YAML keys sorted alphabetically.
+dependency:
+  name: galaxy
+  options:
+    ignore-certs: false
+    ignore-errors: false
+    role-file: requirements.yml
+    requirements-file: requirements.yml
 driver:
   name: docker
 lint: |
   set -e
   yamllint .
+  molecule syntax
   ansible-lint
 platforms:
   - name: debian-latest
@@ -21,16 +32,49 @@ platforms:
 provisioner:
   config_options:
     defaults:
+      host_key_checking: false
       # Use the built-in default callback with result_format instead of community.general.yaml
-      stdout_callback: ansible.builtin.default
       result_format: yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
-  name: ansible
+      stdout_callback: ansible.builtin.default
   inventory:
     group_vars:
       all:
         wine_install_winetricks: true
         wine_release: stable
         wine_winetricks_winver: win10
+    host_vars:
+      nixos-latest:
+        ansible_python_interpreter: /root/.nix-profile/bin/python3
+    ssh_connection:
+      pipelining: true
+  name: ansible
+  options:
+    diff: true
+    force-handlers: true
+  playbooks:
+    cleanup: cleanup.yml
+    converge: converge.yml
+    create: create.yml
+    destroy: destroy.yml
+    prepare: prepare.yml
+    side_effect: side_effect.yml
+    verify: verify.yml
+
+scenario:
+  name: default
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy
 verifier:
   name: ansible
