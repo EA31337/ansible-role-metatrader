@@ -1,8 +1,18 @@
-{% if item.name == 'nixos-latest' %}
-FROM {{ item.image }}
+{% set base_image = item.base_image | default(item.image) %}
+{% if 'nixos' in base_image %}
+FROM {{ base_image }}
+
+# Workaround for containerd 2.2.0+ / Go 1.24 "path escapes from parent" error.
+# Convert absolute symlinks (/nix/store/...) to relative ones.
+# See: https://github.com/containerd/containerd/issues/12683
+RUN ln --symbolic --force \
+      "$(realpath --relative-to=/etc /etc/passwd)" /etc/passwd && \
+    ln --symbolic --force \
+      "$(realpath --relative-to=/etc /etc/group)" /etc/group
 
 # Install required packages for Ansible to work on NixOS.
+# Include pip to avoid nix-env inside the running container.
 RUN nix-channel --update && \
-    nix-env -iA nixpkgs.procps nixpkgs.python310
+    nix-env -iA nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip
 
 {% endif %}
