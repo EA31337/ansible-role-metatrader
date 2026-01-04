@@ -45,12 +45,6 @@
       changed_when: false
       when: container_image is search("alpine")
 
-    - name: Install Python 3 on NixOS
-      ansible.builtin.raw: |
-        test -e "{{ ansible_python_interpreter }}" || (nix-env -iA nixpkgs.python3 nixpkgs.python3Packages.pip)
-      changed_when: false
-      when: container_image is search("nixos")
-
     - name: Install Python 3 on Ubuntu/Debian
       ansible.builtin.raw: |
         test -e "{{ ansible_python_interpreter }}" || (apt-get update && apt-get install -y python3 python3-pip)
@@ -88,6 +82,8 @@
   hosts: docker_containers,!metatrader-on-nixos-latest
   gather_facts: true
   tags: always
+  vars:
+    controller_python: "{{ ansible_playbook_python }}"
   tasks:
     - name: Installs ea31337.metatrader role
       ansible.builtin.import_role:
@@ -100,7 +96,6 @@
         state: stopped
       delegate_to: localhost
       failed_when: false
-
-  vars:
-    controller_python: "{{ ansible_playbook_python }}"
-    wine_install_winetricks: true
+      vars:
+        # Use system Python with requests installed for controller-side Docker modules.
+        ansible_python_interpreter: "{{ controller_python }}"
