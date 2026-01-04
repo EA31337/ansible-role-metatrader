@@ -34,9 +34,13 @@ provisioner:
     defaults:
       host_key_checking: false
       # Use the built-in default callback with result_format instead of community.general.yaml
-      result_format: yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
+      result_format: yaml
       stdout_callback: ansible.builtin.default
+      verbosity: 1
+  env:
+    ANSIBLE_FORCE_COLOR: "1"
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
   inventory:
     group_vars:
       all:
@@ -46,8 +50,8 @@ provisioner:
     host_vars:
       nixos-latest:
         ansible_python_interpreter: /root/.nix-profile/bin/python3
-    ssh_connection:
-      pipelining: true
+  ssh_connection:
+    pipelining: true
   name: ansible
   options:
     diff: true
