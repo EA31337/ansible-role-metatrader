@@ -48,6 +48,12 @@ provisioner:
         wine_install_winetricks: true
         wine_release: stable
         wine_winetricks_winver: win10
+    host_vars:
+      nixos-latest:
+        ansible_python_interpreter: /root/.nix-profile/bin/python3
+  ssh_connection:
+    pipelining: true
+  name: ansible
   options:
     diff: true
     force-handlers: true
