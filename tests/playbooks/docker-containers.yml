@@ -75,8 +75,6 @@
       metatrader-on-ubuntu-latest: ubuntu:latest
       metatrader-on-ubuntu-noble: ubuntu:noble
     container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:latest') }}"
-  vars_files:
-    - ../../vars/main.yml
 
 - name: Install ea31337.metatrader role on all containers
   hosts: docker_containers,!metatrader-on-nixos-latest
@@ -96,6 +94,3 @@
         state: stopped
       delegate_to: localhost
       failed_when: false
-      vars:
-        # Use system Python with requests installed for controller-side Docker modules.
-        ansible_python_interpreter: "{{ controller_python }}"
