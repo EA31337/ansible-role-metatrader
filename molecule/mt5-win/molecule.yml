@@ -12,7 +12,6 @@ provisioner:
   config_options:
     defaults:
       stdout_callback: ansible.builtin.default
-      remote_tmp: /tmp/.ansible-tmp-$${USER}
   name: ansible
   inventory:
     group_vars:

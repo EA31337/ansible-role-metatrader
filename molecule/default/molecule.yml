@@ -21,10 +21,12 @@ platforms:
 provisioner:
   config_options:
     defaults:
+      # Temporary workaround for molecule-docker 2.1.0 compatibility with Ansible 2.20+
+      allow_broken_conditionals: true
       # Use the built-in default callback with result_format instead of community.general.yaml
       stdout_callback: ansible.builtin.default
       result_format: yaml
-      remote_tmp: /tmp/.ansible-tmp-$${USER}
+      deprecation_warnings: False
   name: ansible
   inventory:
     group_vars:
@@ -32,5 +34,18 @@ provisioner:
         wine_install_winetricks: true
         wine_release: stable
         wine_winetricks_winver: win10
+scenario:
+  test_sequence:
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - destroy
+  destroy_sequence:
+    - dependency
+    - destroy
 verifier:
   name: ansible

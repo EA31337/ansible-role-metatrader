@@ -14,9 +14,15 @@ load_mt4_install()
       w_call opensymbol
     fi
 
+    # Hide Wine from debugger detection
+    w_try wine reg add "HKLM\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
+    w_try wine reg add "HKCU\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
+
     # Opens a webpage.
     WINEDLLOVERRIDES="winebrowser.exe="
     export WINEDLLOVERRIDES
+    WINEDEBUG=-all
+    export WINEDEBUG
 
     # No documented silent install option, unfortunately.
     w_try_cd "$W_CACHE/$W_PACKAGE"
