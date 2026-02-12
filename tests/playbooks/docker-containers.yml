@@ -20,6 +20,9 @@
         state: started
         command: sleep infinity
       delegate_to: localhost
+      vars:
+        # Use system Python with requests installed for controller-side Docker modules.
+        ansible_python_interpreter: "{{ controller_python }}"
 
     - name: Wait for container to be ready
       community.docker.docker_container_info:
@@ -32,18 +35,15 @@
       delay: 2
       delegate_to: localhost
       retries: 10
+      vars:
+        # Use system Python with requests installed for controller-side Docker modules.
+        ansible_python_interpreter: "{{ controller_python }}"
 
     - name: Install Python 3 on Alpine
       ansible.builtin.raw: |
         test -e "{{ ansible_python_interpreter }}" || (apk update && apk add --no-cache python3 py3-pip)
       changed_when: false
       when: container_image is search("alpine")
-
-    - name: Install Python 3 on NixOS
-      ansible.builtin.raw: |
-        test -e "{{ ansible_python_interpreter }}" || (nix-env -iA nixpkgs.python3 nixpkgs.python3Packages.pip)
-      changed_when: false
-      when: container_image is search("nixos")
 
     - name: Install Python 3 on Ubuntu/Debian
       ansible.builtin.raw: |
@@ -66,6 +66,7 @@
 
   tags: always
   vars:
+    controller_python: "{{ ansible_playbook_python }}"
     container_image_map:
       metatrader-on-alpine-latest: alpine:latest
       metatrader-on-debian-latest: debian:latest
@@ -74,13 +75,13 @@
       metatrader-on-ubuntu-latest: ubuntu:latest
       metatrader-on-ubuntu-noble: ubuntu:noble
     container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:latest') }}"
-  vars_files:
-    - ../../vars/main.yml
 
 - name: Install ea31337.metatrader role on all containers
   hosts: docker_containers,!metatrader-on-nixos-latest
   gather_facts: true
   tags: always
+  vars:
+    controller_python: "{{ ansible_playbook_python }}"
   tasks:
     - name: Installs ea31337.metatrader role
       ansible.builtin.import_role:
@@ -93,6 +94,3 @@
         state: stopped
       delegate_to: localhost
       failed_when: false
-
-  vars:
-    wine_install_winetricks: true

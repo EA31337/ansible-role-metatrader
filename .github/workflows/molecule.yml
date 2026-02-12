@@ -45,7 +45,8 @@ jobs:
       - uses: gofrolist/molecule-action@v2
         env:
           ANSIBLE_FORCE_COLOR: '1'
-          ANSIBLE_STDOUT_CALLBACK: ${{ runner.debug == '1' && 'debug' || 'oneline' }}
+          ANSIBLE_STDOUT_CALLBACK: ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
+          ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
           MOLECULE_REPORT: molecule-${{ matrix.scenario }}-report.html
         with:
           molecule_args: >-

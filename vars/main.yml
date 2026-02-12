@@ -1,5 +1,6 @@
 ---
 # Vars file for metatrader role.
+# Note: Keep YAML keys sorted alphabetically.
 metatrader_become_method:
   Alpine: ansible.builtin.su
   Darwin: ansible.builtin.sudo

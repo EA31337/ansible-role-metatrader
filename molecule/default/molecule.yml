@@ -1,9 +1,20 @@
 ---
+# Molecule configuration file.
+# Dependency management (download roles/collections)
+# Note: Keep YAML keys sorted alphabetically.
+dependency:
+  name: galaxy
+  options:
+    ignore-certs: false
+    ignore-errors: false
+    role-file: requirements.yml
+    requirements-file: requirements.yml
 driver:
   name: docker
 lint: |
   set -e
   yamllint .
+  molecule syntax
   ansible-lint
 platforms:
   - name: debian-latest
@@ -21,31 +32,54 @@ platforms:
 provisioner:
   config_options:
     defaults:
+      host_key_checking: false
+      # Use the built-in default callback with result_format instead of community.general.yaml
+      remote_tmp: /tmp/.ansible-tmp-$${USER}
+      result_format: yaml
+      stdout_callback: ansible.builtin.default
+      verbosity: 1
       # Temporary workaround for molecule-docker 2.1.0 compatibility with Ansible 2.20+
       allow_broken_conditionals: true
-      # Use the built-in default callback with result_format instead of community.general.yaml
-      stdout_callback: ansible.builtin.default
-      result_format: yaml
       deprecation_warnings: False
-  name: ansible
+  env:
+    ANSIBLE_FORCE_COLOR: "1"
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
   inventory:
     group_vars:
       all:
         wine_install_winetricks: true
         wine_release: stable
         wine_winetricks_winver: win10
+  ssh_connection:
+    pipelining: true
+  name: ansible
+  options:
+    diff: true
+    force-handlers: true
+    v: true
+  playbooks:
+    cleanup: cleanup.yml
+    converge: converge.yml
+    create: create.yml
+    destroy: destroy.yml
+    prepare: prepare.yml
+    side_effect: side_effect.yml
+    verify: verify.yml
+
 scenario:
+  name: default
   test_sequence:
     - dependency
+    - cleanup
+    - destroy
     - syntax
     - create
     - prepare
     - converge
     - idempotence
+    - side_effect
     - verify
-    - destroy
-  destroy_sequence:
-    - dependency
+    - cleanup
     - destroy
 verifier:
   name: ansible
