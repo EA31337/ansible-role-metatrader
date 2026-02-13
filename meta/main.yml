@@ -14,7 +14,7 @@ dependencies:
     src: https://github.com/nseam/ansible-role-wine.git
     vars:
       wine_install_winetricks: true
-      wine_version: "10.0"
+      wine_version: "{{ '9' if ansible_facts.os_family == 'Alpine' else '10.0' }}"
     version: test/testing-after-wine-role-changes  # This should match version in requirements.yml
     when: ansible_facts.os_family != "Windows"
 galaxy_info:

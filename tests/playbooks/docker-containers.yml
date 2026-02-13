@@ -68,7 +68,7 @@
   vars:
     controller_python: "{{ ansible_playbook_python }}"
     container_image_map:
-      metatrader-on-alpine-latest: alpine:latest
+      metatrader-on-alpine-latest: alpine:3.20
       metatrader-on-debian-latest: debian:latest
       metatrader-on-nixos-latest: nixos/nix
       metatrader-on-ubuntu-jammy: ubuntu:jammy
