@@ -61,6 +61,8 @@
         creates: ~/.wine/.installed-mt{{ metatrader_version }}
       environment:
         DISPLAY: ":0"
+        FONTCONFIG_FILE: "{{ ansible_facts.env.HOME }}/.config/fontconfig/fonts.conf"
+        FONTCONFIG_PATH: "{{ ansible_facts.env.HOME }}/.config/fontconfig"
         WINEDEBUG: "-all"
         WINEDLLOVERRIDES: "mscoree,mshtml=,winebrowser.exe=,dbghelp=n"
         WINETRICKS_DOWNLOADER: curl
@@ -78,7 +80,9 @@
     - metatrader_verify
 
 - name: Saves platform facts
-  become: "{{ (ansible_facts.user_id is defined and ansible_facts.user_id != 'root') or (ansible_facts.os_family == 'Windows') }}"
+  become: >-
+    {{ (ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
+    or (ansible_facts.os_family == 'Windows') }}
   become_method: "{{ metatrader_become_method[ansible_facts.os_family] }}"
   when:
     - >-
@@ -89,7 +93,8 @@
     - name: Sets fact
       ansible.builtin.set_fact:
         cacheable: true
-        metatrader: "{{ { (metatrader_version | int | string): {'path': find_mt_path_folder | dirname} } }}"
+        metatrader: >-
+          {{ {(metatrader_version | int | string): {'path': find_mt_path_folder}} }}
       when:
         - find_mt_path_folder is defined
         - find_mt_path_folder | length > 0
@@ -111,16 +116,20 @@
       when: ansible_facts.os_family == "Windows"
     - name: Saves role's facts (Unix)
       ansible.builtin.copy:
-        content: "{{ ansible_facts['metatrader'] | to_nice_json }}"
+        content: "{{ metatrader | to_nice_json }}"
         dest: /etc/ansible/facts.d/metatrader.fact
         mode: "0644"
-      when: ansible_facts.os_family != "Windows"
+      when:
+        - ansible_facts.os_family != "Windows"
+        - metatrader is defined
     - name: Saves role's facts (Windows)
       ansible.windows.win_copy:
-        content: "{{ ansible_facts['metatrader'] | to_nice_json }}"
+        content: "{{ metatrader | to_nice_json }}"
         # yamllint disable-line rule:line-length
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
       become_method: "{{ metatrader_become_method[ansible_facts.os_family] }}"
       become_user: "{{ ansible_facts.env.USERNAME }}"
-      when: ansible_facts.os_family == "Windows"
+      when:
+        - ansible_facts.os_family == "Windows"
+        - metatrader is defined

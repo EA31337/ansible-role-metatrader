@@ -40,7 +40,7 @@ provisioner:
       verbosity: 1
       # Temporary workaround for molecule-docker 2.1.0 compatibility with Ansible 2.20+
       allow_broken_conditionals: true
-      deprecation_warnings: False
+      deprecation_warnings: false
   env:
     ANSIBLE_FORCE_COLOR: "1"
     ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"

@@ -2,7 +2,6 @@
 - name: Verifies platform files exist
   tags:
     - metatrader_verify
-  when: detected_os_family | default(ansible_facts['os_family']) != 'NixOS'
   block:
     - name: Checks if platform's terminal exists (Unix)
       changed_when: false

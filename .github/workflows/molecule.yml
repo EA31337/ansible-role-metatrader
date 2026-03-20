@@ -29,7 +29,7 @@ jobs:
       matrix:
         platform:
           - debian-latest
-          # - nixos-latest  # NixOS is not supported by this version of the role.
+          - nixos-latest
           - ubuntu-jammy
           - ubuntu-latest
           - ubuntu-noble
@@ -39,7 +39,7 @@ jobs:
           - mt5
           # - mt5-win
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: ${{ github.repository }}
       - uses: gofrolist/molecule-action@v2
@@ -67,11 +67,5 @@ jobs:
           input_file: ${{ github.repository }}/molecule-${{ matrix.scenario }}-report.html
       # Debug with tmate on failure when debug logging is enabled.
       - if: ${{ failure() && runner.debug == '1' }}
-        uses: mxschmitt/action-tmate@v3
-      - if: always()
-        uses: mxschmitt/action-tmate@v3
-      - if: always()
-        uses: mxschmitt/action-tmate@v3
-      - if: always()
         uses: mxschmitt/action-tmate@v3
     timeout-minutes: 30
