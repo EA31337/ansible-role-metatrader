@@ -12,7 +12,7 @@
 - name: Ensures platform is installed
   when:
     - ansible_local['metatrader'] is not defined
-    - ansible_os_family != "Windows"  # gather_facts is required.
+    - ansible_facts.os_family != "Windows"  # gather_facts is required.
     - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
   block:
 
@@ -26,13 +26,22 @@
       ansible.builtin.stat:
         path: ~/.wine/.installed-mt{{ metatrader_version }}
       when:
-        - ansible_os_family != "Windows"
-    - name: Ensures Curl is present
+        - ansible_facts.os_family != "Windows"
+    - name: Ensures Curl is present (standard distros)
       ansible.builtin.package:
         name: curl
         state: present
       when:
-        - ansible_os_family not in ["Windows", "OtherLinux"]
+        - ansible_facts.os_family not in ["Windows", "OtherLinux"]
+        - ansible_facts.pkg_mgr not in ["unknown", ""]
+        - not file_mt_installed_exists.stat.exists
+    - name: Ensures Curl is present (NixOS)
+      ansible.builtin.command:
+        cmd: nix-env -iA nixpkgs.curl
+      changed_when: true
+      when:
+        - ansible_facts.os_family == "OtherLinux" or ansible_facts.pkg_mgr in ["unknown", ""]
+        - ansible_facts.distribution == "NixOS"
         - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
@@ -52,15 +61,18 @@
         creates: ~/.wine/.installed-mt{{ metatrader_version }}
       environment:
         DISPLAY: ":0"
-        WINEDLLOVERRIDES: mscoree,mshtml=,winebrowser.exe=
+        FONTCONFIG_FILE: "{{ ansible_facts.env.HOME }}/.config/fontconfig/fonts.conf"
+        FONTCONFIG_PATH: "{{ ansible_facts.env.HOME }}/.config/fontconfig"
+        WINEDEBUG: "-all"
+        WINEDLLOVERRIDES: "mscoree,mshtml=,winebrowser.exe=,dbghelp=n"
         WINETRICKS_DOWNLOADER: curl
       when:
         - not file_mt_installed_exists.stat.exists
 
-    - name: Ensures verb installation file is absent
-      ansible.builtin.file:
-        path: /tmp/mt{{ metatrader_version }}_install.verb
-        state: absent
+#    - name: Ensures verb installation file is absent
+#      ansible.builtin.file:
+#        path: /tmp/mt{{ metatrader_version }}_install.verb
+#        state: absent
 
 - name: Verifies
   ansible.builtin.include_tasks: verify.yml
@@ -68,8 +80,10 @@
     - metatrader_verify
 
 - name: Saves platform facts
-  become: "{{ (ansible_user_id is defined and ansible_user_id != 'root') or (ansible_os_family == 'Windows') }}"
-  become_method: "{{ metatrader_become_method[ansible_os_family] }}"
+  become: >-
+    {{ (ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
+    or (ansible_facts.os_family == 'Windows') }}
+  become_method: "{{ metatrader_become_method[ansible_facts.os_family] }}"
   when:
     - >-
       ansible_local['metatrader'] is not defined
@@ -80,12 +94,7 @@
       ansible.builtin.set_fact:
         cacheable: true
         metatrader: >-
-          {
-            '{{ metatrader_version | int }}':
-              {
-                'path': '{{ find_mt_path_folder | dirname }}'
-              }
-          }
+          {{ {(metatrader_version | int | string): {'path': find_mt_path_folder}} }}
       when:
         - find_mt_path_folder is defined
         - find_mt_path_folder | length > 0
@@ -95,28 +104,32 @@
         path: /etc/ansible/facts.d
         state: directory
         mode: "0755"
-      when: ansible_os_family != "Windows"
+      when: ansible_facts.os_family != "Windows"
     - name: Ensures that Ansible local facts directory exists (Windows)
       ansible.windows.win_file:
         # yamllint disable-line rule:line-length
         path: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts
         state: directory
       become: true
-      become_method: "{{ metatrader_become_method[ansible_os_family] }}"
-      become_user: "{{ ansible_env.USERNAME }}"
-      when: ansible_os_family == "Windows"
+      become_method: "{{ metatrader_become_method[ansible_facts.os_family] }}"
+      become_user: "{{ ansible_facts.env.USERNAME }}"
+      when: ansible_facts.os_family == "Windows"
     - name: Saves role's facts (Unix)
       ansible.builtin.copy:
-        content: "{{ ansible_facts['metatrader'] }}"
+        content: "{{ metatrader | to_nice_json }}"
         dest: /etc/ansible/facts.d/metatrader.fact
         mode: "0644"
-      when: ansible_os_family != "Windows"
+      when:
+        - ansible_facts.os_family != "Windows"
+        - metatrader is defined
     - name: Saves role's facts (Windows)
       ansible.windows.win_copy:
-        content: "{{ ansible_facts['metatrader'] }}"
+        content: "{{ metatrader | to_nice_json }}"
         # yamllint disable-line rule:line-length
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
-      become_method: "{{ metatrader_become_method[ansible_os_family] }}"
-      become_user: "{{ ansible_env.USERNAME }}"
-      when: ansible_os_family == "Windows"
+      become_method: "{{ metatrader_become_method[ansible_facts.os_family] }}"
+      become_user: "{{ ansible_facts.env.USERNAME }}"
+      when:
+        - ansible_facts.os_family == "Windows"
+        - metatrader is defined

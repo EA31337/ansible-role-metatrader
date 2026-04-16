@@ -15,6 +15,8 @@ enable_list:
   # add yaml here if you want to avoid ignoring yaml checks when yamllint
   # library is missing. Normally its absence just skips using that rule.
   - yaml
-mock_roles:
-  - community.docker.docker_image
+mock_roles: []
+mock_modules:
+  - community.docker.docker_container
+  - community.docker.docker_container_info
 verbosity: 0

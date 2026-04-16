@@ -5,22 +5,60 @@ w_metadata mt5_install apps \
     year="2021" \
     media="download"
 
+# Override winetricks' built-in w_ahk_do to use 64-bit AutoHotkey.
+# Required on Alpine linux where wine is wow64-only (no 32-bit support)
+# and running AutoHotkeyU32.exe fails with "could not load kernel32.dll".
+w_ahk_do()
+{
+    local _ahk_ver="1.1.36.01"
+    local _ahk_dir="${W_CACHE}/ahk"
+    local _ahk_setup="${_ahk_dir}/AutoHotkey_${_ahk_ver}_setup.exe"
+
+    mkdir -p "${_ahk_dir}"
+    if [ ! -f "${_ahk_setup}" ]; then
+        curl -L "https://github.com/AutoHotkey/AutoHotkey/releases/download/v${_ahk_ver}/AutoHotkey_${_ahk_ver}_setup.exe" \
+            -o "${_ahk_setup}"
+    fi
+    if [ ! -f "${_ahk_dir}/AutoHotkeyU64.exe" ]; then
+        7z x "${_ahk_setup}" -o"${_ahk_dir}" AutoHotkeyU64.exe -y 2>/dev/null
+    fi
+
+    local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
+    mkdir -p "${_script_dir}"
+    printf '%s\n' "$@" > "${_script_dir}/${W_PACKAGE}.ahk"
+
+    wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
+}
+
 load_mt5_install()
 {
     w_download {{ metatrader_setup_url }}
 
     if w_workaround_wine_bug 7156 "${title} needs wingdings.ttf, installing opensymbol"
     then
-      w_call opensymbol
+        # Install opensymbol font directly, bypassing w_call opensymbol which uses
+        # syswow64/regedit.exe - absent in wow64-only wine (e.g. Alpine linux).
+        _font_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/Fonts"
+        mkdir -p "${_font_dir}"
+        curl -sL -o "${_font_dir}/opensymbol.ttf" \
+            "https://raw.githubusercontent.com/apache/openoffice/5f13fa00702a0abe48858d443bc306f5c5ba26d8/main/extras/source/truetype/symbol/opens___.ttf" || true
+        wine reg add "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" \
+            /v "OpenSymbol (TrueType)" /t REG_SZ /d "opensymbol.ttf" /f 2>/dev/null || true
     fi
+
+    # Hide Wine from debugger detection
+    w_try wine reg add "HKLM\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
+    w_try wine reg add "HKCU\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
 
     WINEDLLOVERRIDES="winebrowser.exe="
     export WINEDLLOVERRIDES
+    WINEDEBUG=-all
+    export WINEDEBUG
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
         ; Maximum time for setup to complete.
-        Timeout := 600000 ; 10 min.
+        Timeout := 200000 ; 3.3 min.
 
         ; Searching for a setup's EXE file.
         loop, Files, *.exe

@@ -21,7 +21,7 @@
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
-      when: ansible_os_family != "Windows"
+      when: ansible_facts.os_family != "Windows"
 
     - name: Checks if platform's editor exists
       changed_when: false
@@ -31,4 +31,4 @@
         patterns: "[mM]eta[eE]ditor*.exe"
         recurse: true
       register: find_mte_res
-      when: ansible_os_family != "Windows"
+      when: ansible_facts.os_family != "Windows"
