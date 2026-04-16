@@ -149,9 +149,12 @@ jobs:
           if [ -f .devcontainer/requirements.txt ]; then
             python -m pip install --user -r .devcontainer/requirements.txt
           fi
+      - name: Set local bin path
+        run: echo "PYTHON_USER_SITE=$HOME/.local" >> "$GITHUB_ENV"
       - name: Share Python user site with agent
         uses: actions/upload-artifact@v4
         with:
           name: python-user-site
-          path: ~/.local
+          path: ${{ env.PYTHON_USER_SITE }}
           if-no-files-found: error
+          include-hidden-files: true
