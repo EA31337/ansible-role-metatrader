@@ -10,7 +10,7 @@ collections:
 roles:
   - name: ea31337.wine
     scm: git
-    src: https://github.com/nseam/ansible-role-wine.git
+    src: https://github.com/EA31337/ansible-role-wine.git
     # This should match version in meta/main.yml
     version: test/testing-after-wine-role-changes
   - name: ea31337.xvfb
