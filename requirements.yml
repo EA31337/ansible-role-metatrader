@@ -15,6 +15,6 @@ roles:
     version: test/testing-after-wine-role-changes
   - name: ea31337.xvfb
     scm: git
-    src: https://github.com/nseam/ansible-role-xvfb.git
+    src: https://github.com/EA31337/ansible-role-xvfb.git
     # This should match version in meta/main.yml
     version: test/testing-after-wine-role-changes
