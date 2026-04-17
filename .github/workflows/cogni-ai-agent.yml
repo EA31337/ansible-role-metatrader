@@ -26,7 +26,6 @@ on:
           - opencode/claude-sonnet-4-6
           - opencode/gemini-3.1-pro
           - opencode/gemini-3-flash
-          - opencode/gemini-3-pro
           - opencode/glm-5
           - opencode/glm-5.1
           - opencode/gpt-5
