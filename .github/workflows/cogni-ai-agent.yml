@@ -53,7 +53,6 @@ jobs:
   cogni-ai-agent:
     name: Run Cogni AI agent
     runs-on: ubuntu-latest
-    needs: dependencies
     permissions:
       contents: write
       id-token: write
@@ -67,15 +66,14 @@ jobs:
         with:
           python-version: '3.12'
       - name: Restore Python user site
+        id: python-user-site
         uses: actions/cache@v5.0.1
         with:
           path: ~/.local
           key: ${{ runner.os }}-pip-${{ hashFiles('.devcontainer/requirements.txt') }}
-      - name: Download Python user site
-        uses: actions/download-artifact@v4
-        with:
-          name: python-user-site
-          path: ~/.local
+      - name: Install Python dependencies
+        if: steps.python-user-site.outputs.cache-hit != 'true'
+        run: python -m pip install --user -r .devcontainer/requirements.txt
       - name: Ensure local bin on PATH
         run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
       # See: <https://github.com/Cogni-AI-OU/cogni-ai-agent-action>
@@ -96,7 +94,7 @@ jobs:
               docker*: allow
               ex*: allow
               gh*: allow
-              gh pr review*: deny
+              gh pr review*: allow
               git*: allow
               hexdump*: allow
               jq*: allow
@@ -114,47 +112,3 @@ jobs:
               true*: allow
               vim*: allow
           prompt: ${{ github.event.comment.body || inputs.prompt }}
-  dependencies:
-    name: Dependencies
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false  # Prevents duplicate Authorization header
-      - uses: actions/cache@v5.0.1
-        with:
-          path: ~/.cache/pre-commit
-          key: pre-commit|${{ hashFiles('.pre-commit-config.yaml') }}
-          restore-keys: |
-            pre-commit|
-      - uses: actions/setup-python@v6.1.0
-        with:
-          cache: ${{ hashFiles('.devcontainer/requirements.txt') != '' && 'pip' || '' }}
-          cache-dependency-path: .devcontainer/requirements.txt
-          python-version: '3.12'
-      - name: Cache Python user site
-        id: cache-dependencies
-        uses: actions/cache@v5.0.1
-        with:
-          path: ~/.local
-          key: ${{ runner.os }}-pip-${{ hashFiles('.devcontainer/requirements.txt') }}
-      - name: Install pre-commit
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
-        run: python -m pip install --user pre-commit
-      - name: Install dependencies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
-        run: |
-          if [ -f .devcontainer/requirements.txt ]; then
-            python -m pip install --user -r .devcontainer/requirements.txt
-          fi
-      - name: Set local bin path
-        run: echo "PYTHON_USER_SITE=$HOME/.local" >> "$GITHUB_ENV"
-      - name: Share Python user site with agent
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-user-site
-          path: ${{ env.PYTHON_USER_SITE }}
-          if-no-files-found: error
-          include-hidden-files: true
