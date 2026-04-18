@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        default: opencode/gpt-5-codex
+        default: opencode/gemini-3-flash
         description: Model to use for OpenCode
         options:
           - opencode/big-pickle
@@ -26,7 +26,6 @@ on:
           - opencode/claude-sonnet-4-6
           - opencode/gemini-3.1-pro
           - opencode/gemini-3-flash
-          - opencode/gemini-3-pro
           - opencode/glm-5
           - opencode/glm-5.1
           - opencode/gpt-5
@@ -96,6 +95,7 @@ jobs:
               gh*: allow
               gh pr review*: allow
               git*: allow
+              head*: allow
               hexdump*: allow
               jq*: allow
               links*: allow
