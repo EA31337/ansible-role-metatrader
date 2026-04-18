@@ -39,12 +39,6 @@ on:
           - recursive
         required: false
         type: choice
-  workflow_run:
-    workflows:
-      - OpenCode
-      - OpenCode Review
-    types:
-      - completed
 permissions:
   contents: read
 jobs:
