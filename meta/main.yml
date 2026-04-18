@@ -2,12 +2,6 @@
 # Note: Ensure the list is sorted alphabetically.
 ---
 dependencies:
-  - name: ea31337.xvfb
-    role: ea31337.xvfb
-    scm: git
-    src: https://github.com/EA31337/ansible-role-xvfb.git
-    version: test/testing-after-wine-role-changes  # This should match version in requirements.yml
-    when: ansible_facts.os_family != "Windows"
   - name: ea31337.wine
     role: ea31337.wine
     scm: git
@@ -15,7 +9,13 @@ dependencies:
     vars:
       wine_install_winetricks: true
       wine_version: "{{ '9' if ansible_facts.os_family == 'Alpine' else '10.0' }}"
-    version: test/testing-after-wine-role-changes  # This should match version in requirements.yml
+    version: v1.0.2  # This should match version in requirements.yml
+    when: ansible_facts.os_family != "Windows"
+  - name: ea31337.xvfb
+    role: ea31337.xvfb
+    scm: git
+    src: https://github.com/EA31337/ansible-role-xvfb.git
+    version: v1.0.2  # This should match version in requirements.yml
     when: ansible_facts.os_family != "Windows"
 galaxy_info:
   author: kenorb
@@ -48,9 +48,6 @@ galaxy_info:
         - bullseye
         - buster
         - stretch
-    # - name: NixOS
-    #   versions:
-    #     - all
     - name: Ubuntu
       versions:
         - all

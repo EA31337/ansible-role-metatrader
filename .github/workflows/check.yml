@@ -12,11 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: reviewdog/action-actionlint@v1
       - name: Add Problem Matcher for actionlint
         run: |
           echo "::add-matcher::.github/actionlint-matcher.json"
         shell: bash
+      - uses: reviewdog/action-actionlint@v1
   pre-commit:
     name: Pre-commit
     runs-on: ubuntu-latest

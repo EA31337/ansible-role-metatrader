@@ -40,8 +40,7 @@
         cmd: nix-env -iA nixpkgs.curl
       changed_when: true
       when:
-        - ansible_facts.os_family == "OtherLinux" or ansible_facts.pkg_mgr in ["unknown", ""]
-        - ansible_facts.distribution == "NixOS"
+        - ansible_facts.os_family == "NixOS" or ansible_facts.distribution == "NixOS"
         - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
@@ -68,11 +67,6 @@
         WINETRICKS_DOWNLOADER: curl
       when:
         - not file_mt_installed_exists.stat.exists
-
-#    - name: Ensures verb installation file is absent
-#      ansible.builtin.file:
-#        path: /tmp/mt{{ metatrader_version }}_install.verb
-#        state: absent
 
 - name: Verifies
   ansible.builtin.include_tasks: verify.yml

@@ -40,20 +40,16 @@ load_mt5_install()
         # syswow64/regedit.exe - absent in wow64-only wine (e.g. Alpine linux).
         _font_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/Fonts"
         mkdir -p "${_font_dir}"
-        curl -sL -o "${_font_dir}/opensymbol.ttf" \
-            "https://raw.githubusercontent.com/apache/openoffice/5f13fa00702a0abe48858d443bc306f5c5ba26d8/main/extras/source/truetype/symbol/opens___.ttf" || true
-        wine reg add "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" \
-            /v "OpenSymbol (TrueType)" /t REG_SZ /d "opensymbol.ttf" /f 2>/dev/null || true
+        if curl -fsSL -o "${_font_dir}/opensymbol.ttf" \
+            "https://raw.githubusercontent.com/apache/openoffice/5f13fa00702a0abe48858d443bc306f5c5ba26d8/main/extras/source/truetype/symbol/opens___.ttf"; then
+            wine reg add "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" \
+                /v "OpenSymbol (TrueType)" /t REG_SZ /d "opensymbol.ttf" /f 2>/dev/null || true
+        fi
     fi
 
     # Hide Wine from debugger detection
     w_try wine reg add "HKLM\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
     w_try wine reg add "HKCU\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
-
-    WINEDLLOVERRIDES="winebrowser.exe="
-    export WINEDLLOVERRIDES
-    WINEDEBUG=-all
-    export WINEDEBUG
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "

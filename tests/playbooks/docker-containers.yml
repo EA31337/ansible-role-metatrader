@@ -8,7 +8,8 @@
     }}
   # Use su as become_method as sudo is not available in all containers.
   become_method: ansible.builtin.su
-  # @todo: Add support for NixOS container.
+  # Note: NixOS coverage is excluded from this playbook because it is handled by Molecule scenarios.
+  # See: molecule/default/molecule.yml
   gather_facts: false
   hosts: docker_containers,!metatrader-on-nixos-latest
 
@@ -77,6 +78,7 @@
     container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:latest') }}"
 
 - name: Install ea31337.metatrader role on all containers
+  # Note: NixOS coverage is handled by Molecule scenarios.
   hosts: docker_containers,!metatrader-on-nixos-latest
   gather_facts: true
   tags: always

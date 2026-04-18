@@ -22,7 +22,7 @@
                 "github.vscode-github-actions",
                 "ms-python.python",
                 "vscodevim.vim"
-            ],
+            ]
         }
     },
     // Features to add to the dev container. More info: https://containers.dev/features.

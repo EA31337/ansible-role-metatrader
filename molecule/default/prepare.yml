@@ -32,8 +32,14 @@
         if command -v python3 || command -v python; then
           exit 0
         fi
+        # Ensure Nix config directory exists
         mkdir -p /etc/nix
-        printf "sandbox = false\n" > /etc/nix/nix.conf
+
+        # Append sandbox setting instead of overwriting existing configuration
+        if ! grep -q '^[[:space:]]*sandbox[[:space:]]*=' /etc/nix/nix.conf 2>/dev/null; then
+          printf "sandbox = false\n" >> /etc/nix/nix.conf
+        fi
+
         export NIX_CONFIG="sandbox = false"
         nix-env --option sandbox false \
           -iA nixpkgs.python3 nixpkgs.python3Packages.pip
