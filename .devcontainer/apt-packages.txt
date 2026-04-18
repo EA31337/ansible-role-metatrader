@@ -1,0 +1,11 @@
+coreutils
+direnv
+figlet
+findutils
+gh
+git
+links
+mawk
+sed
+time
+vim

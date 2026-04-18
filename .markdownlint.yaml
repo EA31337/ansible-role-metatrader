@@ -1,10 +1,21 @@
 ---
+# MD003 heading-style - Heading style
+# Use 'consistent' to allow each file to use its own consistent heading style
+# internally (atx or setext) rather than enforcing a repository-wide style
+MD003:
+  style: consistent
 # MD013 line-length - Line length
 MD013:
   line_length: 120
 # MD033 no-inline-html - Inline HTML
 MD033:
-  allowed_elements: [details]
+  allowed_elements:
+    - details
+    - plan_research
+    - plan_style_guide
+    - reasoning
+    - stopping_rules
+    - workflow
 # MD046 code-block-style - Code block style
 MD046:
   style: consistent
