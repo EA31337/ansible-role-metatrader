@@ -21,11 +21,10 @@ platforms:
 provisioner:
   config_options:
     defaults:
-      # Temporary workaround for molecule-docker 2.1.0 compatibility with Ansible 2.20+
-      # See: https://github.com/ansible-community/molecule-docker/issues/136
-      # TODO: Remove once molecule-docker 2.1.0 is compatible with Ansible 2.20+
+      # Workaround for molecule-docker 2.1.0 using non-boolean conditionals
+      # in its create/destroy playbooks (e.g. `when: (lookup('env', 'HOME'))`).
+      # See: https://github.com/ansible-community/molecule-plugins/issues/295
       allow_broken_conditionals: true
-      deprecation_warnings: false
       host_key_checking: false
       # Use the built-in default callback with result_format instead of community.general.yaml
       result_format: yaml
@@ -39,12 +38,25 @@ provisioner:
       all:
         metatrader_version: 5
         wine_install_winetricks: true
+  name: ansible
   options:
     diff: true
     force-handlers: true
-    v: true
   playbooks:
     converge: ../default/converge.yml
     prepare: ../default/prepare.yml
+
+scenario:
+  name: mt5-win
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - destroy
 verifier:
   name: ansible
