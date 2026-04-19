@@ -99,13 +99,13 @@ molecule syntax
 
 ## Testing & Verification Gates
 
-- `molecule syntax` — YAML + playbook syntax validation
-- `molecule converge` — full role execution on all containers
-- `molecule idempotence` — re-run must produce zero changes
-- `molecule verify` — asserts terminal.exe and metaeditor.exe exist
-- `yamllint .` — YAML lint (config: `.yamllint`)
-- `ansible-lint` — Ansible best practices (config: `.ansible-lint`)
-- `pre-commit run -a` — all pre-commit hooks
+- `molecule syntax` -- YAML + playbook syntax validation
+- `molecule converge` -- full role execution on all containers
+- `molecule idempotence` -- re-run must produce zero changes
+- `molecule verify` -- asserts terminal.exe and metaeditor.exe exist
+- `yamllint .` -- YAML lint (config: `.yamllint`)
+- `ansible-lint` -- Ansible best practices (config: `.ansible-lint`)
+- `pre-commit run -a` -- all pre-commit hooks
 
 ## Troubleshooting Matrix
 
