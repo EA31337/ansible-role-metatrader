@@ -1,4 +1,5 @@
 ---
+# Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
 dependencies:
   - name: ea31337.wine
     role: ea31337.wine
