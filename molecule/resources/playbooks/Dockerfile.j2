@@ -10,8 +10,26 @@ RUN ln --symbolic --force \
     ln --symbolic --force \
       "$(realpath --relative-to=/etc /etc/group)" /etc/group
 
+# Trust proxy CA certificates (if present on the host during build).
+# Store combined cert in /etc/nix/ — files in /etc/ssl/certs/ vanish across
+# Docker overlay layers in the NixOS image due to a containerd/overlayfs bug.
+# See: https://github.com/containerd/containerd/issues/12683
+COPY ca-certificates/ /tmp/host-ca/
+RUN combined="/etc/nix/ca-bundle.crt" && \
+    nix_bundle="/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt" && \
+    if ls /tmp/host-ca/*.crt >/dev/null 2>&1; then \
+      mkdir -p /etc/nix && \
+      if [ -f "$nix_bundle" ]; then \
+        cp "$nix_bundle" "$combined"; \
+      else \
+        touch "$combined"; \
+      fi && \
+      for c in /tmp/host-ca/*.crt; do cat "$c" >> "$combined"; done && \
+      printf "ssl-cert-file = %s\n" "$combined" >> /etc/nix/nix.conf; \
+    fi && \
+    rm -rf /tmp/host-ca
+
 # Install required packages for Ansible to work on NixOS.
-# Include pip to avoid nix-env inside the running container.
 RUN nix-channel --update && \
     nix-env -iA nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip
 

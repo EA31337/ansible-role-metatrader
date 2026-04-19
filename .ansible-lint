@@ -4,6 +4,8 @@ exclude_paths:
   - "*.yml.swp"
   - .ansible/
   - .cache/  # implicit unless exclude_paths is defined in config
+  - molecule/*/create.yml  # molecule infrastructure, not role tasks
+  - molecule/*/destroy.yml  # molecule infrastructure, not role tasks
 # Ansible-lint does not automatically load rules that have the 'opt-in' tag.
 # You must enable opt-in rules by listing each rule 'id' below.
 enable_list:
