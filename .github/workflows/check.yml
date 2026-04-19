@@ -43,40 +43,9 @@ permissions:
   contents: read
 
 jobs:
-  actionlint:
-    name: actionlint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: ${{ inputs.submodules || 'false' }}
-      - name: Add Problem Matcher for actionlint
-        run: |
-          if [ -n "${{ inputs.actionlint-matcher-path }}" ]; then
-            echo "::add-matcher::${{ inputs.actionlint-matcher-path }}"
-          elif [ -f ".github/actionlint-matcher.json" ]; then
-            echo "::add-matcher::.github/actionlint-matcher.json"
-          fi
-        shell: bash
-      - uses: reviewdog/action-actionlint@v1
-  pre-commit:
-    name: Pre-commit
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: ${{ inputs.submodules || 'false' }}
-      - name: Add Problem Matcher for pre-commit
-        run: |
-          if [ -n "${{ inputs.pre-commit-matcher-path }}" ]; then
-            echo "::add-matcher::${{ inputs.pre-commit-matcher-path }}"
-          elif [ -f ".github/pre-commit-matcher.json" ]; then
-            echo "::add-matcher::.github/pre-commit-matcher.json"
-          fi
-        shell: bash
-      - uses: actions/cache@v5
-        with:
-          path: ~/.cache/pre-commit
-          key: pre-commit|${{ hashFiles('.pre-commit-config.yaml') }}
-      - uses: actions/setup-python@v6
-      - uses: pre-commit/action@v3.0.1
+  check:
+    uses: EA31337/.github/.github/workflows/check.yml@master
+    with:
+      actionlint-matcher-path: ${{ inputs.actionlint-matcher-path || '.github/actionlint-matcher.json' }}
+      pre-commit-matcher-path: ${{ inputs.pre-commit-matcher-path || '.github/pre-commit-matcher.json' }}
+      submodules: ${{ inputs.submodules || 'false' }}
