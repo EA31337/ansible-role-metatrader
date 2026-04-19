@@ -65,6 +65,8 @@ provisioner:
     force-handlers: true
   playbooks:
     converge: converge.yml
+    create: create.yml
+    destroy: destroy.yml
     prepare: prepare.yml
     verify: verify.yml
 
