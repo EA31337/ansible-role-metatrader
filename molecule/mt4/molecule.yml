@@ -63,12 +63,20 @@ provisioner:
         wine_release_codename: bookworm
       nixos-latest:
         ansible_python_interpreter: /root/.nix-profile/bin/python3
+      ubuntu-jammy:
+        wine_release_codename: jammy
+      ubuntu-latest:
+        wine_release_codename: jammy
+      ubuntu-noble:
+        wine_release_codename: jammy
   name: ansible
   options:
     diff: true
     force-handlers: true
   playbooks:
     converge: ../default/converge.yml
+    create: ../default/create.yml
+    destroy: ../default/destroy.yml
     prepare: ../default/prepare.yml
 
 scenario:
