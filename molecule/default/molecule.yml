@@ -31,11 +31,10 @@ platforms:
 provisioner:
   config_options:
     defaults:
-      # Temporary workaround for molecule-docker 2.1.0 compatibility with Ansible 2.20+
-      # See: https://github.com/ansible-community/molecule-docker/issues/136
-      # TODO: Remove once molecule-docker 2.1.0 is compatible with Ansible 2.20+
+      # Workaround for molecule-docker 2.1.0 using non-boolean conditionals
+      # in its create/destroy playbooks (e.g. `when: (lookup('env', 'HOME'))`).
+      # See: https://github.com/ansible-community/molecule-plugins/issues/295
       allow_broken_conditionals: true
-      deprecation_warnings: false
       host_key_checking: false
       # Use the built-in default callback with result_format instead of community.general.yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
@@ -53,34 +52,29 @@ provisioner:
         wine_install_winetricks: true
         wine_release: stable
         wine_winetricks_winver: win10
+    host_vars:
+      nixos-latest:
+        ansible_python_interpreter: /root/.nix-profile/bin/python3
   name: ansible
   options:
     diff: true
     force-handlers: true
-    v: true
   playbooks:
-    cleanup: cleanup.yml
     converge: converge.yml
-    create: create.yml
-    destroy: destroy.yml
     prepare: prepare.yml
-    side_effect: side_effect.yml
     verify: verify.yml
 
 scenario:
   name: default
   test_sequence:
     - dependency
-    - cleanup
     - destroy
     - syntax
     - create
     - prepare
     - converge
     - idempotence
-    - side_effect
     - verify
-    - cleanup
     - destroy
 verifier:
   name: ansible

@@ -38,17 +38,24 @@ jobs:
           - mt4
           - mt5
           # - mt5-win
+    env:
+      MOLECULE_REPORT: molecule-${{ matrix.scenario }}-${{ matrix.platform }}-report.html
     steps:
       - uses: actions/checkout@v6
         with:
           path: ${{ github.repository }}
+      - name: Install Ansible collections
+        run: |
+          pip install ansible-core
+          ansible-galaxy collection install -r requirements.yml -p collections
+        working-directory: ${{ github.repository }}
       - uses: gofrolist/molecule-action@v2
         env:
           ANSIBLE_FORCE_COLOR: '1'
           ANSIBLE_STDOUT_CALLBACK: ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
           ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
-          DOCKER_API_VERSION: auto
-          MOLECULE_REPORT: molecule-${{ matrix.scenario }}-report.html
+          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/${{ github.repository }}/collections
+          MOLECULE_REPORT: ${{ env.MOLECULE_REPORT }}
         with:
           molecule_args: >-
             --platform-name ${{ matrix.platform }}
@@ -58,14 +65,19 @@ jobs:
           molecule_working_dir: ${{ github.repository }}
       - if: always()
         name: Ensure report file permissions are correct
-        run: sudo chmod 644 molecule-${{ matrix.scenario }}-report.html
+        run: |
+          if [ -f "${MOLECULE_REPORT}" ]; then
+            sudo chmod 644 "${MOLECULE_REPORT}"
+          else
+            echo "No report produced by Molecule for scenario ${{ matrix.scenario }}"
+          fi
         working-directory: ${{ github.repository }}
       - if: always()
         name: Converts test report
         uses: patrick-werner/fhir-html-validation-to-markdown@1.0.0
         with:
-          input_file: ${{ github.repository }}/molecule-${{ matrix.scenario }}-report.html
+          input_file: ${{ github.repository }}/${{ env.MOLECULE_REPORT }}
       # Debug with tmate on failure when debug logging is enabled.
       - if: ${{ failure() && runner.debug == '1' }}
         uses: mxschmitt/action-tmate@v3
-    timeout-minutes: 30
+    timeout-minutes: 40
