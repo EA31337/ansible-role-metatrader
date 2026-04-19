@@ -13,6 +13,7 @@ RUN ln --symbolic --force \
 # Trust proxy CA certificates (if present on the host during build).
 # Store combined cert in /etc/nix/ — files in /etc/ssl/certs/ vanish across
 # Docker overlay layers in the NixOS image due to a containerd/overlayfs bug.
+# See: https://github.com/containerd/containerd/issues/12683
 COPY ca-certificates/ /tmp/host-ca/
 RUN combined="/etc/nix/ca-bundle.crt" && \
     nix_bundle="/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt" && \
