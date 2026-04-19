@@ -67,7 +67,6 @@ repos:
           (?x)^(
             \.github/workflows/molecule\.yml |
             \.github/copilot-instructions\.md |
-            molecule/resources/playbooks/Dockerfile\.j2 |
             AGENTS\.md
           )$
       - id: script-must-have-extension
