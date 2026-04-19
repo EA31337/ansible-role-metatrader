@@ -63,6 +63,13 @@ repos:
       - id: forbid-binary
       - id: git-check     # Configure in .gitattributes
       - id: require-ascii
+        exclude: |
+          (?x)^(
+            \.github/workflows/molecule\.yml |
+            \.github/copilot-instructions\.md |
+            molecule/resources/playbooks/Dockerfile\.j2 |
+            AGENTS\.md
+          )$
       - id: script-must-have-extension
 
   - repo: https://github.com/rhysd/actionlint
