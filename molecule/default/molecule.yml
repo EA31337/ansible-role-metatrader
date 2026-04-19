@@ -35,6 +35,8 @@ provisioner:
       # in its create/destroy playbooks (e.g. `when: (lookup('env', 'HOME'))`).
       # See: https://github.com/ansible-community/molecule-plugins/issues/295
       allow_broken_conditionals: true
+      # Ensure collections installed to ./collections are found by ansible-playbook.
+      collections_path: ./collections:~/.ansible/collections:/usr/share/ansible/collections
       host_key_checking: false
       # Use the built-in default callback with result_format instead of community.general.yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
@@ -53,6 +55,8 @@ provisioner:
         wine_release: stable
         wine_winetricks_winver: win10
     host_vars:
+      debian-latest:
+        wine_release_codename: bookworm
       nixos-latest:
         ansible_python_interpreter: /root/.nix-profile/bin/python3
   name: ansible
