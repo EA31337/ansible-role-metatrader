@@ -55,6 +55,7 @@ jobs:
           ANSIBLE_STDOUT_CALLBACK: ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
           ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
           ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/${{ github.repository }}/collections
+          MOLECULE_REPORT: ${{ env.MOLECULE_REPORT }}
         with:
           molecule_args: >-
             --platform-name ${{ matrix.platform }}
