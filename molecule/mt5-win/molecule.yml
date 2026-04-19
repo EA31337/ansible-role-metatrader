@@ -33,8 +33,8 @@ provisioner:
       stdout_callback: ansible.builtin.default
       verbosity: 1
   env:
-    ANSIBLE_FORCE_COLOR: "1"
-    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
+    ANSIBLE_FORCE_COLOR: '1'
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: '1'
   inventory:
     group_vars:
       all:
@@ -47,7 +47,6 @@ provisioner:
   playbooks:
     converge: ../default/converge.yml
     prepare: ../default/prepare.yml
-
 scenario:
   name: mt5-win
   test_sequence:

@@ -1,6 +1,5 @@
-# Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
-# Note: Ensure the list is sorted alphabetically.
 ---
+# Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
 dependencies:
   - name: ea31337.wine
     role: ea31337.wine
@@ -9,7 +8,7 @@ dependencies:
     vars:
       wine_install_winetricks: true
       wine_version: "{{ '9' if ansible_facts.os_family == 'Alpine' else '10.0' }}"
-    version: copilot/test-molecule-fixes-and-updates  # This should match version in requirements.yml
+    version: dev  # This should match version in requirements.yml
     when: ansible_facts.os_family != "Windows"
   - name: ea31337.xvfb
     role: ea31337.xvfb
@@ -36,7 +35,7 @@ galaxy_info:
     - windows
     - wine
   license: GPL-3.0-or-later
-  min_ansible_version: "2.7"
+  min_ansible_version: '2.7'
   namespace: ea31337
   platforms:
     - name: Alpine

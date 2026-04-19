@@ -46,8 +46,8 @@ provisioner:
     ssh_connection:
       pipelining: true
   env:
-    ANSIBLE_FORCE_COLOR: "1"
-    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
+    ANSIBLE_FORCE_COLOR: '1'
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: '1'
   inventory:
     group_vars:
       all:
@@ -75,7 +75,6 @@ provisioner:
     create: ../default/create.yml
     destroy: ../default/destroy.yml
     prepare: ../default/prepare.yml
-
 scenario:
   name: mt5
   test_sequence:

@@ -1,0 +1,38 @@
+---
+# GitHub Copilot cloud agent customization.
+# <https://docs.github.com/en/copilot/how-tos/use-copilot-agents/cloud-agent/customize-the-agent-environment>
+name: Copilot Setup Steps
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - .devcontainer/requirements.txt
+      - .github/workflows/copilot-setup-steps.yml
+  push:
+    paths:
+      - .devcontainer/requirements.txt
+      - .github/workflows/copilot-setup-steps.yml
+  workflow_dispatch:
+jobs:
+  copilot-setup-steps:
+    name: Copilot Setup Steps
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.12'
+      - name: Restore Python user site
+        id: python-user-site
+        uses: actions/cache@v5.0.1
+        with:
+          path: ~/.local
+          key: ${{ runner.os }}-pip-${{ hashFiles('.devcontainer/requirements.txt') }}
+      - name: Install Python dependencies
+        if: steps.python-user-site.outputs.cache-hit != 'true'
+        run: python -m pip install --user -r .devcontainer/requirements.txt
+      - name: Ensure local bin on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"

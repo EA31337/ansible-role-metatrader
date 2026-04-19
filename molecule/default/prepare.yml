@@ -1,9 +1,8 @@
 ---
 - name: Prepare hosts
-  hosts: "all:!nixos*"
+  hosts: all:!nixos*
   gather_facts: false
   tasks:
-
     - name: Ensure sudo is installed
       ansible.builtin.raw: |
         if command -v sudo >/dev/null 2>&1; then
@@ -21,7 +20,6 @@
           exit 1
         fi
       changed_when: false
-
     - name: Trust proxy CA certificates (if mounted)
       ansible.builtin.raw: |
         if ls /usr/local/share/ca-certificates/*.crt >/dev/null 2>&1; then
@@ -38,14 +36,13 @@
                 echo "$name" >> /etc/ca-certificates.conf
             done
             update-ca-certificates
-            # Ensure /etc/ssl/certs is world-readable (for _apt user).
+                    # Ensure /etc/ssl/certs is world-readable (for _apt user).
             chmod 755 /etc/ssl/certs
           elif command -v update-ca-certificates >/dev/null 2>&1; then
             update-ca-certificates
           fi
         fi
       changed_when: false
-
     - name: Install Python for Ansible
       ansible.builtin.raw: |
         if command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1; then
@@ -63,12 +60,10 @@
           exit 1
         fi
       changed_when: false
-
 - name: Prepare NixOS hosts
-  hosts: "nixos*"
+  hosts: nixos*
   gather_facts: false
   tasks:
-
     - name: Install Python for Ansible on NixOS
       ansible.builtin.raw: |
         if command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1; then
@@ -85,7 +80,6 @@
         nix-env --option sandbox false \
           -iA nixpkgs.python3 nixpkgs.python3Packages.pip
       changed_when: false
-
     - name: Trust proxy CA certificates on NixOS (if mounted)
       ansible.builtin.raw: |
         if ls /usr/local/share/ca-certificates/*.crt >/dev/null 2>&1; then

@@ -1,7 +1,6 @@
 ---
 # See: <https://opencode.ai/docs>
 name: Cogni AI Agent
-
 # yamllint disable-line rule:truthy
 on:
   issue_comment:
@@ -47,7 +46,6 @@ on:
         description: Prompt for the agent
         required: true
         type: string
-
 jobs:
   cogni-ai-agent:
     name: Run Cogni AI agent

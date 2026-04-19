@@ -1,7 +1,6 @@
 ---
 # Note: Keep keys and envs in alphabetical order.
 name: Molecule
-
 # yamllint disable-line rule:truthy
 on:
   pull_request:
@@ -9,7 +8,7 @@ on:
       - '!.github/workflows/**'
       - '**.cfg'
       - '**.md'
-      - '.*'
+      - .*
       - LICENSE
       - Pipfile*
   push:
@@ -17,13 +16,14 @@ on:
       - '!.github/workflows/**'
       - '**.cfg'
       - '**.md'
-      - '.*'
+      - .*
       - LICENSE
       - Pipfile*
 
 permissions:
   actions: write
   contents: read
+
 
 jobs:
   test:

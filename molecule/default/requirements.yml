@@ -1,4 +1,3 @@
-# Molecule's requirements file for default scenario.
 ---
 roles:
   - name: ea31337.wine

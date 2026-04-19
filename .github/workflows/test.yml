@@ -1,20 +1,19 @@
 ---
 # Note: Keep keys and envs in alphabetical order.
 name: Test
-
 # yamllint disable-line rule:truthy
 on:
   pull_request:
     paths-ignore:
       - '**/*.cfg'
       - '**/*.md'
-      - '.*'
+      - .*
       - Pipfile*
   push:
     paths-ignore:
       - '**/*.cfg'
       - '**/*.md'
-      - '.*'
+      - .*
       - Pipfile*
 
 permissions:
@@ -40,30 +39,25 @@ jobs:
       - uses: actions/checkout@v6
         with:
           path: ${{ github.repository }}
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           cache: 'pip'
           cache-dependency-path: "**/.devcontainer/requirements.txt"
           python-version: '3.11'
-
       - name: Install Python's requirements
         run: pip install -r .devcontainer/requirements.txt
         working-directory: ${{ github.repository }}
-
       - name: Install Ansible Galaxy requirements
         run: |
           ansible-galaxy collection install -r requirements.yml
           ansible-galaxy install -r requirements.yml
         working-directory: ${{ github.repository }}
-
       - name: Install Ansible Galaxy local requirements
         run: |
           jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
           ansible-galaxy install -r requirements-local.yml && rm requirements-local.yml
         working-directory: ${{ github.repository }}
-
       - name: Check Ansible syntax
         run: >-
             ansible-playbook --syntax-check
@@ -73,10 +67,10 @@ jobs:
             --verbose
         working-directory: ${{ github.repository }}
 
+        working-directory: ${{ github.repository }}
       - name: Run Ansible lint
         run: ansible-lint tests/playbooks/docker-containers.yml
         working-directory: ${{ github.repository }}
-
       - name: Run Ansible playbook
         run: >-
           ansible-playbook -i tests/inventory/docker-containers.yml
