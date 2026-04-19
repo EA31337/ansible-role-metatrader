@@ -1,10 +1,46 @@
 ---
+# Note: Keep keys and envs in alphabetical order.
 name: Check
 
 # yamllint disable-line rule:truthy
 on:
   pull_request:
   push:
+  schedule:
+    - cron: 0 0 * * 1  # Run every Monday at 00:00 UTC
+  workflow_call:
+    inputs:
+      actionlint-matcher-path:
+        default: ''
+        description: >
+          Path to actionlint problem matcher JSON file.
+        required: false
+        type: string
+      pre-commit-matcher-path:
+        default: ''
+        description: >
+          Path to pre-commit problem matcher JSON file.
+        required: false
+        type: string
+      submodules:
+        default: 'false'
+        description: Whether to checkout submodules
+        required: false
+        type: string
+  workflow_dispatch:
+    inputs:
+      submodules:
+        default: 'false'
+        description: Whether to checkout submodules
+        options:
+          - 'false'
+          - 'true'
+          - recursive
+        required: false
+        type: choice
+
+permissions:
+  contents: read
 
 jobs:
   actionlint:
@@ -12,9 +48,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: ${{ inputs.submodules || 'false' }}
       - name: Add Problem Matcher for actionlint
         run: |
-          echo "::add-matcher::.github/actionlint-matcher.json"
+          if [ -n "${{ inputs.actionlint-matcher-path }}" ]; then
+            echo "::add-matcher::${{ inputs.actionlint-matcher-path }}"
+          elif [ -f ".github/actionlint-matcher.json" ]; then
+            echo "::add-matcher::.github/actionlint-matcher.json"
+          fi
         shell: bash
       - uses: reviewdog/action-actionlint@v1
   pre-commit:
@@ -22,6 +64,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: ${{ inputs.submodules || 'false' }}
+      - name: Add Problem Matcher for pre-commit
+        run: |
+          if [ -n "${{ inputs.pre-commit-matcher-path }}" ]; then
+            echo "::add-matcher::${{ inputs.pre-commit-matcher-path }}"
+          elif [ -f ".github/pre-commit-matcher.json" ]; then
+            echo "::add-matcher::.github/pre-commit-matcher.json"
+          fi
+        shell: bash
       - uses: actions/cache@v5
         with:
           path: ~/.cache/pre-commit

@@ -4,6 +4,7 @@ collections/
 *.bak
 .cache
 *.html
+*.log
 *.org
 *.orig
 *.png

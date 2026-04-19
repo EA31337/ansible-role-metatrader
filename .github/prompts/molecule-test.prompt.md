@@ -1,23 +1,37 @@
-# Molecule Test Execution and Reporting
+# Molecule Test Runner
 
-Your goal is to execute Molecule tests for the `ea31337.metatrader` Ansible
-role, splitting them into smaller per-platform steps, and reporting the
-results in a structured table.
+Run all Molecule scenarios and report results as a table.
 
 ## Context
 
 Refer to [AGENTS.md](../../AGENTS.md) for setup, environment invariants,
 and troubleshooting guidance.
 
-## Prerequisites
+## Instructions
 
-Before running any tests, install all dependencies:
+1. Install dependencies (if not already present):
 
-```bash
-pip install -r .devcontainer/requirements.txt
-ansible-galaxy role install -r requirements.yml --force
-ansible-galaxy collection install -r requirements.yml -p collections --force
-```
+   ```bash
+   pip install -r .devcontainer/requirements.txt
+   ansible-galaxy role install -r requirements.yml --force
+   ansible-galaxy collection install -r requirements.yml -p collections
+   ```
+
+2. For each scenario below, run each Molecule step individually
+   to isolate failures:
+
+   ```bash
+   molecule destroy -s <scenario>
+   molecule create -s <scenario>
+   molecule converge -s <scenario>
+   molecule idempotence -s <scenario>
+   molecule verify -s <scenario>
+   molecule destroy -s <scenario>
+   ```
+
+3. Record every step outcome (✅ pass, ❌ fail, ⏭️ skipped).
+
+4. Report results in a **Scenario × Platform** table (see template below).
 
 ## Scenarios
 
@@ -28,98 +42,58 @@ ansible-galaxy collection install -r requirements.yml -p collections --force
 | `mt5`     | `5`                  | Explicit MT5 install               |
 | `mt5-win` | `5`                  | Windows container (disabled in CI) |
 
-## Platforms (Linux Scenarios)
+## Platforms (shared by all Linux scenarios)
 
-| Container        | Image              | Notes                                  |
-| ---------------- | ------------------ | -------------------------------------- |
-| `debian-latest`  | `debian:latest`    | WineHQ repo; codename: `bookworm`      |
-| `nixos-latest`   | `nixos/nix:latest` | Custom Dockerfile; privileged mode     |
-| `ubuntu-jammy`   | `ubuntu:jammy`     | WineHQ repo; codename: `jammy`         |
-| `ubuntu-noble`   | `ubuntu:noble`     | WineHQ repo; codename: `jammy`         |
-| `ubuntu-latest`  | `ubuntu:latest`    | WineHQ repo; codename: `jammy`         |
+| Container       | Image              | Notes                              |
+| --------------- | ------------------ | ---------------------------------- |
+| `debian-latest` | `debian:latest`    | WineHQ repo; codename: `bookworm`  |
+| `nixos-latest`  | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
+| `ubuntu-jammy`  | `ubuntu:jammy`     | WineHQ repo; codename: `jammy`     |
+| `ubuntu-noble`  | `ubuntu:noble`     | WineHQ repo; codename: `jammy`     |
+| `ubuntu-latest` | `ubuntu:latest`    | WineHQ repo; codename: `jammy`     |
 
-## Test Procedure
+## Results Template
 
-Run each Molecule step individually per platform to isolate failures.
-Use the `default` scenario unless otherwise specified.
+Fill in each cell after running the tests.
+Use ✅ for pass, ❌ for fail, ⏭️ for skipped.
 
-### Step 1 — Linting
+### Step-Level Results (per scenario)
 
-```bash
-yamllint .
-ansible-lint
-```
+For each scenario, report per-platform step results:
 
-### Step 2 — Syntax Check
+| Platform        | create | prepare | converge | idempotence | verify |
+| --------------- | :----: | :-----: | :------: | :---------: | :----: |
+| `debian-latest` |        |         |          |             |        |
+| `nixos-latest`  |        |         |          |             |        |
+| `ubuntu-jammy`  |        |         |          |             |        |
+| `ubuntu-noble`  |        |         |          |             |        |
+| `ubuntu-latest` |        |         |          |             |        |
 
-```bash
-molecule syntax -s default
-```
+### Converge Sub-Step Results
 
-### Step 3 — Create All Platforms
+For converge failures, break down by sub-step:
 
-```bash
-molecule create -s default
-```
+| Platform        | wine | xvfb | metatrader |
+| --------------- | :--: | :--: | :--------: |
+| `debian-latest` |      |      |            |
+| `nixos-latest`  |      |      |            |
+| `ubuntu-jammy`  |      |      |            |
+| `ubuntu-noble`  |      |      |            |
+| `ubuntu-latest` |      |      |            |
 
-### Step 4 — Prepare All Platforms
+### Summary (all scenarios)
 
-If create already triggered prepare, skip this step. Otherwise:
-
-```bash
-molecule prepare -s default
-```
-
-### Step 5 — Converge Per Platform
-
-Run converge individually for each platform to isolate failures:
-
-```bash
-molecule converge -s default -- --limit debian-latest
-molecule converge -s default -- --limit nixos-latest
-molecule converge -s default -- --limit ubuntu-jammy
-molecule converge -s default -- --limit ubuntu-noble
-molecule converge -s default -- --limit ubuntu-latest
-```
-
-### Step 6 — Verify Per Platform (only if converge passed)
-
-```bash
-molecule verify -s default -- --limit <platform>
-```
-
-### Step 7 — Cleanup
-
-```bash
-molecule destroy -s default
-```
-
-## Reporting
-
-After completing all steps, produce a results table using the following
-template. Fill in each cell with one of: `✅` (passed), `❌` (failed),
-or `⏭️` (skipped).
-
-### Results Template
-
-```markdown
-## Test Results — YYYY-MM-DD
-
-| Step         | debian-latest | nixos-latest | ubuntu-jammy | ubuntu-noble | ubuntu-latest |
-| ------------ | ------------- | ------------ | ------------ | ------------ | ------------- |
-| create       |               |              |              |              |               |
-| prepare      |               |              |              |              |               |
-| converge     |               |              |              |              |               |
-| — wine       |               |              |              |              |               |
-| — xvfb       |               |              |              |              |               |
-| — metatrader |               |              |              |              |               |
-| idempotence  |               |              |              |              |               |
-| verify       |               |              |              |              |               |
-```
+| Platform        | default | mt4 | mt5 | mt5-win |
+| --------------- | :-----: | :-: | :-: | :-----: |
+| `debian-latest` |         |     |     |         |
+| `nixos-latest`  |         |     |     |         |
+| `ubuntu-jammy`  |         |     |     |         |
+| `ubuntu-noble`  |         |     |     |         |
+| `ubuntu-latest` |         |     |     |         |
 
 ### Failure Details
 
-For each `❌`, include:
+For each ❌, include:
 
 - **Platform**: container name
 - **Step**: which molecule step failed
@@ -131,3 +105,12 @@ For each `❌`, include:
 
 After completing tests, update the **Test Results Matrix** section in
 [AGENTS.md](../../AGENTS.md) with the new results.
+
+## Troubleshooting
+
+- If NixOS fails with SSL errors, check `Dockerfile.j2` CA cert injection.
+- If Wine GPG key download fails, verify `dl.winehq.org` is reachable.
+- If pip fails inside molecule-action, ensure `create.yml`/`destroy.yml`
+  use `ansible.builtin.command` instead of `ansible.builtin.pip`.
+- If MetaTrader download fails, verify `download.mql5.com` is reachable.
+- Refer to [AGENTS.md](../../AGENTS.md) for the full troubleshooting matrix.
