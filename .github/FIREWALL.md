@@ -9,6 +9,7 @@ ansible.com
 api.github.com
 archive.ubuntu.com
 cache.nixos.org
+cdn.mql5.com
 channels.nixos.org
 code.visualstudio.com
 codeload.github.com
@@ -31,10 +32,12 @@ releases.nixos.org
 registry.npmjs.org
 support.github.com
 tldrlegal.com
+trade.mql5.com
 uploads.github.com
 user-images.githubusercontent.com
 yaml-multiline.info
 web.archive.org
+www.mql5.com
 ```
 
 Note: Keep the list sorted alphabetically for easier maintenance.
