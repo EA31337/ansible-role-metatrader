@@ -227,6 +227,78 @@ molecule destroy -s default
 - **Fallback**: winetricks also tries `web.archive.org` as fallback; both
   hosts must be in the allowlist.
 
+### MetaTrader installer shows "Sorry, something went wrong"
+
+> The MT5 setup bootstrapper downloads successfully but the actual
+> installation fails with "Sorry, something went wrong: try again later!"
+
+- **Root cause**: The `mt5setup.exe` bootstrapper is a small stub that
+  downloads the real MT5 files from MetaQuotes CDN servers at runtime.
+  If those servers (`www.mql5.com`, `cdn.mql5.com`, `trade.mql5.com`)
+  are DNS-blocked, the installer cannot fetch platform files.
+- **Fix**: Ensure **all** MetaQuotes hosts are in the firewall allowlist
+  (see [Required Hosts](#required-hosts) table below).
+- **Diagnosis**: A "Proxy Server" dialog may also appear before the error
+  if SSL interception is active. See
+  [Debugging the MT5 installer](#debugging-the-mt5-installer) below.
+
+### Debugging the MT5 installer
+
+When the installer hangs or fails inside a container, use these steps:
+
+```bash
+# 1. Install xdotool in the container
+docker exec CONTAINER apt-get install -y -q xdotool
+
+# 2. List all visible X windows (check for "Proxy Server" dialogs)
+docker exec -e DISPLAY=:0 CONTAINER \
+  bash -c 'for wid in $(xdotool search --name "."); do
+    echo "Window $wid: $(xdotool getwindowname $wid 2>/dev/null)"
+  done'
+
+# 3. Close a blocking "Proxy Server" dialog
+docker exec -e DISPLAY=:0 CONTAINER \
+  xdotool search --name "Proxy Server" windowfocus key Escape
+
+# 4. Take a screenshot of the X display
+docker exec CONTAINER apt-get install -y -q imagemagick
+docker exec -e DISPLAY=:0 CONTAINER import -window root /tmp/screen.png
+docker cp CONTAINER:/tmp/screen.png ./screen.png
+
+# 5. Check which MetaQuotes hosts are reachable from the container
+docker exec CONTAINER bash -c '
+  for h in download.mql5.com www.mql5.com cdn.mql5.com \
+           trade.mql5.com mt5-trade.metaquotes.net; do
+    printf "%-35s " "$h"
+    curl -sI --connect-timeout 5 "https://$h" 2>&1 | head -1
+  done'
+
+# 6. Check if terminal.exe was installed
+docker exec CONTAINER \
+  find /root/.wine/drive_c -name "terminal*" -o -name "metaeditor*"
+
+# 7. Check running Wine/MT5 processes
+docker exec CONTAINER ps aux | grep -E "mt5|terminal|wine" | grep -v defunct
+```
+
+## Test Results Matrix
+
+Results from testing on 2026-04-19 (firewall hosts partially allowlisted):
+
+| Platform | create | prepare | converge (wine) | converge (MT5) | verify |
+| -------- | ------ | ------- | --------------- | -------------- | ------ |
+| debian-latest | ✅ | ✅ | ✅ | ❌ installer error | ❌ |
+| ubuntu-jammy | ✅ | ✅ | ✅ | ❌ installer error | ❌ |
+| ubuntu-noble | ✅ | ✅ | ✅ | ❌ installer error | ❌ |
+| ubuntu-latest | ✅ | ✅ | ✅ | ❌ installer error | ❌ |
+| nixos-latest | ✅ | ✅ | not tested | not tested | — |
+
+**Note**: Wine installation completes successfully on all Debian/Ubuntu
+platforms. The MT5 installer bootstrapper (`mt5setup.exe`) downloads but
+fails with "Sorry, something went wrong" because additional MetaQuotes
+CDN hosts (`www.mql5.com`, `cdn.mql5.com`, `trade.mql5.com`) were
+DNS-blocked. These hosts have since been added to the firewall allowlist.
+
 ## Common Tasks
 
 ### Before Each Commit
@@ -280,13 +352,18 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 
 | Host | Purpose |
 | ---- | ------- |
+| `cache.nixos.org` | Nix binary cache (pre-built packages) |
+| `cdn.mql5.com` | MetaQuotes CDN (MT5 platform files) |
+| `channels.nixos.org` | Nix channel metadata (redirects to releases) |
 | `dl.winehq.org` | WineHQ APT repository and GPG key |
 | `download.mql5.com` | MetaTrader setup executable download |
-| `web.archive.org` | Winetricks fallback download mirror |
-| `channels.nixos.org` | Nix channel metadata (redirects to releases) |
-| `releases.nixos.org` | Nix channel tarballs (redirect target) |
-| `cache.nixos.org` | Nix binary cache (pre-built packages) |
 | `galaxy.ansible.com` | Ansible Galaxy collections |
+| `github.com` | AutoHotkey download (used by winetricks verb) |
+| `raw.githubusercontent.com` | OpenSymbol font download (winetricks verb) |
+| `releases.nixos.org` | Nix channel tarballs (redirect target) |
+| `trade.mql5.com` | MetaQuotes trade server (installer registration) |
+| `web.archive.org` | Winetricks fallback download mirror |
+| `www.mql5.com` | MetaQuotes website (installer backend) |
 
 ## References
 
