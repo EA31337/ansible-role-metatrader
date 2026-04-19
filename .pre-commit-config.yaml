@@ -65,8 +65,9 @@ repos:
       - id: require-ascii
         exclude: |
           (?x)^(
-            \.github/workflows/molecule\.yml |
             \.github/copilot-instructions\.md |
+            \.github/prompts/.* |
+            \.github/workflows/molecule\.yml |
             AGENTS\.md
           )$
       - id: script-must-have-extension
