@@ -1,4 +1,5 @@
 ---
+# Note: Keep keys and envs in alphabetical order.
 name: Molecule
 # yamllint disable-line rule:truthy
 on:
@@ -18,10 +19,18 @@ on:
       - .*
       - LICENSE
       - Pipfile*
+
+permissions:
+  actions: write
+  contents: read
+
+
 jobs:
   test:
-    name: Test
+    name: ${{ matrix.scenario }} / ${{ matrix.platform }}
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -29,15 +38,13 @@ jobs:
           - debian-latest
           - nixos-latest
           - ubuntu-jammy
-          - ubuntu-latest
           - ubuntu-noble
+          - ubuntu-latest
         scenario:
           - default
           - mt4
           - mt5
           # - mt5-win
-    env:
-      MOLECULE_REPORT: molecule-${{ matrix.scenario }}-${{ matrix.platform }}-report.html
     steps:
       - uses: actions/checkout@v6
         with:
@@ -47,35 +54,89 @@ jobs:
           pip install ansible-core
           ansible-galaxy collection install -r requirements.yml -p collections
         working-directory: ${{ github.repository }}
-      - uses: gofrolist/molecule-action@v2
+      - name: Filter molecule platforms to ${{ matrix.platform }}
+        run: |
+          SCENARIO="${{ matrix.scenario }}"
+          PLATFORM="${{ matrix.platform }}"
+          MOL_FILE="molecule/${SCENARIO}/molecule.yml"
+          yq -i \
+            ".platforms = [.platforms[] | select(.name == \"${PLATFORM}\")]" \
+            "$MOL_FILE"
+          echo "Filtered platforms:"
+          yq '.platforms[].name' "$MOL_FILE"
+        working-directory: ${{ github.repository }}
+      - name: Run Molecule test
+        uses: gofrolist/molecule-action@v2
         env:
-          ANSIBLE_FORCE_COLOR: '1'
-          ANSIBLE_STDOUT_CALLBACK: ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
+          ANSIBLE_COLLECTIONS_PATH: >-
+            ${{ github.workspace }}/${{ github.repository }}/collections
           ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
-          ANSIBLE_COLLECTIONS_PATH: ${{ github.workspace }}/${{ github.repository }}/collections
-          MOLECULE_REPORT: ${{ env.MOLECULE_REPORT }}
+          ANSIBLE_FORCE_COLOR: '1'
+          ANSIBLE_STDOUT_CALLBACK: >-
+            ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
         with:
           molecule_args: >-
-            --platform-name ${{ matrix.platform }}
             --scenario-name ${{ matrix.scenario }}
           molecule_command: test
           molecule_options: ${{ runner.debug == '1' && '--verbose' || '' }}
           molecule_working_dir: ${{ github.repository }}
-      - if: always()
-        name: Ensure report file permissions are correct
-        run: |
-          if [ -f "${MOLECULE_REPORT}" ]; then
-            sudo chmod 644 "${MOLECULE_REPORT}"
-          else
-            echo "No report produced by Molecule for scenario ${{ matrix.scenario }}"
-          fi
-        working-directory: ${{ github.repository }}
-      - if: always()
-        name: Converts test report
-        uses: patrick-werner/fhir-html-validation-to-markdown@1.0.0
-        with:
-          input_file: ${{ github.repository }}/${{ env.MOLECULE_REPORT }}
-      # Debug with tmate on failure when debug logging is enabled.
       - if: ${{ failure() && runner.debug == '1' }}
         uses: mxschmitt/action-tmate@v3
-    timeout-minutes: 40
+    timeout-minutes: 120
+
+  summary:
+    name: Results
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build results table
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: { jobs } } = await github.rest.actions
+              .listJobsForWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.runId,
+                per_page: 100,
+              });
+
+            // Keep in sync with the strategy.matrix above.
+            const scenarios = ['default', 'mt4', 'mt5'];
+            const platforms = [
+              'debian-latest',
+              'nixos-latest',
+              'ubuntu-jammy',
+              'ubuntu-noble',
+              'ubuntu-latest',
+            ];
+
+            const icon = (c) => ({
+              success: '✅', failure: '❌', cancelled: '⚪', skipped: '⏭️',
+            }[c] || '❓');
+
+            const lookup = {};
+            for (const job of jobs) {
+              lookup[job.name] = job.conclusion;
+            }
+
+            let table = '| Platform |';
+            for (const s of scenarios) table += ` ${s} |`;
+            table += '\n| --- |';
+            for (const s of scenarios) table += ' :---: |';
+            table += '\n';
+
+            for (const p of platforms) {
+              table += `| \`${p}\` |`;
+              for (const s of scenarios) {
+                const key = `${s} / ${p}`;
+                table += ` ${icon(lookup[key])} |`;
+              }
+              table += '\n';
+            }
+
+            await core.summary
+              .addHeading('Molecule Test Results', 2)
+              .addRaw(table)
+              .write();

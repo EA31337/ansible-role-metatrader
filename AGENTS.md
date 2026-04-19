@@ -283,21 +283,31 @@ docker exec CONTAINER ps aux | grep -E "mt5|terminal|wine" | grep -v defunct
 
 ## Test Results Matrix
 
-Results from testing on 2026-04-19 (firewall hosts partially allowlisted):
+Results from testing on 2026-04-19 (re-test, all MetaQuotes hosts
+allowlisted):
 
-| Platform | create | prepare | converge (wine) | converge (MT5) | verify |
-| -------- | ------ | ------- | --------------- | -------------- | ------ |
-| debian-latest | ✅ | ✅ | ✅ | ❌ installer error | ❌ |
-| ubuntu-jammy | ✅ | ✅ | ✅ | ❌ installer error | ❌ |
-| ubuntu-noble | ✅ | ✅ | ✅ | ❌ installer error | ❌ |
-| ubuntu-latest | ✅ | ✅ | ✅ | ❌ installer error | ❌ |
-| nixos-latest | ✅ | ✅ | not tested | not tested | — |
+| Step         | debian-latest | nixos-latest | ubuntu-jammy | ubuntu-noble | ubuntu-latest |
+| ------------ | ------------- | ------------ | ------------ | ------------ | ------------- |
+| create       | ✅            | ✅           | ✅           | ✅           | ✅            |
+| prepare      | ✅            | ✅           | ✅           | ✅           | ✅            |
+| converge     | ❌            | ❌           | ❌           | ❌           | ❌            |
+| — wine       | ✅            | ✅           | ✅           | ✅           | ✅            |
+| — xvfb       | ✅            | ❌           | ✅           | ✅           | ✅            |
+| — metatrader | ❌            | ⏭️           | ❌           | ❌           | ❌            |
+| verify       | ⏭️            | ⏭️           | ⏭️           | ⏭️           | ⏭️            |
 
-**Note**: Wine installation completes successfully on all Debian/Ubuntu
-platforms. The MT5 installer bootstrapper (`mt5setup.exe`) downloads but
-fails with "Sorry, something went wrong" because additional MetaQuotes
-CDN hosts (`www.mql5.com`, `cdn.mql5.com`, `trade.mql5.com`) were
-DNS-blocked. These hosts have since been added to the firewall allowlist.
+### Failure Details
+
+- **nixos-latest / xvfb**: The `ea31337.xvfb` role tries to include
+  `OtherLinux.yml` which does not exist. NixOS reports `os_family` as
+  `OtherLinux` and the xvfb role has no matching include file.
+- **debian/ubuntu / metatrader verify**: Wine and MT5 setup download
+  succeed (`mt5setup.exe` downloaded, `winetricks` verb completed with
+  `rc=0`), but `terminal64.exe` / `metaeditor64.exe` are not found
+  under `~/.wine/drive_c`. The MT5 stub installer runs but does not
+  extract platform binaries — likely the runtime download from
+  MetaQuotes CDN servers (`cdn.mql5.com`, `trade.mql5.com`) is blocked
+  or fails silently inside Wine.
 
 ## Common Tasks
 

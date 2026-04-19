@@ -1,4 +1,5 @@
 ---
+# Note: Keep keys and envs in alphabetical order.
 name: Test
 # yamllint disable-line rule:truthy
 on:
@@ -14,10 +15,26 @@ on:
       - '**/*.md'
       - .*
       - Pipfile*
+
+permissions:
+  contents: read
+
 jobs:
   test:
-    name: Test
+    name: Test (${{ matrix.container }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        container:
+          - metatrader-on-debian-latest
+          - metatrader-on-ubuntu-jammy
+          - metatrader-on-ubuntu-latest
+          - metatrader-on-ubuntu-noble
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      TARGET_CONTAINER: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -25,12 +42,16 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
+          cache: 'pip'
+          cache-dependency-path: "**/.devcontainer/requirements.txt"
           python-version: '3.11'
       - name: Install Python's requirements
         run: pip install -r .devcontainer/requirements.txt
         working-directory: ${{ github.repository }}
       - name: Install Ansible Galaxy requirements
-        run: ansible-galaxy install -r requirements.yml
+        run: |
+          ansible-galaxy collection install -r requirements.yml
+          ansible-galaxy install -r requirements.yml
         working-directory: ${{ github.repository }}
       - name: Install Ansible Galaxy local requirements
         run: |
@@ -39,16 +60,22 @@ jobs:
         working-directory: ${{ github.repository }}
       - name: Check Ansible syntax
         run: >-
-          ansible-playbook --syntax-check
-          -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
-          --verbose
+            ansible-playbook --syntax-check
+            -i tests/inventory/docker-containers.yml
+            tests/playbooks/docker-containers.yml
+            --limit "${TARGET_CONTAINER},localhost"
+            --verbose
+        working-directory: ${{ github.repository }}
+
         working-directory: ${{ github.repository }}
       - name: Run Ansible lint
         run: ansible-lint tests/playbooks/docker-containers.yml
         working-directory: ${{ github.repository }}
       - name: Run Ansible playbook
-        run: |
-          ansible-playbook -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
+        run: >-
+          ansible-playbook -i tests/inventory/docker-containers.yml
+          --limit "${TARGET_CONTAINER},localhost"
+          tests/playbooks/docker-containers.yml
         working-directory: ${{ github.repository }}
 
       # Debug with tmate on failure when debug logging is enabled.

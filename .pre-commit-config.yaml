@@ -43,14 +43,13 @@ repos:
     rev: 3.0.0
     hooks:
       - id: forbid-binary
-      - id: git-check  # Configure in .gitattributes
+      - id: git-check # Configure in .gitattributes
       - id: require-ascii
         exclude: |
           (?x)^(
-            \.github/.* |
-            \.tours/.* |
-            README\.md |
-            SKILL\.md |
+            \.github/copilot-instructions\.md |
+            \.github/prompts/.* |
+            \.github/workflows/molecule\.yml |
             AGENTS\.md
           )$
       - id: script-must-have-extension
@@ -88,6 +87,7 @@ repos:
       - id: flake8
         args:
           - --max-line-length=120
+
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.10
     hooks:
