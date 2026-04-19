@@ -14,7 +14,6 @@
           - docker>=7.1
           - requests
         state: present
-        extra_args: --user
       register: pip_install_result
 
   tasks:
@@ -32,8 +31,9 @@
         jid: "{{ item.ansible_job_id }}"
       loop: "{{ container_results.results }}"
       register: async_results
-      until: async_results.finished
+      until: item.finished
       retries: 300
+      when: item.ansible_job_id is defined
 
     - name: Remove molecule instance config
       ansible.builtin.file:

@@ -19,7 +19,11 @@ RUN combined="/etc/nix/ca-bundle.crt" && \
     nix_bundle="/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt" && \
     if ls /tmp/host-ca/*.crt >/dev/null 2>&1; then \
       mkdir -p /etc/nix && \
-      cp "$nix_bundle" "$combined" && \
+      if [ -f "$nix_bundle" ]; then \
+        cp "$nix_bundle" "$combined"; \
+      else \
+        touch "$combined"; \
+      fi && \
       for c in /tmp/host-ca/*.crt; do cat "$c" >> "$combined"; done && \
       printf "ssl-cert-file = %s\n" "$combined" >> /etc/nix/nix.conf; \
     fi && \

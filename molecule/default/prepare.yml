@@ -76,8 +76,8 @@
         fi
         mkdir -p /etc/nix
         touch /etc/nix/nix.conf
-        if grep -q '^sandbox =' /etc/nix/nix.conf; then
-          sed -i 's/^sandbox =.*/sandbox = false/' /etc/nix/nix.conf
+        if grep -Eq '^[[:space:]]*sandbox[[:space:]]*=' /etc/nix/nix.conf; then
+          sed -Ei 's/^[[:space:]]*sandbox[[:space:]]*=.*/sandbox = false/' /etc/nix/nix.conf
         else
           printf "sandbox = false\n" >> /etc/nix/nix.conf
         fi
@@ -93,7 +93,11 @@
           combined="/etc/nix/ca-bundle.crt"
           mkdir -p /etc/nix
           if [ ! -f "$combined" ]; then
-            cp "$nix_bundle" "$combined"
+            if [ -f "$nix_bundle" ]; then
+              cp "$nix_bundle" "$combined"
+            else
+              touch "$combined"
+            fi
           fi
           for cert in /usr/local/share/ca-certificates/*.crt; do
             cat "$cert" >> "$combined" 2>/dev/null || true

@@ -16,7 +16,6 @@
           - docker>=7.1
           - requests
         state: present
-        extra_args: --user
       register: pip_install_result
 
   tasks:
