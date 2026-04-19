@@ -1,6 +1,5 @@
 ---
 name: Molecule
-
 # yamllint disable-line rule:truthy
 on:
   pull_request:
@@ -8,7 +7,7 @@ on:
       - '!.github/workflows/**'
       - '**.cfg'
       - '**.md'
-      - '.*'
+      - .*
       - LICENSE
       - Pipfile*
   push:
@@ -16,10 +15,9 @@ on:
       - '!.github/workflows/**'
       - '**.cfg'
       - '**.md'
-      - '.*'
+      - .*
       - LICENSE
       - Pipfile*
-
 jobs:
   test:
     name: Test

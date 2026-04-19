@@ -203,7 +203,7 @@ molecule destroy -s default
   `provisioner.config_options.defaults`. Custom `create.yml`/`destroy.yml`
   avoid this pattern.
 - **Ref**:
-  <https://github.com/ansible-community/molecule-plugins/issues/295>
+  <https://github.com/ansible-community/molecule-plugins/issues>
 
 ### Wine APT cache update fails
 

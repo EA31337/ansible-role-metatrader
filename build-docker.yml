@@ -24,7 +24,6 @@
     - name: Add container as host
       ansible.builtin.add_host:
         hostname: '{{ container_name }}'
-
 - name: Configure container
   hosts: all
   gather_facts: false

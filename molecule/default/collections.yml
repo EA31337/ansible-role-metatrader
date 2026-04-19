@@ -1,4 +1,3 @@
-# Collections requirements for molecule default scenario.
 ---
 collections:
   - name: community.general

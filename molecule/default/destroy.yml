@@ -6,7 +6,7 @@
   gather_facts: false
   vars:
     # Use controller Python (Ansible's interpreter)
-    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+    ansible_python_interpreter: '{{ ansible_playbook_python }}'
   pre_tasks:
     - name: Ensure Python dependencies are installed on controller
       ansible.builtin.pip:
@@ -15,27 +15,24 @@
           - requests
         state: present
       register: pip_install_result
-
   tasks:
     - name: Stop and remove test containers
       community.docker.docker_container:
-        name: "{{ item.name }}"
+        name: '{{ item.name }}'
         state: absent
-      loop: "{{ molecule_yml.platforms }}"
+      loop: '{{ molecule_yml.platforms }}'
       register: container_results
       async: 7200
       poll: 0
-
     - name: Wait for instance(s) deletion to complete
       ansible.builtin.async_status:
-        jid: "{{ item.ansible_job_id }}"
-      loop: "{{ container_results.results }}"
+        jid: '{{ item.ansible_job_id }}'
+      loop: '{{ container_results.results }}'
       register: async_results
       until: item.finished
       retries: 300
       when: item.ansible_job_id is defined
-
     - name: Remove molecule instance config
       ansible.builtin.file:
-        path: "{{ molecule_ephemeral_directory }}/instance_config.yml"
+        path: '{{ molecule_ephemeral_directory }}/instance_config.yml'
         state: absent
