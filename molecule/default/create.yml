@@ -45,7 +45,7 @@
       when: (host_ca_certs.files | default([])) | length > 0
     - name: Build custom images when dockerfile is provided
       community.docker.docker_image:
-        name: '{{ item.image }}'
+        name: '{{ item.name }}:molecule'
         build:
           path: '{{ molecule_ephemeral_directory }}'
           dockerfile: '{{ item.name }}.Dockerfile'
@@ -56,7 +56,7 @@
     - name: Ensure test containers are running
       community.docker.docker_container:
         name: '{{ item.name }}'
-        image: '{{ item.image }}'
+        image: "{{ (item.name ~ ':molecule') if item.dockerfile is defined else item.image }}"
         command: sleep infinity
         init: '{{ item.init | default(omit) }}'
         # NixOS containers need privileged mode for non-standard filesystem.

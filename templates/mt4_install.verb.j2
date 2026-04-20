@@ -14,13 +14,18 @@ w_ahk_do()
     local _ahk_dir="${W_CACHE}/ahk"
     local _ahk_setup="${_ahk_dir}/AutoHotkey_${_ahk_ver}_setup.exe"
 
+    if ! command -v 7z >/dev/null 2>&1; then
+        w_die "w_ahk_do: '7z' is required (install p7zip/p7zip-full)"
+    fi
+
     mkdir -p "${_ahk_dir}"
     if [ ! -f "${_ahk_setup}" ]; then
-        curl -L "https://github.com/AutoHotkey/AutoHotkey/releases/download/v${_ahk_ver}/AutoHotkey_${_ahk_ver}_setup.exe" \
+        w_try curl -fL "https://github.com/AutoHotkey/AutoHotkey/releases/download/v${_ahk_ver}/AutoHotkey_${_ahk_ver}_setup.exe" \
             -o "${_ahk_setup}"
     fi
+
     if [ ! -f "${_ahk_dir}/AutoHotkeyU64.exe" ]; then
-        7z x "${_ahk_setup}" -o"${_ahk_dir}" AutoHotkeyU64.exe -y 2>/dev/null
+        w_try 7z x "${_ahk_setup}" -o"${_ahk_dir}" AutoHotkeyU64.exe -y
     fi
 
     local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"

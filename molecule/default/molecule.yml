@@ -24,20 +24,21 @@ platforms:
     pre_build_image: false
   - name: ubuntu-jammy
     image: ubuntu:jammy
-  - name: ubuntu-noble
-    image: ubuntu:noble
   - name: ubuntu-latest
     image: ubuntu:latest
+  - name: ubuntu-noble
+    image: ubuntu:noble
 provisioner:
   config_options:
     defaults:
-      # Workaround for molecule-docker 2.1.0 using non-boolean conditionals
-      # in its create/destroy playbooks (e.g. `when: (lookup('env', 'HOME'))`).
-      # See: https://github.com/ansible-community/molecule-plugins/issues/295
+      # Temporary workaround for molecule-docker 2.1.0 compatibility with Ansible >= 2.19
+      # It is deprecated and planned for removal in ansible-core 2.23.
+      # TODO: Remove once https://github.com/ansible-community/molecule-plugins/issues/295 is resolved.
       allow_broken_conditionals: true
       callbacks_enabled: ansible.posix.profile_tasks
       # Ensure collections installed to ./collections are found by ansible-playbook.
       collections_path: ./collections:~/.ansible/collections:/usr/share/ansible/collections
+      deprecation_warnings: false
       host_key_checking: false
       # Use the built-in default callback with result_format instead of community.general.yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
@@ -57,15 +58,15 @@ provisioner:
         wine_winetricks_winver: win10
     host_vars:
       debian-latest:
-        wine_release_codename: bookworm
+        wine_release_codename: '{{ ansible_facts.distribution_release | lower }}'
       nixos-latest:
         ansible_python_interpreter: /root/.nix-profile/bin/python3
       ubuntu-jammy:
         wine_release_codename: jammy
       ubuntu-latest:
-        wine_release_codename: jammy
+        wine_release_codename: '{{ ansible_facts.distribution_release | lower }}'
       ubuntu-noble:
-        wine_release_codename: jammy
+        wine_release_codename: noble
   name: ansible
   options:
     diff: true

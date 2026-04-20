@@ -18,7 +18,4 @@ enable_list:
   # library is missing. Normally its absence just skips using that rule.
   - yaml
 mock_roles: []
-mock_modules:
-  - community.docker.docker_container
-  - community.docker.docker_container_info
 verbosity: 0

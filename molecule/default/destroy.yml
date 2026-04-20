@@ -27,7 +27,7 @@
         jid: '{{ item.ansible_job_id }}'
       loop: '{{ container_results.results }}'
       register: async_results
-      until: item.finished
+      until: async_results.finished
       retries: 300
       when: item.ansible_job_id is defined
     - name: Remove molecule instance config

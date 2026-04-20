@@ -30,13 +30,14 @@
         name: curl
         state: present
       when:
-        - ansible_facts.os_family not in ["Windows", "OtherLinux"]
+        - ansible_facts.os_family not in ["Windows", "OtherLinux", "NixOS"]
         - ansible_facts.pkg_mgr not in ["unknown", ""]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures Curl is present (NixOS)
       ansible.builtin.command:
         cmd: nix-env -iA nixpkgs.curl
-      changed_when: true
+      register: nix_curl_install
+      changed_when: "'installing' in nix_curl_install.stderr or 'copying path' in nix_curl_install.stderr"
       when:
         - ansible_facts.os_family == "NixOS" or ansible_facts.distribution == "NixOS"
         - not file_mt_installed_exists.stat.exists
