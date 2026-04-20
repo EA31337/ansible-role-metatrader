@@ -13,6 +13,8 @@ provisioner:
     defaults:
       stdout_callback: ansible.builtin.default
       remote_tmp: /tmp/.ansible-tmp-$${USER}
+    ssh_connection:
+      pipelining: true
   name: ansible
   inventory:
     group_vars:
@@ -26,3 +28,14 @@ provisioner:
     prepare: ../default/prepare.yml
 verifier:
   name: ansible
+scenario:
+  name: mt5-win
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy

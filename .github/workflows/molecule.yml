@@ -20,6 +20,10 @@ on:
       - LICENSE
       - Pipfile*
 
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   test:
     name: Test
@@ -42,6 +46,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: ${{ github.repository }}
+
+      - name: Cache Ansible Galaxy
+        uses: actions/cache@v4
+        with:
+          key: galaxy-${{ hashFiles('**/requirements.yml') }}
+          restore-keys: |
+            galaxy-
+          path: |
+            ~/.ansible/roles
+            ~/.ansible/collections
+
       - uses: gofrolist/molecule-action@v2
         env:
           ANSIBLE_FORCE_COLOR: '1'
