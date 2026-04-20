@@ -19,6 +19,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   test:
     name: Test (${{ matrix.container }})
@@ -45,6 +49,15 @@ jobs:
           cache: 'pip'
           cache-dependency-path: "**/.devcontainer/requirements.txt"
           python-version: '3.11'
+
+      - name: Cache Ansible Galaxy
+        uses: actions/cache@v4
+        with:
+          key: galaxy-${{ hashFiles(format('{0}/requirements.yml', github.repository)) }}
+          path: |
+            ~/.ansible/roles
+            ~/.ansible/collections
+
       - name: Install Python's requirements
         run: pip install -r .devcontainer/requirements.txt
         working-directory: ${{ github.repository }}
@@ -65,8 +78,6 @@ jobs:
             tests/playbooks/docker-containers.yml
             --limit "${TARGET_CONTAINER},localhost"
             --verbose
-        working-directory: ${{ github.repository }}
-
         working-directory: ${{ github.repository }}
       - name: Run Ansible lint
         run: ansible-lint tests/playbooks/docker-containers.yml

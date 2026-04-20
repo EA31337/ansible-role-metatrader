@@ -24,6 +24,9 @@ permissions:
   actions: write
   contents: read
 
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   test:
@@ -49,11 +52,23 @@ jobs:
       - uses: actions/checkout@v6
         with:
           path: ${{ github.repository }}
+      - name: Cache Ansible Galaxy
+        uses: actions/cache@v5
+        with:
+          key: galaxy-${{ hashFiles('**/requirements.yml') }}
+          restore-keys: |
+            galaxy-
+          path: |
+            ~/.ansible/roles
+            ~/.ansible/collections
+            ${{ github.repository }}/collections
+
       - name: Install Ansible collections
         run: |
           pip install ansible-core
           ansible-galaxy collection install -r requirements.yml -p collections
         working-directory: ${{ github.repository }}
+
       - name: Filter molecule platforms to ${{ matrix.platform }}
         run: |
           SCENARIO="${{ matrix.scenario }}"
@@ -65,8 +80,8 @@ jobs:
           echo "Filtered platforms:"
           yq '.platforms[].name' "$MOL_FILE"
         working-directory: ${{ github.repository }}
-      - name: Run Molecule test
-        uses: gofrolist/molecule-action@v2
+
+      - uses: gofrolist/molecule-action@v2
         env:
           ANSIBLE_COLLECTIONS_PATH: >-
             ${{ github.workspace }}/${{ github.repository }}/collections
