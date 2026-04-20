@@ -286,15 +286,15 @@ docker exec CONTAINER ps aux | grep -E "mt5|terminal|wine" | grep -v defunct
 Results from testing on 2026-04-19 (re-test, all MetaQuotes hosts
 allowlisted):
 
-| Step         | debian-latest | nixos-latest | ubuntu-jammy | ubuntu-noble | ubuntu-latest |
-| ------------ | ------------- | ------------ | ------------ | ------------ | ------------- |
-| create       | ✅            | ✅           | ✅           | ✅           | ✅            |
-| prepare      | ✅            | ✅           | ✅           | ✅           | ✅            |
-| converge     | ❌            | ❌           | ❌           | ❌           | ❌            |
-| — wine       | ✅            | ✅           | ✅           | ✅           | ✅            |
-| — xvfb       | ✅            | ❌           | ✅           | ✅           | ✅            |
-| — metatrader | ❌            | ⏭️           | ❌           | ❌           | ❌            |
-| verify       | ⏭️            | ⏭️           | ⏭️           | ⏭️           | ⏭️            |
+| Step | debian-latest | nixos-latest | ubuntu-jammy | ubuntu-noble | ubuntu-latest |
+| --- | :---: | :---: | :---: | :---: | :---: |
+| create | ✅ | ✅ | ✅ | ✅ | ✅ |
+| prepare | ✅ | ✅ | ✅ | ✅ | ✅ |
+| converge | ❌ | ❌ | ❌ | ❌ | ❌ |
+| — wine | ✅ | ✅ | ✅ | ✅ | ✅ |
+| — xvfb | ✅ | ❌ | ✅ | ✅ | ✅ |
+| — metatrader | ❌ | ⏭️ | ❌ | ❌ | ❌ |
+| verify | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ |
 
 ### Failure Details
 

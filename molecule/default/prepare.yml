@@ -36,7 +36,7 @@
                 echo "$name" >> /etc/ca-certificates.conf
             done
             update-ca-certificates
-                    # Ensure /etc/ssl/certs is world-readable (for _apt user).
+                        # Ensure /etc/ssl/certs is world-readable (for _apt user).
             chmod 755 /etc/ssl/certs
           elif command -v update-ca-certificates >/dev/null 2>&1; then
             update-ca-certificates

@@ -6,43 +6,41 @@ on:
   pull_request:
   push:
   schedule:
-    - cron: "0 0 * * 1" # Run every Monday at 00:00 UTC
+    - cron: 0 0 * * 1  # Run every Monday at 00:00 UTC
   workflow_call:
     inputs:
       actionlint-matcher-path:
-        default: ""
+        default: ''
         description: >
           Path to actionlint problem matcher JSON file. If not specified,
           uses the default from EA31337/.github repository.
         required: false
         type: string
       pre-commit-matcher-path:
-        default: ""
+        default: ''
         description: >
           Path to pre-commit problem matcher JSON file. If not specified,
           uses the default from EA31337/.github repository.
         required: false
         type: string
       submodules:
-        default: "false"
-        description: "Whether to checkout submodules: true, false, or recursive"
+        default: 'false'
+        description: 'Whether to checkout submodules: true, false, or recursive'
         required: false
         type: string
   workflow_dispatch:
     inputs:
       submodules:
-        default: "false"
-        description: "Whether to checkout submodules: true, false, or recursive"
+        default: 'false'
+        description: 'Whether to checkout submodules: true, false, or recursive'
         options:
-          - "false"
-          - "true"
+          - 'false'
+          - 'true'
           - recursive
         required: false
         type: choice
-
 permissions:
   contents: read
-
 jobs:
   check:
     uses: EA31337/.github/.github/workflows/check.yml@master
@@ -50,4 +48,3 @@ jobs:
       actionlint-matcher-path: ${{ inputs.actionlint-matcher-path || '.github/actionlint-matcher.json' }}
       pre-commit-matcher-path: ${{ inputs.pre-commit-matcher-path || '.github/pre-commit-matcher.json' }}
       submodules: ${{ inputs.submodules || 'false' }}
-

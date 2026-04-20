@@ -15,14 +15,11 @@ on:
       - '**/*.md'
       - .*
       - Pipfile*
-
 permissions:
   contents: read
-
 concurrency:
   cancel-in-progress: true
   group: ${{ github.workflow }}-${{ github.ref }}
-
 jobs:
   test:
     name: Test (${{ matrix.container }})
@@ -46,10 +43,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          cache: 'pip'
-          cache-dependency-path: "**/.devcontainer/requirements.txt"
+          cache: pip
+          cache-dependency-path: '**/.devcontainer/requirements.txt'
           python-version: '3.11'
-
       - name: Cache Ansible Galaxy
         uses: actions/cache@v4
         with:
@@ -57,7 +53,6 @@ jobs:
           path: |
             ~/.ansible/roles
             ~/.ansible/collections
-
       - name: Install Python's requirements
         run: pip install -r .devcontainer/requirements.txt
         working-directory: ${{ github.repository }}
@@ -73,11 +68,11 @@ jobs:
         working-directory: ${{ github.repository }}
       - name: Check Ansible syntax
         run: >-
-            ansible-playbook --syntax-check
-            -i tests/inventory/docker-containers.yml
-            tests/playbooks/docker-containers.yml
-            --limit "${TARGET_CONTAINER},localhost"
-            --verbose
+          ansible-playbook --syntax-check
+          -i tests/inventory/docker-containers.yml
+          tests/playbooks/docker-containers.yml
+          --limit "${TARGET_CONTAINER},localhost"
+          --verbose
         working-directory: ${{ github.repository }}
       - name: Run Ansible lint
         run: ansible-lint tests/playbooks/docker-containers.yml
