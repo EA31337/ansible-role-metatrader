@@ -50,7 +50,9 @@ jobs:
       - name: Cache Ansible Galaxy
         uses: actions/cache@v4
         with:
-          key: galaxy-${{ hashFiles(format('{0}/requirements.yml', github.repository)) }}
+          key: galaxy-${{ hashFiles('**/requirements.yml') }}
+          restore-keys: |
+            galaxy-
           path: |
             ~/.ansible/roles
             ~/.ansible/collections
