@@ -80,6 +80,7 @@ provisioner:
     create: ../default/create.yml
     destroy: ../default/destroy.yml
     prepare: ../default/prepare.yml
+    verify: verify.yml
 scenario:
   name: mt4
   test_sequence:

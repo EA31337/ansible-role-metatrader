@@ -1,4 +1,6 @@
 ---
 roles:
   - name: ea31337.wine
+    version: v1.0.3
   - name: ea31337.xvfb
+    version: v1.0.4

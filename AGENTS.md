@@ -14,7 +14,8 @@ For project overview and install instructions, see [README.md](README.md).
 - Role dependencies: `ea31337.wine`, `ea31337.xvfb` (see `meta/main.yml`)
 - `community.docker` MUST be installed before Molecule can create/destroy
   containers.
-- Install dependencies: `ansible-galaxy install -r requirements.yml`
+- Install dependencies: `ansible-galaxy role install -r requirements.yml --force` and
+  `ansible-galaxy collection install -r requirements.yml -p collections`
 
 ## Key Files & Context Injection
 

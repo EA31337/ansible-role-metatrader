@@ -21,13 +21,14 @@ platforms:
 provisioner:
   config_options:
     defaults:
-      # Workaround for molecule-docker 2.1.0 using non-boolean conditionals
-      # in its create/destroy playbooks (e.g. `when: (lookup('env', 'HOME'))`).
-      # See: https://github.com/ansible-community/molecule-plugins/issues/295
+      # Temporary workaround for molecule-docker 2.1.0 compatibility with Ansible >= 2.19
+      # It is deprecated and planned for removal in ansible-core 2.23.
+      # TODO: Remove once https://github.com/ansible-community/molecule-plugins/issues/295 is resolved.
       allow_broken_conditionals: true
       callbacks_enabled: ansible.posix.profile_tasks
       # Ensure collections installed to ./collections are found by ansible-playbook.
       collections_path: ./collections:~/.ansible/collections:/usr/share/ansible/collections
+      deprecation_warnings: false
       host_key_checking: false
       # Use the built-in default callback with result_format instead of community.general.yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
@@ -50,7 +51,10 @@ provisioner:
     force-handlers: true
   playbooks:
     converge: ../default/converge.yml
+    create: ../default/create.yml
+    destroy: ../default/destroy.yml
     prepare: ../default/prepare.yml
+    verify: verify.yml
 scenario:
   name: mt5-win
   test_sequence:

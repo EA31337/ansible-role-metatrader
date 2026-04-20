@@ -49,4 +49,3 @@ reviews:
       enabled: true
     yamllint:
       enabled: true
-version: 1

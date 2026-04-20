@@ -147,9 +147,11 @@ and requirements at `.devcontainer/requirements.txt`.
 
 - Treat the repository devcontainer as the default controller environment.
 - Keep controller dependency installation in the devcontainer configuration
-  so Molecule scenarios can assume those tools are already available.
-- If dependencies are missing, update `.devcontainer/requirements.txt`
-  instead of adding per-run install steps.
+  whenever possible.
+- Molecule playbooks (`molecule/default/create.yml` and
+  `molecule/default/destroy.yml`) may also perform per-run install steps
+  for controller-side dependencies (like `docker` or `requests`) to ensure
+  reliability in CI environments.
 
 ## Testing Approach
 
