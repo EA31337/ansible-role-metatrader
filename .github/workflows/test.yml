@@ -16,6 +16,10 @@ on:
       - '.*'
       - Pipfile*
 
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   test:
     name: Test
@@ -29,6 +33,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Cache Ansible Galaxy
+        uses: actions/cache@v4
+        with:
+          key: galaxy-${{ hashFiles(format('{0}/requirements.yml', github.repository)) }}
+          path: |
+            ~/.ansible/roles
+            ~/.ansible/collections
 
       - name: Install Python's requirements
         run: pip install -r .devcontainer/requirements.txt

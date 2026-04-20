@@ -26,6 +26,8 @@ provisioner:
       callbacks_enabled: ansible.posix.profile_tasks
       result_format: yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
+    ssh_connection:
+      pipelining: true
   name: ansible
   inventory:
     group_vars:
@@ -35,3 +37,14 @@ provisioner:
         wine_winetricks_winver: win10
 verifier:
   name: ansible
+scenario:
+  name: default
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - verify
+    - destroy
