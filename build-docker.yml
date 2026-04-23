@@ -4,8 +4,8 @@
   gather_facts: false
   connection: community.docker.docker_api
   vars:
-    container_name: ubuntu-worker
-    docker_image: ubuntu
+    container_name: '{{ metatrader_container_name | default("metatrader-worker") }}'
+    docker_image: '{{ metatrader_base_image | default("ubuntu:latest") }}'
   tasks:
     - name: Pull image  # noqa: syntax-check[unknown-module]
       community.docker.docker_image:
@@ -36,3 +36,23 @@
     - name: Run hostname
       ansible.builtin.command: hostname
       changed_when: false
+- name: Commit and push Docker image
+  hosts: localhost
+  gather_facts: false
+  vars:
+    container_name: '{{ metatrader_container_name | default("metatrader-worker") }}'
+  tasks:
+    - name: Commit container  # noqa: syntax-check[unknown-module] args[module]
+      community.docker.docker_image:
+        container: '{{ container_name }}'
+        name: '{{ metatrader_docker_image }}'
+        source: container
+        state: present
+        tag: '{{ metatrader_docker_tag }}'
+    - name: Push image  # noqa: syntax-check[unknown-module]
+      community.docker.docker_image:
+        name: '{{ metatrader_docker_image }}'
+        push: true
+        source: local
+        tag: '{{ metatrader_docker_tag }}'
+      when: metatrader_docker_push | default(false) | bool

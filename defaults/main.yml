@@ -2,3 +2,8 @@
 # yamllint disable rule:line-length
 metatrader_setup_url: https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe
 metatrader_version: 5
+
+# Docker image configuration
+metatrader_docker_image: ea31337/metatrader
+metatrader_docker_push: false
+metatrader_docker_tag: latest
