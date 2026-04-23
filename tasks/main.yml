@@ -44,7 +44,7 @@
     - >-
       (ansible_local['metatrader'] is not defined)
       or (ansible_local['metatrader'][metatrader_version | string] is not defined)
-      or (ansible_local['metatrader'][metatrader_version | string].path == '')
+      or (ansible_local['metatrader'][metatrader_version | string].path | length == 0)
       or (stat_mt.stat is not defined)
       or (not stat_mt.stat.exists)
   block:
@@ -207,6 +207,7 @@
           "$(cygpath -w /tmp/mt{{ metatrader_version }}_install.ahk)"
       args:
         chdir: '{{ ansible_env.HOME }}/ahk-portable/mt'
+        creates: '{{ mt_runner_mt_terminal_path_cygwin }}'
         executable: /bin/bash
       when: platform_name == 'Cygwin'
 
