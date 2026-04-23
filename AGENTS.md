@@ -366,11 +366,15 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 | `cache.nixos.org` | Nix binary cache (pre-built packages) |
 | `cdn.mql5.com` | MetaQuotes CDN (MT5 platform files) |
 | `channels.nixos.org` | Nix channel metadata (redirects to releases) |
+| `codeload.github.com` | GitHub archive download (dependency) |
+| `dl-cdn.alpinelinux.org` | Alpine Linux package repository |
 | `dl.winehq.org` | WineHQ APT repository and GPG key |
 | `download.mql5.com` | MetaTrader setup executable download |
 | `galaxy.ansible.com` | Ansible Galaxy collections |
 | `github.com` | AutoHotkey download (used by winetricks verb) |
+| `mt5-trade.metaquotes.net` | MetaQuotes trade server (installer backend) |
 | `raw.githubusercontent.com` | OpenSymbol font download (winetricks verb) |
+
 | `releases.nixos.org` | Nix channel tarballs (redirect target) |
 | `trade.mql5.com` | MetaQuotes trade server (installer registration) |
 | `web.archive.org` | Winetricks fallback download mirror |

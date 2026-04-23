@@ -14,6 +14,7 @@ channels.nixos.org
 code.visualstudio.com
 codeload.github.com
 contributor-covenant.org
+dl-cdn.alpinelinux.org
 dl.winehq.org
 download.mql5.com
 freecodecamp.org
@@ -25,6 +26,7 @@ guides.github.com
 hashicorp.com
 img.shields.io
 marketplace.visualstudio.com
+mt5-trade.metaquotes.net
 npm.pkg.github.com
 objects.githubusercontent.com
 pkg-containers.githubusercontent.com
