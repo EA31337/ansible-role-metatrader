@@ -15,29 +15,30 @@ code.visualstudio.com
 codeload.github.com
 contributor-covenant.org
 dl.winehq.org
+download.mql5.com
 freecodecamp.org
 galaxy.ansible.com
 gh.io
 ghcr.io
 github.com
 guides.github.com
-img.shields.io
 hashicorp.com
+img.shields.io
 marketplace.visualstudio.com
 npm.pkg.github.com
 objects.githubusercontent.com
 pkg-containers.githubusercontent.com
 raw.githubusercontent.com
-releases.nixos.org
 registry.npmjs.org
+releases.nixos.org
 support.github.com
 tldrlegal.com
 trade.mql5.com
 uploads.github.com
 user-images.githubusercontent.com
-yaml-multiline.info
 web.archive.org
 www.mql5.com
+yaml-multiline.info
 ```
 
 Note: Keep the list sorted alphabetically for easier maintenance.

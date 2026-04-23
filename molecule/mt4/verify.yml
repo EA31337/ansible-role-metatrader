@@ -4,7 +4,7 @@
   tasks:
     - name: Retrieve information from path
       ansible.builtin.stat:
-        path: /root/.wine/drive_c/Program Files
+        path: '{{ ansible_facts.env.HOME }}/.wine/drive_c/Program Files'
       register: stat_result
     - name: Verify Program Files directory exist
       ansible.builtin.assert:
