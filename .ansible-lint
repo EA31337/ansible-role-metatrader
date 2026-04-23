@@ -1,16 +1,4 @@
 ---
 # .ansible-lint
-mock_roles:
-  - ea31337.wine
-  - ea31337.xvfb
-  - ea31337.metatrader
-  - metatrader
-
-mock_modules:
-  - community.docker.docker_container
-  - community.docker.docker_container_info
-
 exclude_paths:
   - .github/
-  - molecule/
-  - tests/
