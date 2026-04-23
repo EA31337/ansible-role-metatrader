@@ -1,4 +1,5 @@
 ---
+# noqa: schema[meta]
 # Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
 dependencies:
   - name: ea31337.wine
@@ -45,9 +46,6 @@ galaxy_info:
       versions:
         - all
         - bullseye
-    - name: NixOS
-      versions:
-        - all
     - name: Ubuntu
       versions:
         - all

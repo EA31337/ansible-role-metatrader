@@ -64,7 +64,7 @@ jobs:
             --inventory localhost,
             --verbose
           playbook: molecule/mt${{ env.VERSION }}/converge.yml
-          requirements: meta/galaxy-requirements.yml
+          requirements: requirements.yml
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
