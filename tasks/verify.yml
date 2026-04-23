@@ -84,9 +84,7 @@
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.windows.win_find:
-        paths:
-          - C:/Program Files/MetaTrader 5
-          - C:/Program Files (x86)/MetaTrader 4
+        paths: '{{ mt_runner_mt_path_host }}'
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res
@@ -104,9 +102,7 @@
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
-        paths:
-          - /cygdrive/c/Program Files/MetaTrader 5
-          - /cygdrive/c/Program Files (x86)/MetaTrader 4
+        paths: '{{ mt_runner_mt_path_cygwin }}'
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res

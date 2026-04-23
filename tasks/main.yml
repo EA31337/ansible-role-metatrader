@@ -23,6 +23,11 @@
     ansible_os_family: NixOS
   when: detected_os_family == 'NixOS'
 
+- name: Sets platform facts
+  ansible.builtin.set_fact:
+    is_unix: '{{ detected_os_family not in ["Windows", "Cygwin"] }}'
+    platform_name: '{{ detected_os_family }}'
+
 - name: Collects local facts
   ansible.builtin.setup:
     filter:
@@ -44,7 +49,8 @@
     - >-
       (ansible_local['metatrader'] is not defined)
       or (ansible_local['metatrader'][metatrader_version | string] is not defined)
-      or (ansible_local['metatrader'][metatrader_version | string].path | length == 0)
+      or (((ansible_local['metatrader'][metatrader_version | string] | default({})).path
+      | default('')) | length == 0)
       or (stat_mt.stat is not defined)
       or (not stat_mt.stat.exists)
   block:
@@ -249,7 +255,7 @@
   become: >-
     {{ platform_name != 'Cygwin'
     and ((ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
-    or (detected_os_family == 'Windows')) }}
+    or (platform_name == 'Windows')) }}
   become_method: >-
     {{ 'ansible.builtin.runas' if platform_name == 'Windows'
     else metatrader_become_method[detected_os_family] }}
@@ -257,7 +263,9 @@
     - >-
       (ansible_local['metatrader'] is not defined)
       or (ansible_local['metatrader'][metatrader_version | string] is not defined)
-      or (find_mt_path_folder != ansible_local['metatrader'][metatrader_version | string].path)
+      or (find_mt_path_folder
+      != (((ansible_local['metatrader'][metatrader_version | string] | default({})).path)
+      | default('')))
   block:
     - name: Sets fact
       ansible.builtin.set_fact:
