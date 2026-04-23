@@ -1,4 +1,5 @@
 ---
 # yamllint disable rule:line-length
+metatrader_autohotkey_url: https://www.autohotkey.com/download/1.1/AutoHotkey_1.1.37.02.zip
 metatrader_setup_url: https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe
 metatrader_version: 5

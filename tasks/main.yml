@@ -6,6 +6,7 @@
   failed_when: false
   check_mode: false
   when: ansible_facts.os_family == 'OtherLinux' or ansible_facts.distribution == 'NixOS'
+
 - name: Sets detected_os_family fact
   ansible.builtin.set_fact:
     detected_os_family: >-
@@ -13,61 +14,103 @@
       or ansible_facts.os_family == 'NixOS'
       or (ansible_facts.os_family == 'OtherLinux'
       and nix_check.rc | default(1) == 0))
+      else 'Cygwin' if (ansible_facts.os_family is string
+      and ansible_facts.os_family.startswith('CYGWIN'))
       else ansible_facts.os_family }}
+
 - name: Sets ansible_os_family to NixOS if detected
   ansible.builtin.set_fact:
     ansible_os_family: NixOS
   when: detected_os_family == 'NixOS'
+
+- name: Sets platform facts
+  ansible.builtin.set_fact:
+    is_unix: '{{ detected_os_family not in ["Windows", "Cygwin"] }}'
+    metatrader_saved_path: >-
+      {{ (((ansible_local['metatrader'] | default({}))[metatrader_version | string] | default({})).path)
+      | default('') }}
+    needs_privilege_escalation: >-
+      {{ detected_os_family != 'Cygwin'
+      and ((ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
+      or detected_os_family == 'Windows') }}
+    platform_name: '{{ detected_os_family }}'
+
 - name: Collects local facts
   ansible.builtin.setup:
     filter:
       - ansible_local
   when: false
-- name: Checks if platform is already exist
+
+- name: Populate paths
+  ansible.builtin.include_tasks: paths.yml
+  tags:
+    - metatrader_paths
+
+- name: Checks if platform already exists
   ansible.builtin.stat:
-    path: "{{ ansible_local['metatrader'][metatrader_version | string].path }}"
+    path: '{{ mt_runner_mt_path_host }}'
   register: stat_mt
-  when: ansible_local['metatrader'] is defined
+
 - name: Ensures platform is installed
   when:
-    - ansible_local['metatrader'] is not defined
-    - detected_os_family != "Windows" # gather_facts is required.
-    - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
+    - >-
+      (ansible_local['metatrader'] is not defined)
+      or (metatrader_saved_path | length == 0)
+      or (stat_mt.stat is not defined)
+      or (not stat_mt.stat.exists)
   block:
     - name: Validates variables
       ansible.builtin.assert:
         that:
           - metatrader_setup_url | length > 0
-    - name: Checks if platform is already installed
-      register: file_mt_installed_exists
-      ansible.builtin.stat:
-        path: ~/.wine/.installed-mt{{ metatrader_version }}
-      when:
-        - detected_os_family != "Windows"
+
     - name: Ensures Curl is present (standard distros)
       ansible.builtin.package:
         name: curl
         state: present
       when:
-        - detected_os_family not in ["Windows", "NixOS"]
-        - ansible_facts.pkg_mgr not in ["unknown", ""]
-        - not file_mt_installed_exists.stat.exists
+        - is_unix
+        - detected_os_family != 'NixOS'
+        - ansible_facts.pkg_mgr not in ['unknown', '']
+
     - name: Ensures Curl is present (NixOS)
       ansible.builtin.command:
         cmd: nix-env -iA nixpkgs.curl
       register: nix_curl_install
-      changed_when: "'installing' in nix_curl_install.stderr or 'copying path' in nix_curl_install.stderr"
+      changed_when: >-
+        'installing' in nix_curl_install.stderr
+        or 'copying path' in nix_curl_install.stderr
       when:
-        - detected_os_family == "NixOS"
-        - not file_mt_installed_exists.stat.exists
-    - name: Ensures verb installation file is present
+        - is_unix
+        - detected_os_family == 'NixOS'
+
+    - name: Ensures verb installation file is present (Unix)
       ansible.builtin.template:
         src: mt{{ metatrader_version }}_install.verb.j2
         dest: /tmp/mt{{ metatrader_version }}_install.verb
         mode: '0640'
-      when:
-        - not file_mt_installed_exists.stat.exists
-    - name: Ensures MetaTrader is installed (via verb file)
+      when: is_unix
+
+    - name: Ensure Temp directory exists (Windows)
+      ansible.windows.win_file:
+        path: C:\Temp
+        state: directory
+      when: platform_name == 'Windows'
+
+    - name: Ensures AutoHotkey installation file is present (Cygwin)
+      ansible.builtin.template:
+        src: mt{{ metatrader_version }}_install.ahk.j2
+        dest: /tmp/mt{{ metatrader_version }}_install.ahk
+        mode: '0640'
+      when: platform_name == 'Cygwin'
+
+    - name: Ensures AutoHotkey installation file is present (Windows)
+      ansible.windows.win_copy:
+        content: "{{ lookup('template', 'mt' ~ metatrader_version ~ '_install.ahk.j2') }}"
+        dest: C:\Temp\mt{{ metatrader_version }}_install.ahk
+      when: platform_name == 'Windows'
+
+    - name: Ensures MetaTrader is installed (via verb file, Unix)
       ansible.builtin.shell:
         # @todo: The winetricks command is executed directly without specifying the executable.
         # noqa command-instead-of-shell
@@ -82,22 +125,170 @@
         WINEDEBUG: -all
         WINEDLLOVERRIDES: mscoree,mshtml=,winebrowser.exe=,dbghelp=n
         WINETRICKS_DOWNLOADER: curl
+      when: is_unix
+
+    - name: Ensure AutoHotkey directories exist (Cygwin)
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        mode: '0755'
+      loop:
+        - '{{ ansible_facts.env.HOME }}/ahk-portable'
+        - '{{ ansible_facts.env.HOME }}/ahk-portable/mt'
+      when: platform_name == 'Cygwin'
+
+    - name: Download AutoHotkey archive (Cygwin)
+      ansible.builtin.get_url:
+        url: '{{ metatrader_autohotkey_url }}'
+        dest: '{{ ansible_facts.env.HOME }}/ahk-portable.zip'
+        mode: '0644'
+      when: platform_name == 'Cygwin'
+
+    - name: Extract AutoHotkey (Cygwin)
+      ansible.builtin.unarchive:
+        src: '{{ ansible_facts.env.HOME }}/ahk-portable.zip'
+        dest: '{{ ansible_facts.env.HOME }}/ahk-portable'
+        remote_src: true
+      when: platform_name == 'Cygwin'
+
+    - name: Download MetaTrader installer (Cygwin)
+      ansible.builtin.get_url:
+        url: '{{ metatrader_setup_url }}'
+        dest: '{{ ansible_facts.env.HOME }}/ahk-portable/mt/setup.exe'
+        mode: '0755'
+      when: platform_name == 'Cygwin'
+
+    - name: Verify MetaTrader installer exists (Cygwin)
+      ansible.builtin.stat:
+        path: '{{ ansible_facts.env.HOME }}/ahk-portable/mt/setup.exe'
+      register: mt_setup_stat_cygwin
+      when: platform_name == 'Cygwin'
+
+    - name: Fail if MetaTrader installer is not available (Cygwin)
+      ansible.builtin.fail:
+        msg: MetaTrader setup download failed on Cygwin.
       when:
-        - not file_mt_installed_exists.stat.exists
+        - platform_name == 'Cygwin'
+        - not mt_setup_stat_cygwin.stat.exists
+
+    - name: Verify AutoHotkey executable exists (Cygwin)
+      ansible.builtin.stat:
+        path: '{{ ansible_facts.env.HOME }}/ahk-portable/AutoHotkeyU64.exe'
+      register: ahk_stat_cygwin
+      when: platform_name == 'Cygwin'
+
+    - name: Fail if AutoHotkey is not available (Cygwin)
+      ansible.builtin.fail:
+        msg: AutoHotkey download or extraction failed on Cygwin.
+      when:
+        - platform_name == 'Cygwin'
+        - not ahk_stat_cygwin.stat.exists
+
+    - name: Ensure AutoHotkey directories exist (Windows)
+      ansible.windows.win_file:
+        path: '{{ item }}'
+        state: directory
+      loop:
+        - '{{ ansible_facts.env.HOME }}\ahk-portable'
+        - '{{ ansible_facts.env.HOME }}\ahk-portable\mt'
+      when: platform_name == 'Windows'
+
+    - name: Download AutoHotkey archive (Windows)
+      ansible.windows.win_get_url:
+        url: '{{ metatrader_autohotkey_url }}'
+        dest: '{{ ansible_facts.env.HOME }}\ahk-portable.zip'
+      when: platform_name == 'Windows'
+
+    - name: Extract AutoHotkey (Windows)
+      community.windows.win_unzip:
+        src: '{{ ansible_facts.env.HOME }}\ahk-portable.zip'
+        dest: '{{ ansible_facts.env.HOME }}\ahk-portable'
+      when: platform_name == 'Windows'
+
+    - name: Download MetaTrader installer (Windows)
+      ansible.windows.win_get_url:
+        url: '{{ metatrader_setup_url }}'
+        dest: '{{ ansible_facts.env.HOME }}\ahk-portable\mt\setup.exe'
+      when: platform_name == 'Windows'
+
+    - name: Verify MetaTrader installer exists (Windows)
+      ansible.windows.win_stat:
+        path: '{{ ansible_facts.env.HOME }}\ahk-portable\mt\setup.exe'
+      register: mt_setup_stat_windows
+      when: platform_name == 'Windows'
+
+    - name: Fail if MetaTrader installer is not available (Windows)
+      ansible.builtin.fail:
+        msg: MetaTrader setup download failed on Windows.
+      when:
+        - platform_name == 'Windows'
+        - not mt_setup_stat_windows.stat.exists
+
+    - name: Verify AutoHotkey executable exists (Windows)
+      ansible.windows.win_stat:
+        path: '{{ ansible_facts.env.HOME }}\ahk-portable\AutoHotkeyU64.exe'
+      register: ahk_stat_windows
+      when: platform_name == 'Windows'
+
+    - name: Fail if AutoHotkey is not available (Windows)
+      ansible.builtin.fail:
+        msg: AutoHotkey download or extraction failed on Windows.
+      when:
+        - platform_name == 'Windows'
+        - not ahk_stat_windows.stat.exists
+
+    - name: Run installation with AutoHotkey (Cygwin)
+      ansible.builtin.shell:
+        cmd: >-
+          {{ ansible_facts.env.HOME }}/ahk-portable/AutoHotkeyU64.exe
+          "$(cygpath -w /tmp/mt{{ metatrader_version }}_install.ahk)"
+      args:
+        chdir: '{{ ansible_facts.env.HOME }}/ahk-portable/mt'
+        executable: /bin/bash
+      changed_when: true
+      when: platform_name == 'Cygwin'
+
+    - name: Run installation with AutoHotkey (Windows)
+      ansible.windows.win_shell: >-
+        {{ ansible_facts.env.HOME }}\ahk-portable\AutoHotkeyU64.exe
+        C:\Temp\mt{{ metatrader_version }}_install.ahk
+      args:
+        chdir: '{{ ansible_facts.env.HOME }}\ahk-portable\mt'
+      when: platform_name == 'Windows'
+
+    - name: Ensures verb installation file is absent (Unix)
+      ansible.builtin.file:
+        path: /tmp/mt{{ metatrader_version }}_install.verb
+        state: absent
+      when: is_unix
+
+    - name: Ensures AutoHotkey installation file is absent (Cygwin)
+      ansible.builtin.file:
+        path: /tmp/mt{{ metatrader_version }}_install.ahk
+        state: absent
+      when: platform_name == 'Cygwin'
+
+    - name: Ensures AutoHotkey installation file is absent (Windows)
+      ansible.windows.win_file:
+        path: C:\Temp\mt{{ metatrader_version }}_install.ahk
+        state: absent
+      when: platform_name == 'Windows'
+
 - name: Verifies
   ansible.builtin.include_tasks: verify.yml
   tags:
     - metatrader_verify
+
 - name: Saves platform facts
-  become: >-
-    {{ (ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
-    or (detected_os_family == 'Windows') }}
-  become_method: '{{ metatrader_become_method[detected_os_family] }}'
+  become: '{{ needs_privilege_escalation }}'
+  become_method: >-
+    {{ 'ansible.builtin.runas' if platform_name == 'Windows'
+    else metatrader_become_method[detected_os_family] }}
   when:
     - >-
-      ansible_local['metatrader'] is not defined
-      or (find_mt_path_folder)
-      != ansible_local['metatrader'][metatrader_version | string].path
+      (ansible_local['metatrader'] is not defined)
+      or (metatrader_saved_path | length == 0)
+      or (find_mt_path_folder != metatrader_saved_path)
   block:
     - name: Sets fact
       ansible.builtin.set_fact:
@@ -108,37 +299,41 @@
         - find_mt_path_folder is defined
         - find_mt_path_folder | length > 0
         - metatrader_version is defined
+
     - name: Ensures that Ansible local facts directory exists (Unix)
       ansible.builtin.file:
         path: /etc/ansible/facts.d
         state: directory
         mode: '0755'
-      when: detected_os_family != "Windows"
+      when: is_unix or platform_name == 'Cygwin'
+
     - name: Ensures that Ansible local facts directory exists (Windows)
       ansible.windows.win_file:
         # yamllint disable-line rule:line-length
         path: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts
         state: directory
       become: true
-      become_method: '{{ metatrader_become_method[detected_os_family] }}'
+      become_method: ansible.builtin.runas
       become_user: '{{ ansible_facts.env.USERNAME }}'
-      when: detected_os_family == "Windows"
+      when: platform_name == 'Windows'
+
     - name: Saves role's facts (Unix)
       ansible.builtin.copy:
         content: '{{ metatrader | to_nice_json }}'
         dest: /etc/ansible/facts.d/metatrader.fact
         mode: '0644'
       when:
-        - detected_os_family != "Windows"
+        - is_unix or platform_name == 'Cygwin'
         - metatrader is defined
+
     - name: Saves role's facts (Windows)
       ansible.windows.win_copy:
         content: '{{ metatrader | to_nice_json }}'
         # yamllint disable-line rule:line-length
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
-      become_method: '{{ metatrader_become_method[detected_os_family] }}'
+      become_method: ansible.builtin.runas
       become_user: '{{ ansible_facts.env.USERNAME }}'
       when:
-        - detected_os_family == "Windows"
+        - platform_name == 'Windows'
         - metatrader is defined
