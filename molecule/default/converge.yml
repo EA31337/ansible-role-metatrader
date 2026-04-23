@@ -3,4 +3,4 @@
   hosts: all
   gather_facts: true
   roles:
-    - role: ea31337.metatrader
+    - role: metatrader

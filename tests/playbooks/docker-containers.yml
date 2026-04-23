@@ -82,9 +82,9 @@
   gather_facts: true
   tags: always
   tasks:
-    - name: Installs ea31337.metatrader role
+    - name: Installs metatrader role
       ansible.builtin.import_role:
-        name: ea31337.metatrader
+        name: metatrader
 
   post_tasks:
     - name: Stop Docker containers
