@@ -4,9 +4,17 @@ name: Cogni AI Agent
 
 # yamllint disable-line rule:truthy
 on:
+  issues:
+    types:
+      - opened
+      - reopened
   issue_comment:
     types:
       - created
+  pull_request:
+    types:
+      - opened
+      - reopened
   pull_request_review_comment:
     types:
       - created
@@ -56,7 +64,7 @@ concurrency:
   cancel-in-progress: false
   group: >-
     cogni-ai-agent-${{
-      (github.event.issue.pull_request && github.event.issue.number)
+      github.event.issue.number
       || github.event.pull_request.number
       || (github.ref_name != github.event.repository.default_branch && github.ref)
       || github.run_id
@@ -125,4 +133,4 @@ jobs:
               touch*: allow
               true*: allow
               vim*: allow
-          prompt: ${{ github.event.comment.body || inputs.prompt }}
+          prompt: ${{ github.event.comment.body || github.event.issue.body || github.event.pull_request.body || inputs.prompt }}
