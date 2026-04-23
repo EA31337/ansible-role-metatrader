@@ -2,10 +2,7 @@
 # noqa: schema[meta]
 # Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
 dependencies:
-  - name: ea31337.wine
-    role: ea31337.wine
-    scm: git
-    src: https://github.com/EA31337/ansible-role-wine.git
+  - role: ea31337.wine
     vars:
       wine_install_winetricks: true
       wine_version: "{{ '9' if ansible_facts.os_family == 'Alpine' else '10.0' }}"
@@ -34,6 +31,7 @@ galaxy_info:
     - trading
     - ubuntu
     - windows
+    - wine
     - wine
   license: GPL-3.0-or-later
   min_ansible_version: '2.7'

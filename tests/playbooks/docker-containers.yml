@@ -77,7 +77,7 @@
   vars:
     controller_python: '{{ ansible_playbook_python }}'
   tasks:
-    - name: Installs ea31337.metatrader role
+    - name: Installs metatrader role
       ansible.builtin.import_role:
         name: ea31337.metatrader
   post_tasks:
