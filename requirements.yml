@@ -15,4 +15,4 @@ roles:
     scm: git
     src: https://github.com/EA31337/ansible-role-xvfb.git
     # This should match version in meta/main.yml
-    version: v1.0.3
+    version: v1.0.4
