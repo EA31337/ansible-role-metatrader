@@ -46,8 +46,11 @@ galaxy_info:
       versions:
         - all
         - bullseye
+        - bookworm
     - name: Ubuntu
       versions:
         - all
         - focal
+        - jammy
+        - noble
   role_name: metatrader
