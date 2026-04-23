@@ -1,4 +1,20 @@
 ---
+- name: Detects NixOS
+  ansible.builtin.command: nix-env --version
+  register: nix_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  when: ansible_facts.os_family == 'OtherLinux'
+- name: Sets detected_os_family fact
+  ansible.builtin.set_fact:
+    detected_os_family: >-
+      {{ 'NixOS' if (ansible_facts.os_family == 'OtherLinux' and nix_check.rc == 0)
+      else ansible_facts.os_family }}
+- name: Sets ansible_os_family to NixOS if detected
+  ansible.builtin.set_fact:
+    ansible_os_family: NixOS
+  when: detected_os_family == 'NixOS'
 - name: Collects local facts
   ansible.builtin.setup:
     filter:
@@ -12,7 +28,7 @@
 - name: Ensures platform is installed
   when:
     - ansible_local['metatrader'] is not defined
-    - ansible_facts.os_family != "Windows" # gather_facts is required.
+    - detected_os_family != "Windows" # gather_facts is required.
     - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
   block:
     - name: Validates variables
@@ -24,13 +40,13 @@
       ansible.builtin.stat:
         path: ~/.wine/.installed-mt{{ metatrader_version }}
       when:
-        - ansible_facts.os_family != "Windows"
+        - detected_os_family != "Windows"
     - name: Ensures Curl is present (standard distros)
       ansible.builtin.package:
         name: curl
         state: present
       when:
-        - ansible_facts.os_family not in ["Windows", "OtherLinux", "NixOS"]
+        - detected_os_family not in ["Windows", "NixOS"]
         - ansible_facts.pkg_mgr not in ["unknown", ""]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures Curl is present (NixOS)
@@ -39,7 +55,7 @@
       register: nix_curl_install
       changed_when: "'installing' in nix_curl_install.stderr or 'copying path' in nix_curl_install.stderr"
       when:
-        - ansible_facts.os_family == "NixOS" or ansible_facts.distribution == "NixOS"
+        - detected_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
@@ -72,8 +88,8 @@
 - name: Saves platform facts
   become: >-
     {{ (ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
-    or (ansible_facts.os_family == 'Windows') }}
-  become_method: '{{ metatrader_become_method[ansible_facts.os_family] }}'
+    or (detected_os_family == 'Windows') }}
+  become_method: '{{ metatrader_become_method[detected_os_family] }}'
   when:
     - >-
       ansible_local['metatrader'] is not defined
@@ -94,23 +110,23 @@
         path: /etc/ansible/facts.d
         state: directory
         mode: '0755'
-      when: ansible_facts.os_family != "Windows"
+      when: detected_os_family != "Windows"
     - name: Ensures that Ansible local facts directory exists (Windows)
       ansible.windows.win_file:
         # yamllint disable-line rule:line-length
         path: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts
         state: directory
       become: true
-      become_method: '{{ metatrader_become_method[ansible_facts.os_family] }}'
+      become_method: '{{ metatrader_become_method[detected_os_family] }}'
       become_user: '{{ ansible_facts.env.USERNAME }}'
-      when: ansible_facts.os_family == "Windows"
+      when: detected_os_family == "Windows"
     - name: Saves role's facts (Unix)
       ansible.builtin.copy:
         content: '{{ metatrader | to_nice_json }}'
         dest: /etc/ansible/facts.d/metatrader.fact
         mode: '0644'
       when:
-        - ansible_facts.os_family != "Windows"
+        - detected_os_family != "Windows"
         - metatrader is defined
     - name: Saves role's facts (Windows)
       ansible.windows.win_copy:
@@ -118,8 +134,8 @@
         # yamllint disable-line rule:line-length
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
-      become_method: '{{ metatrader_become_method[ansible_facts.os_family] }}'
+      become_method: '{{ metatrader_become_method[detected_os_family] }}'
       become_user: '{{ ansible_facts.env.USERNAME }}'
       when:
-        - ansible_facts.os_family == "Windows"
+        - detected_os_family == "Windows"
         - metatrader is defined
