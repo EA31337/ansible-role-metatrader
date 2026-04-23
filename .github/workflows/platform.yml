@@ -63,7 +63,8 @@ jobs:
             --connection local
             --inventory localhost,
             --verbose
-          playbook: molecule/mt${{ env.VERSION }}/converge.yml
+            --extra-vars "metatrader_version=${{ env.VERSION }}"
+          playbook: molecule/default/converge.yml
           requirements: requirements.yml
       - uses: actions/upload-artifact@v4
         with:

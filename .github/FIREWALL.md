@@ -17,6 +17,7 @@ contributor-covenant.org
 dl-cdn.alpinelinux.org
 dl.winehq.org
 download.mql5.com
+files.pythonhosted.org
 freecodecamp.org
 galaxy.ansible.com
 gh.io
@@ -30,6 +31,7 @@ mt5-trade.metaquotes.net
 npm.pkg.github.com
 objects.githubusercontent.com
 pkg-containers.githubusercontent.com
+pypi.org
 raw.githubusercontent.com
 registry.npmjs.org
 releases.nixos.org
