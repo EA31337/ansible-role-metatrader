@@ -89,6 +89,14 @@ load_mt4_install()
                 break
             }
 
+            ; Close a blocking "Proxy Server" dialog if it appears.
+            if (WinExist("Proxy Server"))
+            {
+                WinActivate, Proxy Server
+                Send, {Esc}
+                Sleep, 1000
+            }
+
             ; Is "Finish" button visible?
             ControlGet, FinishVisible, Visible,, Finish
 
