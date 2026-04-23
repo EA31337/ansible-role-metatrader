@@ -5,11 +5,14 @@
   changed_when: false
   failed_when: false
   check_mode: false
-  when: ansible_facts.os_family == 'OtherLinux'
+  when: ansible_facts.os_family == 'OtherLinux' or ansible_facts.distribution == 'NixOS'
 - name: Sets detected_os_family fact
   ansible.builtin.set_fact:
     detected_os_family: >-
-      {{ 'NixOS' if (ansible_facts.os_family == 'OtherLinux' and nix_check.rc == 0)
+      {{ 'NixOS' if (ansible_facts.distribution == 'NixOS'
+      or ansible_facts.os_family == 'NixOS'
+      or (ansible_facts.os_family == 'OtherLinux'
+      and nix_check.rc | default(1) == 0))
       else ansible_facts.os_family }}
 - name: Sets ansible_os_family to NixOS if detected
   ansible.builtin.set_fact:
