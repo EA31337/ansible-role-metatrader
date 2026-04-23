@@ -23,7 +23,6 @@ to ensure it meets high-quality standards and follows best practices.
 - Follow standard role structure:
 
   - [tasks/](../../tasks/)
-  - [handlers/](../../handlers/)
   - [templates/](../../templates/)
   - [defaults/](../../defaults/)
   - [meta/](../../meta/)

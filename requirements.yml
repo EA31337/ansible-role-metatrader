@@ -1,4 +1,7 @@
 ---
+# A file containing a list of collections to be installed.
+# Usage:
+# ansible-galaxy install -r requirements.yml
 collections:
   - name: ansible.posix  # Required for profile_tasks callback plugin.
   - name: ansible.windows
@@ -10,7 +13,7 @@ roles:
     scm: git
     src: https://github.com/EA31337/ansible-role-wine.git
     # This should match version in meta/main.yml
-    version: v1.0.3
+    version: master
   - name: ea31337.xvfb
     scm: git
     src: https://github.com/EA31337/ansible-role-xvfb.git

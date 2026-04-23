@@ -1,13 +1,11 @@
 ---
 name: Platform (Linux)
-
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
   CHECKOUT_REF: ${{ inputs.ref || 'dev' }}
   CLEANUP: ${{ inputs.cleanup || true }}
   REPOSITORY: EA31337/ansible-role-metatrader
   VERSION: ${{ inputs.version || 5 }}
-
 # yamllint disable-line rule:truthy
 on:
   pull_request:
@@ -16,8 +14,8 @@ on:
   push:
     branches:
       - master
-      - "dev"
-      - "dev-*"
+      - dev
+      - dev-*
     paths:
       - .github/workflows/platform.yml
   workflow_call:
@@ -41,18 +39,32 @@ on:
         default: 5
         description: Version to install
         type: number
-
 jobs:
   platform-linux:
     name: Platform
     outputs:
       workdir: ${{ github.workspace }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
+          path: ${{ env.REPOSITORY }}
           ref: ${{ env.CHECKOUT_REF }}
           repository: ${{ env.REPOSITORY }}
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          cache: pip
+          cache-dependency-path: '**/.devcontainer/requirements.txt'
+          python-version: '3.11'
+      - name: Install Python's requirements
+        run: pip install -r .devcontainer/requirements.txt
+        working-directory: ${{ env.REPOSITORY }}
+      - name: Install Ansible Galaxy local requirements
+        run: |
+          jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
+          ansible-galaxy install -r requirements-local.yml && rm requirements-local.yml
+        working-directory: ${{ env.REPOSITORY }}
       - name: Runs playbook
         uses: dawidd6/action-ansible-playbook@v2
         with:
@@ -61,23 +73,25 @@ jobs:
             nocows = false
             stdout_callback = default
             callback_result_format = yaml
-          directory: ${{ env.WORKDIR }}
+          directory: ${{ env.REPOSITORY }}
           options: |
             --connection local
             --inventory localhost,
             --verbose
-          playbook: molecule/mt${{ env.VERSION }}/converge.yml
-          requirements: meta/galaxy-requirements.yml
+            --extra-vars "metatrader_version=${{ env.VERSION }}"
+          playbook: molecule/default/converge.yml
+          requirements: requirements.yml
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: |
             ~/.wine/drive_c/Program Files*/**/*MT*
             ~/.wine/drive_c/Program Files*/**/*Meta*
-    timeout-minutes: 20
+    timeout-minutes: 30
   cleanup:
     name: Clean-up
-    needs: [platform-linux]
+    needs:
+      - platform-linux
     runs-on: ubuntu-latest
     steps:
       - uses: geekyeggo/delete-artifact@v4

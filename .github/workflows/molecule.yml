@@ -1,6 +1,6 @@
 ---
+# Note: Keep keys and envs in alphabetical order.
 name: Molecule
-
 # yamllint disable-line rule:truthy
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
       - '!.github/workflows/**'
       - '**.cfg'
       - '**.md'
-      - '.*'
+      - .*
       - LICENSE
       - Pipfile*
   push:
@@ -16,39 +16,41 @@ on:
       - '!.github/workflows/**'
       - '**.cfg'
       - '**.md'
-      - '.*'
+      - .*
       - LICENSE
       - Pipfile*
-
+permissions:
+  actions: write
+  contents: read
 concurrency:
   cancel-in-progress: true
   group: ${{ github.workflow }}-${{ github.ref }}
-
 jobs:
   test:
-    name: Test
+    name: ${{ matrix.scenario }} / ${{ matrix.platform }}
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
     strategy:
       fail-fast: true
       matrix:
         platform:
           - debian-latest
-          # - nixos-latest  # NixOS is not supported by this version of the role.
+          - nixos-latest
           - ubuntu-jammy
-          - ubuntu-latest
           - ubuntu-noble
+          - ubuntu-latest
         scenario:
           - default
           - mt4
           - mt5
           # - mt5-win
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: ${{ github.repository }}
-
       - name: Cache Ansible Galaxy
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: galaxy-${{ hashFiles('**/requirements.yml') }}
           restore-keys: |
@@ -56,29 +58,87 @@ jobs:
           path: |
             ~/.ansible/roles
             ~/.ansible/collections
-
+            ${{ github.repository }}/collections
+      - name: Install Ansible collections
+        run: |
+          pip install ansible-core
+          ansible-galaxy collection install -r requirements.yml -p collections
+        working-directory: ${{ github.repository }}
+      - name: Filter molecule platforms to ${{ matrix.platform }}
+        run: |
+          SCENARIO="${{ matrix.scenario }}"
+          PLATFORM="${{ matrix.platform }}"
+          MOL_FILE="molecule/${SCENARIO}/molecule.yml"
+          yq -i \
+            ".platforms = [.platforms[] | select(.name == \"${PLATFORM}\")]" \
+            "$MOL_FILE"
+          echo "Filtered platforms:"
+          yq '.platforms[].name' "$MOL_FILE"
+        working-directory: ${{ github.repository }}
       - uses: gofrolist/molecule-action@v2
         env:
+          ANSIBLE_COLLECTIONS_PATH: >-
+            ${{ github.workspace }}/${{ github.repository }}/collections
+          ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
           ANSIBLE_FORCE_COLOR: '1'
-          ANSIBLE_STDOUT_CALLBACK: ${{ runner.debug == '1' && 'debug' || 'oneline' }}
-          MOLECULE_REPORT: molecule-${{ matrix.scenario }}-report.html
+          ANSIBLE_STDOUT_CALLBACK: >-
+            ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
         with:
           molecule_args: >-
-            --platform-name ${{ matrix.platform }}
             --scenario-name ${{ matrix.scenario }}
           molecule_command: test
           molecule_options: ${{ runner.debug == '1' && '--verbose' || '' }}
           molecule_working_dir: ${{ github.repository }}
-      - if: always()
-        name: Ensure report file permissions are correct
-        run: sudo chmod 644 molecule-${{ matrix.scenario }}-report.html
-        working-directory: ${{ github.repository }}
-      - if: always()
-        name: Converts test report
-        uses: patrick-werner/fhir-html-validation-to-markdown@1.0.0
-        with:
-          input_file: ${{ github.repository }}/molecule-${{ matrix.scenario }}-report.html
-      # Debug with tmate on failure when debug logging is enabled.
       - if: ${{ failure() && runner.debug == '1' }}
         uses: mxschmitt/action-tmate@v3
-    timeout-minutes: 20
+    timeout-minutes: 120
+  summary:
+    name: Results
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build results table
+        uses: actions/github-script@v7
+        with:
+          script: |-
+            const { data: { jobs } } = await github.rest.actions
+              .listJobsForWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: context.runId,
+                per_page: 100,
+              });
+            // Keep in sync with the strategy.matrix above.
+            const scenarios = ['default', 'mt4', 'mt5'];
+            const platforms = [
+              'debian-latest',
+              'nixos-latest',
+              'ubuntu-jammy',
+              'ubuntu-noble',
+              'ubuntu-latest',
+            ];
+            const icon = (c) => ({
+              success: '✅', failure: '❌', cancelled: '⚪', skipped: '⏭️',
+            }[c] || '❓');
+            const lookup = {};
+            for (const job of jobs) {
+              lookup[job.name] = job.conclusion;
+            }
+            let table = '| Platform |';
+            for (const s of scenarios) table += ` ${s} |`;
+            table += '\n| --- |';
+            for (const s of scenarios) table += ' :---: |';
+            table += '\n';
+            for (const p of platforms) {
+              table += `| \`${p}\` |`;
+              for (const s of scenarios) {
+                const key = `${s} / ${p}`;
+                table += ` ${icon(lookup[key])} |`;
+              }
+              table += '\n';
+            }
+            await core.summary
+              .addHeading('Molecule Test Results', 2)
+              .addRaw(table)
+              .write();

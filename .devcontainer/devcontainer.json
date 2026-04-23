@@ -1,12 +1,8 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
 {
-  // "build": {
-  //   "dockerfile": "Dockerfile",
-  //   // Update 'VARIANT' to pick an Ubuntu version: jammy / ubuntu-22.04, focal / ubuntu-20.04, bionic /ubuntu-18.04
-  //   // Use ubuntu-22.04 or ubuntu-18.04 on local arm64/Apple Silicon.
-  //   // "args": { "VARIANT": "ubuntu-22.04" }
-  // },
+  "name": "ansible-role-metatrader",
+  "image": "mcr.microsoft.com/devcontainers/base:jammy",
 
   // Configure tool-specific properties.
   // Note: Keep the list in alphabetical order.
@@ -15,15 +11,20 @@
       "extensions": [
         "bierner.markdown-mermaid",
         "DavidAnson.vscode-markdownlint",
+        "elagil.pre-commit-helper",
+        "formulahendry.code-runner",
+        "formulahendry.code-runner-copilot",
         "GitHub.copilot",
         "GitHub.copilot-chat",
         "GitHub.vscode-github-actions",
+        "ms-python.python",
         "vscodevim.vim",
         "vsls-contrib.codetour",
         "xaver.clang-format"
       ]
     }
   },
+
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
     "ghcr.io/devcontainers-contrib/features/actionlint:1": {},
@@ -34,21 +35,14 @@
     "ghcr.io/guiyomh/features/vim:0": {},
     "ghcr.io/jungaretti/features/make:1": {},
     "ghcr.io/jungaretti/features/ripgrep:1": {},
+    "ghcr.io/prulloac/devcontainer-features/pre-commit:1": {},
     "ghcr.io/sliekens/devcontainer-features/opencode:1": {}
   },
 
   // Pre-create opencode directories on host before container starts (required for bind mounts)
   "initializeCommand": "mkdir -p \"$HOME/.local/share/opencode\" \"$HOME/.config/opencode\"",
 
-  // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  // "forwardPorts": [],
-
   // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "uname -a",
-
-  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  "image": "mcr.microsoft.com/devcontainers/base:jammy",
-
   "postCreateCommand": "time pip install -r .devcontainer/requirements.txt && time pipx install --include-deps --force ansible && time pipx inject ansible -r .devcontainer/requirements-ansible.txt && time pre-commit install",
 
   // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.

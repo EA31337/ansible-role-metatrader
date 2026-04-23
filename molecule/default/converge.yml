@@ -2,5 +2,7 @@
 - name: Converge
   hosts: all
   gather_facts: true
+  vars:
+    ansible_become_method: sudo
   roles:
     - role: ea31337.metatrader

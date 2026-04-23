@@ -1,14 +1,19 @@
-# Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
 ---
+# noqa: schema[meta]
+# Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
 dependencies:
   - role: ea31337.wine
     vars:
       wine_install_winetricks: true
-    version: v1.0.3  # This should match version in requirements.yml
-    when: ansible_os_family != "Windows"
-  - role: ea31337.xvfb
+      wine_version: "{{ '9' if ansible_facts.os_family == 'Alpine' else '10.0' }}"
+    version: master  # This should match version in requirements.yml
+    when: ansible_facts.os_family != "Windows"
+  - name: ea31337.xvfb
+    role: ea31337.xvfb
+    scm: git
+    src: https://github.com/EA31337/ansible-role-xvfb.git
     version: v1.0.4  # This should match version in requirements.yml
-    when: ansible_os_family != "Windows"
+    when: ansible_facts.os_family != "Windows"
 galaxy_info:
   author: kenorb
   company: EA31337 Ltd
@@ -28,7 +33,7 @@ galaxy_info:
     - windows
     - wine
   license: GPL-3.0-or-later
-  min_ansible_version: "2.7"
+  min_ansible_version: '2.7'
   namespace: ea31337
   platforms:
     - name: Alpine
@@ -38,19 +43,11 @@ galaxy_info:
       versions:
         - all
         - bullseye
-        - buster
-        - jessie
-        - stretch
-        - wheezy
-    # - name: NixOS
-    #   versions:
-    #     - all
+        - bookworm
     - name: Ubuntu
       versions:
         - all
-        - artful
-        - bionic
         - focal
-        - trusty
-        - xenial
+        - jammy
+        - noble
   role_name: metatrader
