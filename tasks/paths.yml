@@ -1,7 +1,8 @@
 ---
 - name: Set wine_prefix variable
   ansible.builtin.set_fact:
-    wine_prefix: '{{ ansible_env.WINEPREFIX | default(ansible_env.HOME + "/.wine") }}'
+    wine_prefix: >-
+      {{ ansible_facts.env.WINEPREFIX | default(ansible_facts.env.HOME + "/.wine") }}
 
 - name: Set MetaTrader 4 path variables
   ansible.builtin.set_fact:

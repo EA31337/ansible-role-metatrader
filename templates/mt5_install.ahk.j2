@@ -1,11 +1,17 @@
 ; Maximum time for setup to complete.
 Timeout := 600000 ; 10 min.
+ExePath := ""
 
 ; Searching for a setup's EXE file.
-loop, Files, *.exe
+Loop, Files, setup.exe
 {
     ExePath := A_LoopFileFullPath
     break
+}
+
+if (!ExePath)
+{
+    ExitApp, 1
 }
 
 ; Running setup.
@@ -20,7 +26,7 @@ Send, !n
 
 StartTime := A_TickCount
 
-loop
+Loop
 {
     ; Check if timeout has passed.
     if (A_TickCount - StartTime > Timeout)
