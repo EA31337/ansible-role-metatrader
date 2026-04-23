@@ -57,7 +57,7 @@ You are expected to be an expert in:
 
 - Ensure idempotency in all tasks
 - Ensure indentation is correct, especially for YAML files
-- Follow standard role structure: tasks/, handlers/, templates/, defaults/, meta/
+- Follow standard role structure: tasks/, templates/, defaults/, meta/
 - Use ansible-lint and write Molecule tests for verification
 - Use descriptive task names and include helpful comments
 

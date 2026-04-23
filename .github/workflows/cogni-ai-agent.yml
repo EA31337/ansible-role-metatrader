@@ -54,7 +54,6 @@ on:
         description: Prompt for the agent
         required: true
         type: string
-
 # Prevent concurrent runs on the same PR/issue to avoid conflicts.
 # On the default branch each run gets a unique group so runs can proceed in parallel.
 # Note: This logic assumes the workflow is triggered only by issue/PR-related events or branches.
@@ -68,7 +67,6 @@ concurrency:
       || (github.ref_name != github.event.repository.default_branch && github.ref)
       || github.run_id
     }}
-
 jobs:
   cogni-ai-agent:
     name: Run Cogni AI agent
@@ -132,4 +130,8 @@ jobs:
               touch*: allow
               true*: allow
               vim*: allow
-          prompt: ${{ github.event.comment.body || github.event.issue.body || github.event.pull_request.body || inputs.prompt }}
+          prompt: >-
+            ${{ github.event.comment.body
+            || github.event.issue.body
+            || github.event.pull_request.body
+            || inputs.prompt }}
