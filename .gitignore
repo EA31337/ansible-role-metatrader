@@ -17,3 +17,6 @@ requirements-local.yml
 *.verb
 *.json
 roles/
+/.github/agents/
+/.github/instructions/
+/.github/skills/

@@ -70,13 +70,29 @@ load_mt5_install()
 
         ; Running setup.
         Run, %ExePath%
-        SetTitleMatchMode, RegEx
+        SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        WinWait, MetaTrader 5,, 60
+        loop 60
+        {
+            if (WinExist("MetaTrader 5"))
+                break
+            if (WinExist("Proxy Server"))
+            {
+                WinActivate, Proxy Server
+                Send, {Esc}
+            }
+            Sleep, 1000
+            if (A_Index == 60)
+                ExitApp, 1
+        }
 
-        ; Clicking \"Next\".
+        WinActivate, MetaTrader 5
+        Sleep, 1000
+
+        ; Clicking "Next".
         Send, !n
+        Sleep, 1000
 
         StartTime := A_TickCount
 
@@ -85,7 +101,7 @@ load_mt5_install()
             ; Check if timeout have passed.
             if (A_TickCount - StartTime > Timeout)
             {
-                break
+                ExitApp, 1 ; Exit with error on timeout
             }
 
             ; Close a blocking "Proxy Server" dialog if it appears.
@@ -96,7 +112,7 @@ load_mt5_install()
                 Sleep, 1000
             }
 
-            ; Is \"Finish\" button visible?
+            ; Is "Finish" button visible?
             ControlGet, FinishVisible, Visible,, Finish
 
             if (FinishVisible)
@@ -108,19 +124,48 @@ load_mt5_install()
             Sleep, 1000
         }
 
-        ; Clicking \"Finish\".
+        ; Clicking "Finish".
         Send, {Enter}
+        Sleep, 5000
 
-        ; Awaiting for terminal process to appear.
-        Process, Wait, terminal64.exe, 60
+        ; Awaiting for terminal process and window to appear.
+        loop 60
+        {
+            Process, Exist, terminal64.exe
+            if (ErrorLevel)
+                break
+            Process, Exist, terminal.exe
+            if (ErrorLevel)
+                break
+            Sleep, 1000
+        }
+        WinWaitActive, MetaTrader,, 60
 
         ; Closing dialogs and exiting from the terminal.
-        Send, {Esc}{Esc}!fx!{F4} ; File->Exit, Alt-F4
+        Send, {Esc}
+        Sleep, 1000
+        Send, {Esc}
+        Sleep, 1000
+        Send, !f
+        Sleep, 1000
+        Send, x
+        Sleep, 1000
+        Send, !{F4}
 
-        ; Awaiting terminal window to close for 10s.
-        WinWaitClose, ahk_exe terminal64.exe, 10
+        ; Awaiting terminal window to close for 20s.
+        loop 20
+        {
+            Process, Exist, terminal64.exe
+            if (!ErrorLevel)
+                break
+            Process, Exist, terminal.exe
+            if (!ErrorLevel)
+                break
+            Sleep, 1000
+        }
 
-        ; If terminal didn't close in 10s then we are forcing it to close.
+        ; If terminal didn't close in 20s then we are forcing it to close.
         Process, Close, terminal64.exe
+        Process, Close, terminal.exe
 EOF
 }
