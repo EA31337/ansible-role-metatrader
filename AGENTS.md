@@ -405,8 +405,9 @@ all Linux scenarios):
 - **Root cause**: The role caps the winetricks install task at
   `async: 300`, and the MT4 installer exceeded that five-minute limit on
   both Ubuntu platforms during the 2026-04-24 Molecule run.
-- **Fix**: Increase the task timeout or make the MT4 installer path finish
-  within the existing async window before re-running Molecule.
+- **Fix**: Increased the task timeout (`async: 1200`) and the internal AutoHotkey timeout (`600000`).
+- **Fix**: Improved AutoHotkey script robustness by using `SetTitleMatchMode, 2`, increasing wait times, and removing potential quoting/splitting issues in the `w_ahk_do` override.
+- **Fix**: Corrected `Send` command syntax in AutoHotkey scripts for more reliable dialog closing.
 
 ## Common Tasks
 

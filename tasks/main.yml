@@ -110,7 +110,7 @@
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
           && touch ~/.wine/.installed-mt{{ metatrader_version }}
         creates: ~/.wine/.installed-mt{{ metatrader_version }}
-      async: 600
+      async: 1200
       poll: 10
       environment:
         DISPLAY: :0
