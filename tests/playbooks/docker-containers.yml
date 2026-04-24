@@ -19,6 +19,8 @@
         image: '{{ container_image }}'
         state: started
         command: sleep infinity
+        # Mount host CA certificates for proxy/firewall SSL interception environments.
+        volumes: "{{ host_ca_certs | map('regex_replace', '^(.+)$', '\\1:\\1:ro') | list or omit }}"
       delegate_to: localhost
       vars:
         # Use system Python with requests installed for controller-side Docker modules.
@@ -47,6 +49,16 @@
         test -e "{{ ansible_python_interpreter }}" || (apt-get update && apt-get install -y python3 python3-pip)
       changed_when: false
       when: container_image is search("ubuntu") or container_image is search("debian")
+    - name: Trust proxy CA certificates (if mounted)
+      ansible.builtin.raw: |
+        if ! ls /usr/local/share/ca-certificates/*.crt >/dev/null 2>&1; then
+          exit 0
+        fi
+        if command -v update-ca-certificates >/dev/null 2>&1; then
+          update-ca-certificates
+        fi
+      changed_when: false
+      when: container_image is search("ubuntu") or container_image is search("debian")
     - name: Gather facts
       ansible.builtin.setup:
     - name: Install Python packages for Ubuntu/Debian
@@ -61,6 +73,8 @@
   tags: always
   vars:
     controller_python: '{{ ansible_playbook_python }}'
+    host_ca_certs: >-
+      {{ lookup('ansible.builtin.fileglob', '/usr/local/share/ca-certificates/*.crt', wantlist=True) }}
     container_image_map:
       metatrader-on-alpine-latest: alpine:3.20
       metatrader-on-debian-latest: debian:latest
