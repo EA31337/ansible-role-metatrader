@@ -31,7 +31,7 @@ Loop
     ; Check if timeout has passed.
     if (A_TickCount - StartTime > Timeout)
     {
-        break
+        ExitApp, 2
     }
 
     ; Is "Finish" button visible?
@@ -50,8 +50,8 @@ Loop
 Send, {Enter}
 
 ; Awaiting for terminal process and window to appear.
-Process, Wait, terminal.exe, 5
-WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00
+Process, Wait, terminal.exe, 30
+WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00,, 30
 
 ; Closing dialogs and exiting from the terminal.
 Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4
