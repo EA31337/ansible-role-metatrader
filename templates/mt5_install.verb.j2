@@ -115,7 +115,7 @@ load_mt5_install()
         Send, {Enter}
 
         ; Awaiting for terminal process and window to appear.
-        Process, Wait, terminal64.exe, 5
+        Process, Wait, terminal64.exe, 30
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4
