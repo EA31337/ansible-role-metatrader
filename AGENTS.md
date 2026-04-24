@@ -87,6 +87,7 @@ For project overview and install instructions, see [README.md](README.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
+| `alpine-latest` | `alpine:latest` | |
 | `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: jammy` |
 | `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: jammy` |
 
