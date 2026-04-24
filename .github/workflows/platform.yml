@@ -49,14 +49,15 @@ jobs:
       - uses: actions/checkout@v6
         with:
           path: ${{ env.REPOSITORY }}
+          persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
           ref: ${{ env.CHECKOUT_REF }}
           repository: ${{ env.REPOSITORY }}
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.1.0
         with:
           python-version: '3.11'
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5.0.1
         with:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/Pipfile*', '**/.devcontainer/requirements.txt') }}
           path: ~/.cache/pip
