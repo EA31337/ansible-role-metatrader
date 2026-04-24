@@ -99,8 +99,8 @@ load_mt5_install()
                 Sleep, 1000
             }
 
-            ; Is \"Finish\" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
+            ; Is \"Finish\" button visible? (target the MT5 setup window explicitly)
+            ControlGet, FinishVisible, Visible,, Finish, MetaTrader 5
 
             if (FinishVisible)
             {
@@ -116,6 +116,7 @@ load_mt5_install()
 
         ; Awaiting for terminal process and window to appear.
         Process, Wait, terminal64.exe, 30
+        WinWaitActive, ahk_class MetaQuotes::MetaTrader::5.00,, 30
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4

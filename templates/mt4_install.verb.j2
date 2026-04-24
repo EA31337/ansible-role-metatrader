@@ -101,8 +101,8 @@ load_mt4_install()
                 Sleep, 1000
             }
 
-            ; Is \"Finish\" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
+            ; Is \"Finish\" button visible? (target the MT4 setup window explicitly)
+            ControlGet, FinishVisible, Visible,, Finish, 4 Setup
 
             if (FinishVisible)
             {
@@ -118,8 +118,8 @@ load_mt4_install()
 
 
         ; Awaiting for terminal process and window to appear.
-        Process, Wait, terminal.exe, 5
-        WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00
+        Process, Wait, terminal.exe, 30
+        WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00,, 30
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4

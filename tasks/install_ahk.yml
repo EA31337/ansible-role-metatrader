@@ -99,44 +99,30 @@
     - ahk_is_windows
     - not mt_setup_stat_res.stat.exists
 
-- name: Verify MetaTrader installer exists after download (Unix/Cygwin)
+- name: Fail if MetaTrader installer is not available (Unix/Cygwin)
   ansible.builtin.stat:
     path: "{{ mt_setup_path }}"
-  register: mt_setup_stat_unix_after
+  register: mt_setup_final_stat_unix
+  failed_when: not mt_setup_final_stat_unix.stat.exists
   when: not ahk_is_windows
 
-- name: Verify MetaTrader installer exists after download (Windows)
+- name: Fail if MetaTrader installer is not available (Windows)
   ansible.windows.win_stat:
     path: "{{ mt_setup_path }}"
-  register: mt_setup_stat_win_after
+  register: mt_setup_final_stat_win
+  failed_when: not mt_setup_final_stat_win.stat.exists
   when: ahk_is_windows
 
-- name: Consolidate MetaTrader installer stat result after download
-  ansible.builtin.set_fact:
-    mt_setup_stat_res: "{{ mt_setup_stat_win_after if ahk_is_windows else mt_setup_stat_unix_after }}"
-
-- name: Fail if MetaTrader installer is not available
-  ansible.builtin.fail:
-    msg: "MetaTrader setup download failed on {{ platform_name }}."
-  when: not mt_setup_stat_res.stat.exists
-
-- name: Verify AutoHotkey executable exists after download (Unix/Cygwin)
+- name: Fail if AutoHotkey is not available (Unix/Cygwin)
   ansible.builtin.stat:
     path: "{{ ahk_exe_path }}"
-  register: ahk_stat_unix_after
+  register: ahk_final_stat_unix
+  failed_when: not ahk_final_stat_unix.stat.exists
   when: not ahk_is_windows
 
-- name: Verify AutoHotkey executable exists after download (Windows)
+- name: Fail if AutoHotkey is not available (Windows)
   ansible.windows.win_stat:
     path: "{{ ahk_exe_path }}"
-  register: ahk_stat_win_after
+  register: ahk_final_stat_win
+  failed_when: not ahk_final_stat_win.stat.exists
   when: ahk_is_windows
-
-- name: Consolidate AutoHotkey stat result after download
-  ansible.builtin.set_fact:
-    ahk_stat_res: "{{ ahk_stat_win_after if ahk_is_windows else ahk_stat_unix_after }}"
-
-- name: Fail if AutoHotkey is not available
-  ansible.builtin.fail:
-    msg: "AutoHotkey download or extraction failed on {{ platform_name }}."
-  when: not ahk_stat_res.stat.exists

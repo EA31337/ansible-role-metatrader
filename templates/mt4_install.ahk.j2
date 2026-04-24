@@ -42,8 +42,8 @@ Loop
         Sleep, 1000
     }
 
-    ; Is "Finish" button visible?
-    ControlGet, FinishVisible, Visible,, Finish
+    ; Is \"Finish\" button visible? (target the MT4 setup window explicitly)
+    ControlGet, FinishVisible, Visible,, Finish, 4 Setup
 
     if (FinishVisible)
     {

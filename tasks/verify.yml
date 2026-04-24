@@ -11,27 +11,32 @@
             - metatrader_paths
       tags:
         - metatrader_paths
-    - name: Checks if platform's terminal exists (Unix/Cygwin)
-      changed_when: false
-      failed_when: find_mt_res.matched == 0
-      ansible.builtin.find:
-        paths: '{{ mt_runner_mt_path_host }}'
-        patterns: terminal*.exe
-        recurse: true
-      register: find_mt_res_unix
-      when: is_unix or platform_name == 'Cygwin'
-    - name: Checks if platform's terminal exists (Windows)
-      changed_when: false
-      failed_when: find_mt_res.matched == 0
-      ansible.windows.win_find:
-        paths: '{{ mt_runner_mt_path_host }}'
-        patterns: terminal*.exe
-        recurse: true
-      register: find_mt_res_win
-      when: platform_name == 'Windows'
+    - name: Checks if platform's terminal exists
+      module_defaults:
+        ansible.builtin.find:
+          patterns: terminal*.exe
+          recurse: true
+        ansible.windows.win_find:
+          patterns: terminal*.exe
+          recurse: true
+      block:
+        - name: Checks if platform's terminal exists (Unix/Cygwin)
+          ansible.builtin.find:
+            paths: '{{ mt_runner_mt_path_host }}'
+          register: find_mt_res_unix
+          when: is_unix or platform_name == 'Cygwin'
+        - name: Checks if platform's terminal exists (Windows)
+          ansible.windows.win_find:
+            paths: '{{ mt_runner_mt_path_host }}'
+          register: find_mt_res_win
+          when: platform_name == 'Windows'
     - name: Consolidate terminal find result
       ansible.builtin.set_fact:
         find_mt_res: "{{ find_mt_res_win if platform_name == 'Windows' else find_mt_res_unix }}"
+    - name: Verify terminal was found
+      ansible.builtin.assert:
+        that: find_mt_res.matched > 0
+        msg: "MetaTrader terminal not found in {{ mt_runner_mt_path_host }}"
     - name: Store platform's path
       ansible.builtin.set_fact:
         find_mt_path: >-
@@ -41,27 +46,32 @@
           {{ find_mt_res.files[0].path | win_dirname if platform_name == 'Windows'
           else find_mt_res.files[0].path | dirname }}
       when: find_mt_res.files | length > 0
-    - name: Checks if platform's editor exists (Unix/Cygwin)
-      changed_when: false
-      failed_when: find_mte_res.matched == 0
-      ansible.builtin.find:
-        paths: '{{ mt_runner_mt_path_host }}'
-        patterns: '[mM]eta[eE]ditor*.exe'
-        recurse: true
-      register: find_mte_res_unix
-      when: is_unix or platform_name == 'Cygwin'
-    - name: Checks if platform's editor exists (Windows)
-      changed_when: false
-      failed_when: find_mte_res.matched == 0
-      ansible.windows.win_find:
-        paths: '{{ mt_runner_mt_path_host }}'
-        patterns: '[mM]eta[eE]ditor*.exe'
-        recurse: true
-      register: find_mte_res_win
-      when: platform_name == 'Windows'
+    - name: Checks if platform's editor exists
+      module_defaults:
+        ansible.builtin.find:
+          patterns: '[mM]eta[eE]ditor*.exe'
+          recurse: true
+        ansible.windows.win_find:
+          patterns: '[mM]eta[eE]ditor*.exe'
+          recurse: true
+      block:
+        - name: Checks if platform's editor exists (Unix/Cygwin)
+          ansible.builtin.find:
+            paths: '{{ mt_runner_mt_path_host }}'
+          register: find_mte_res_unix
+          when: is_unix or platform_name == 'Cygwin'
+        - name: Checks if platform's editor exists (Windows)
+          ansible.windows.win_find:
+            paths: '{{ mt_runner_mt_path_host }}'
+          register: find_mte_res_win
+          when: platform_name == 'Windows'
     - name: Consolidate editor find result
       ansible.builtin.set_fact:
         find_mte_res: "{{ find_mte_res_win if platform_name == 'Windows' else find_mte_res_unix }}"
+    - name: Verify editor was found
+      ansible.builtin.assert:
+        that: find_mte_res.matched > 0
+        msg: "MetaTrader editor not found in {{ mt_runner_mt_path_host }}"
     - name: Store platform's editor path
       ansible.builtin.set_fact:
         find_mte_path: >-
