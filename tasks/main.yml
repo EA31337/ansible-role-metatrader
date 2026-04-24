@@ -25,14 +25,18 @@
   when: false
 - name: Checks if platform is already exist
   ansible.builtin.stat:
-    path: "{{ ansible_local['metatrader'][metatrader_version | string].path }}"
+    path: "{{ ansible_local['metatrader'][metatrader_version | string].path | default('') }}"
   register: stat_mt
-  when: ansible_local['metatrader'] is defined
+  when:
+    - ansible_local['metatrader'] is defined
+    - ansible_local['metatrader'][metatrader_version | string] is defined
+    - ansible_local['metatrader'][metatrader_version | string].path is defined
 - name: Ensures platform is installed
   when:
-    - ansible_local['metatrader'] is not defined
     - detected_os_family != "Windows" # gather_facts is required.
-    - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
+    - (ansible_local['metatrader'] is not defined)
+      or (ansible_local['metatrader'][metatrader_version | string] is not defined)
+      or (not stat_mt.stat.exists)
   block:
     - name: Validates variables
       ansible.builtin.assert:
@@ -96,6 +100,7 @@
   when:
     - >-
       ansible_local['metatrader'] is not defined
+      or ansible_local['metatrader'][metatrader_version | string] is not defined
       or (find_mt_path_folder)
       != ansible_local['metatrader'][metatrader_version | string].path
   block:
