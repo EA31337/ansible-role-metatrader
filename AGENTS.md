@@ -257,28 +257,32 @@ molecule destroy -s default
 
 ### Debugging the MT5 installer
 
-When the installer hangs or fails inside a container, use these steps:
+When the installer hangs or fails inside a container, use these steps to troubleshoot interactively:
 
 ```bash
-# 1. Install xdotool in the container
-docker exec CONTAINER apt-get install -y -q xdotool
+# 1. Install xdotool and imagemagick in the container
+docker exec CONTAINER bash -lc '
+  apt-get update >/dev/null && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y -q xdotool imagemagick >/dev/null && \
+  echo "Tools installed successfully"'
 
-# 2. List all visible X windows (check for "Proxy Server" dialogs)
+# 2. List all visible X windows (check for "Proxy Server" or error dialogs)
 docker exec -e DISPLAY=:0 CONTAINER \
-  bash -c 'for wid in $(xdotool search --name "."); do
-    echo "Window $wid: $(xdotool getwindowname $wid 2>/dev/null)"
+  bash -c 'for wid in $(xdotool search --name "." 2>/dev/null); do
+    printf "[%s] %s\n" "$wid" "$(xdotool getwindowname $wid 2>/dev/null)"
   done'
 
-# 3. Close a blocking "Proxy Server" dialog
+# 3. Close a blocking "Proxy Server" dialog if found
 docker exec -e DISPLAY=:0 CONTAINER \
   xdotool search --name "Proxy Server" windowfocus key Escape
 
 # 4. Take a screenshot of the X display
-docker exec CONTAINER apt-get install -y -q imagemagick
-docker exec -e DISPLAY=:0 CONTAINER import -window root /tmp/screen.png
+docker exec -e DISPLAY=:0 CONTAINER bash -lc 'import -window root /tmp/screen.png'
+
+# 5. Copy the screenshot to the host for analysis
 docker cp CONTAINER:/tmp/screen.png ./screen.png
 
-# 5. Check which MetaQuotes hosts are reachable from the container
+# 6. Check which MetaQuotes hosts are reachable from the container
 docker exec CONTAINER bash -c '
   for h in download.mql5.com www.mql5.com cdn.mql5.com \
            trade.mql5.com mt5-trade.metaquotes.net; do
@@ -286,11 +290,11 @@ docker exec CONTAINER bash -c '
     curl -sI --connect-timeout 5 "https://$h" 2>&1 | head -1
   done'
 
-# 6. Check if terminal.exe was installed
+# 7. Check if terminal.exe was installed
 docker exec CONTAINER \
   find /root/.wine/drive_c -name "terminal*" -o -name "metaeditor*"
 
-# 7. Check running Wine/MT5 processes
+# 8. Check running Wine/MT5 processes
 docker exec CONTAINER ps aux | grep -E "mt5|terminal|wine" | grep -v defunct
 ```
 
