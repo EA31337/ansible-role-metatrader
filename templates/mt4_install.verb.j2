@@ -81,17 +81,17 @@ load_mt4_install()
         Run, %ExePath%
         SetTitleMatchMode, 2 ; Match if contains
 
-        ; Awaiting for setup window to appear.
+        ; Awaiting for MetaTrader setup window to appear.
         FileAppend, %A_Now%: Waiting for setup window`n, %LogFile%
-        WinWait, Setup,, 120
+        WinWait, MetaTrader,, 120
         if (ErrorLevel)
         {
-            FileAppend, %A_Now%: Error: setup window did not appear`n, %LogFile%
+            FileAppend, %A_Now%: Error: MetaTrader setup window did not appear`n, %LogFile%
             ExitApp, 1
         }
 
-        WinActivate, Setup
-        WinWaitActive, Setup,, 10
+        WinActivate, MetaTrader
+        WinWaitActive, MetaTrader,, 10
 
         ; Clicking \"Next\".
         FileAppend, %A_Now%: Clicking Next`n, %LogFile%
@@ -105,7 +105,7 @@ load_mt4_install()
             if (A_TickCount - StartTime > Timeout)
             {
                 FileAppend, %A_Now%: Error: installation timed out`n, %LogFile%
-                break
+                ExitApp, 1
             }
 
             ; Close a blocking \"Proxy Server\" dialog if it appears.

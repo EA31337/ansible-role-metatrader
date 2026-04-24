@@ -104,7 +104,7 @@ load_mt5_install()
             if (A_TickCount - StartTime > Timeout)
             {
                 FileAppend, %A_Now%: Error: installation timed out`n, %LogFile%
-                break
+                ExitApp, 1
             }
 
             ; Close a blocking \"Proxy Server\" dialog if it appears.
