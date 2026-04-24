@@ -23,8 +23,10 @@ For project overview and install instructions, see [README.md](README.md).
 | ---- | ------- |
 | `defaults/main.yml` | Role defaults (`metatrader_setup_url`, `metatrader_version`) |
 | `vars/main.yml` | Internal variables (`metatrader_become_method` per OS) |
-| `tasks/main.yml` | Role entry point; installs MetaTrader via winetricks verb |
+| `tasks/main.yml` | Role entry point; installs MetaTrader (Unix: winetricks verb; Cygwin/Windows: AutoHotkey) |
 | `tasks/verify.yml` | Post-install verification (terminal.exe, metaeditor.exe) |
+| `templates/mt4_install.ahk.j2` | MT4 AutoHotkey installer template (Cygwin/Windows) |
+| `templates/mt5_install.ahk.j2` | MT5 AutoHotkey installer template (Cygwin/Windows) |
 | `templates/mt4_install.verb.j2` | MT4 winetricks verb template |
 | `templates/mt5_install.verb.j2` | MT5 winetricks verb template |
 | `meta/main.yml` | Galaxy metadata + role dependencies (wine, xvfb) |

@@ -31,11 +31,6 @@
       and ((ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
       or detected_os_family == 'Windows')) | bool }}
     platform_name: '{{ detected_os_family }}'
-- name: Collects local facts
-  ansible.builtin.setup:
-    filter:
-      - ansible_local
-  when: false
 - name: Populate paths
   ansible.builtin.include_tasks: paths.yml
   args:
@@ -48,6 +43,12 @@
   ansible.builtin.stat:
     path: '{{ mt_runner_mt_path_host }}'
   register: stat_mt
+  when: platform_name != 'Windows'
+- name: Checks if platform already exists (Windows)
+  ansible.windows.win_stat:
+    path: '{{ mt_runner_mt_path_host }}'
+  register: stat_mt
+  when: platform_name == 'Windows'
 - name: Ensures platform is installed
   when:
     - >-
@@ -173,28 +174,28 @@
         path: '{{ item }}'
         state: directory
       loop:
-        - '{{ ansible_facts.env.HOME }}\ahk-portable'
-        - '{{ ansible_facts.env.HOME }}\ahk-portable\mt'
+        - '{{ ansible_facts.env.USERPROFILE }}\ahk-portable'
+        - '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt'
       when: platform_name == 'Windows'
     - name: Download AutoHotkey archive (Windows)
       ansible.windows.win_get_url:
         url: '{{ metatrader_autohotkey_url }}'
-        dest: '{{ ansible_facts.env.HOME }}\ahk-portable.zip'
+        dest: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable.zip'
       when: platform_name == 'Windows'
     - name: Extract AutoHotkey (Windows)
       community.windows.win_unzip:
-        src: '{{ ansible_facts.env.HOME }}\ahk-portable.zip'
-        dest: '{{ ansible_facts.env.HOME }}\ahk-portable'
-        creates: '{{ ansible_facts.env.HOME }}\ahk-portable\AutoHotkeyU64.exe'
+        src: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable.zip'
+        dest: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable'
+        creates: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\AutoHotkeyU64.exe'
       when: platform_name == 'Windows'
     - name: Download MetaTrader installer (Windows)
       ansible.windows.win_get_url:
         url: '{{ metatrader_setup_url }}'
-        dest: '{{ ansible_facts.env.HOME }}\ahk-portable\mt\setup.exe'
+        dest: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt\setup.exe'
       when: platform_name == 'Windows'
     - name: Verify MetaTrader installer exists (Windows)
       ansible.windows.win_stat:
-        path: '{{ ansible_facts.env.HOME }}\ahk-portable\mt\setup.exe'
+        path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt\setup.exe'
       register: mt_setup_stat_windows
       when: platform_name == 'Windows'
     - name: Fail if MetaTrader installer is not available (Windows)
@@ -205,7 +206,7 @@
         - not mt_setup_stat_windows.stat.exists
     - name: Verify AutoHotkey executable exists (Windows)
       ansible.windows.win_stat:
-        path: '{{ ansible_facts.env.HOME }}\ahk-portable\AutoHotkeyU64.exe'
+        path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\AutoHotkeyU64.exe'
       register: ahk_stat_windows
       when: platform_name == 'Windows'
     - name: Fail if AutoHotkey is not available (Windows)
@@ -226,10 +227,10 @@
       when: platform_name == 'Cygwin'
     - name: Run installation with AutoHotkey (Windows)
       ansible.windows.win_shell: >-
-        {{ ansible_facts.env.HOME }}\ahk-portable\AutoHotkeyU64.exe
+        {{ ansible_facts.env.USERPROFILE }}\ahk-portable\AutoHotkeyU64.exe
         C:\Temp\mt{{ metatrader_version }}_install.ahk
       args:
-        chdir: '{{ ansible_facts.env.HOME }}\ahk-portable\mt'
+        chdir: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt'
       when: platform_name == 'Windows'
     - name: Ensures verb installation file is absent (Unix)
       ansible.builtin.file:
