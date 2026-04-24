@@ -30,7 +30,11 @@ w_ahk_do()
 
     local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
     mkdir -p "${_script_dir}"
-    printf '%s\n' "$@" > "${_script_dir}/${W_PACKAGE}.ahk"
+    if [ $# -eq 0 ]; then
+        cat > "${_script_dir}/${W_PACKAGE}.ahk"
+    else
+        printf '%s\n' "$@" > "${_script_dir}/${W_PACKAGE}.ahk"
+    fi
 
     wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
@@ -57,9 +61,9 @@ load_mt5_install()
     w_try wine reg add "HKCU\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
+    w_ahk_do <<'EOF'
         ; Maximum time for setup to complete.
-        Timeout := 200000 ; 3.3 min.
+        Timeout := 300000 ; 5 min.
 
         ; Searching for a setup EXE file.
         loop, Files, *.exe
@@ -75,7 +79,7 @@ load_mt5_install()
         ; Awaiting for setup window to appear.
         WinWait, MetaTrader 5,, 30
 
-        ; Clicking \"Next\".
+        ; Clicking "Next".
         Send, !n
 
         StartTime := A_TickCount
@@ -88,15 +92,15 @@ load_mt5_install()
                 break
             }
 
-            ; Close a blocking \"Proxy Server\" dialog if it appears.
-            if (WinExist(\"Proxy Server\"))
+            ; Close a blocking "Proxy Server" dialog if it appears.
+            if (WinExist("Proxy Server"))
             {
                 WinActivate, Proxy Server
                 Send, {Esc}
                 Sleep, 1000
             }
 
-            ; Is \"Finish\" button visible?
+            ; Is "Finish" button visible?
             ControlGet, FinishVisible, Visible,, Finish
 
             if (FinishVisible)
@@ -108,19 +112,20 @@ load_mt5_install()
             Sleep, 1000
         }
 
-        ; Clicking \"Finish\".
+        ; Clicking "Finish".
         Send, {Enter}
 
         ; Awaiting for terminal process and window to appear.
-        Process, Wait, terminal64.exe, 5
+        Process, Wait, terminal64.exe, 10
+        WinWaitActive, ahk_class MetaQuotes::MetaTrader::5.00,, 10
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4
 
-        ; Awaiting terminal window to close for 2s.
-        WinWaitClose, ahk_exe terminal64.exe, 2
+        ; Awaiting terminal window to close for 5s.
+        WinWaitClose, ahk_exe terminal64.exe, 5
 
-        ; If terminal didn't close in 2s then we are forcing it to close.
+        ; If terminal didn't close in 5s then we are forcing it to close.
         Process, Close, terminal64.exe
-    "
+EOF
 }
