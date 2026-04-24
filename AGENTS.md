@@ -285,6 +285,10 @@ docker cp CONTAINER:/tmp/screen.png ./screen.png
 # 6. Inspect the generated AutoHotkey script
 docker exec CONTAINER \
   bash -lc 'nl -ba /root/.wine/drive_c/windows/temp/_mt5_install/mt5_install.ahk | sed -n "1,160p"'
+# On Cygwin:
+# nl -ba /tmp/mt5_install.ahk | sed -n '1,160p'
+# On Windows:
+# powershell -Command "Get-Content C:\Temp\mt5_install.ahk | select -first 160"
 
 # 7. Check which hosts are reachable from the container via docker exec using curl.
 

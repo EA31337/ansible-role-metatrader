@@ -20,13 +20,6 @@
         recurse: true
       register: find_mt_res
       when: is_unix or platform_name == 'Cygwin'
-    - name: Store platform's path (Unix/Cygwin)
-      ansible.builtin.set_fact:
-        find_mt_path: '"{{ find_mt_res.files[0].path }}"'
-        find_mt_path_folder: '{{ find_mt_res.files[0].path | dirname }}'
-      when:
-        - is_unix or platform_name == 'Cygwin'
-        - find_mt_res.files | length > 0
     - name: Checks if platform's terminal exists (Windows)
       changed_when: false
       failed_when: find_mt_res.matched == 0
@@ -36,13 +29,15 @@
         recurse: true
       register: find_mt_res
       when: platform_name == 'Windows'
-    - name: Store platform's path (Windows)
+    - name: Store platform's path
       ansible.builtin.set_fact:
-        find_mt_path: '{{ find_mt_res.files[0].path }}'
-        find_mt_path_folder: '{{ find_mt_res.files[0].path | win_dirname }}'
-      when:
-        - platform_name == 'Windows'
-        - find_mt_res.files | length > 0
+        find_mt_path: >-
+          {{ '"' + find_mt_res.files[0].path + '"' if platform_name != 'Windows'
+          else find_mt_res.files[0].path }}
+        find_mt_path_folder: >-
+          {{ find_mt_res.files[0].path | win_dirname if platform_name == 'Windows'
+          else find_mt_res.files[0].path | dirname }}
+      when: find_mt_res.files | length > 0
     - name: Checks if platform's editor exists (Unix/Cygwin)
       changed_when: false
       failed_when: find_mte_res.matched == 0
@@ -52,13 +47,6 @@
         recurse: true
       register: find_mte_res
       when: is_unix or platform_name == 'Cygwin'
-    - name: Store platform's editor path (Unix/Cygwin)
-      ansible.builtin.set_fact:
-        find_mte_path: '{{ find_mte_res.files[0].path }}'
-        find_mte_path_folder: '{{ find_mte_res.files[0].path | dirname }}'
-      when:
-        - is_unix or platform_name == 'Cygwin'
-        - find_mte_res.files | length > 0
     - name: Checks if platform's editor exists (Windows)
       changed_when: false
       failed_when: find_mte_res.matched == 0
@@ -68,13 +56,13 @@
         recurse: true
       register: find_mte_res
       when: platform_name == 'Windows'
-    - name: Store platform's editor path (Windows)
+    - name: Store platform's editor path
       ansible.builtin.set_fact:
         find_mte_path: '{{ find_mte_res.files[0].path }}'
-        find_mte_path_folder: '{{ find_mte_res.files[0].path | win_dirname }}'
-      when:
-        - platform_name == 'Windows'
-        - find_mte_res.files | length > 0
+        find_mte_path_folder: >-
+          {{ find_mte_res.files[0].path | win_dirname if platform_name == 'Windows'
+          else find_mte_res.files[0].path | dirname }}
+      when: find_mte_res.files | length > 0
     - name: Check WSL's default distribution name (Windows)
       changed_when: false
       failed_when: not wsl_distribution_name_result
