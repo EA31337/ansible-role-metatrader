@@ -27,9 +27,9 @@
       {{ (((ansible_local['metatrader'] | default({}))[metatrader_version | string] | default({})).path)
       | default('') }}
     needs_privilege_escalation: >-
-      {{ (detected_os_family != 'Cygwin'
-      and ((ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
-      or detected_os_family == 'Windows')) | bool }}
+      {{ (detected_os_family == 'Cygwin'
+      or (ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
+      or detected_os_family == 'Windows') | bool }}
     platform_name: '{{ detected_os_family }}'
 - name: Populate paths
   ansible.builtin.include_tasks: paths.yml
@@ -50,6 +50,7 @@
   register: stat_mt
   when: platform_name == 'Windows'
 - name: Ensures platform is installed
+  # On Windows, ansible_local is not populated, so it relies on stat_mt check.
   when:
     - >-
       (platform_name != 'Windows'
@@ -119,130 +120,27 @@
         WINEDLLOVERRIDES: mscoree,mshtml=,winebrowser.exe=,dbghelp=n
         WINETRICKS_DOWNLOADER: curl
       when: is_unix
-    - name: Ensure AutoHotkey directories exist (Cygwin)
-      ansible.builtin.file:
-        path: '{{ item }}'
-        state: directory
-        mode: '0755'
-      loop:
-        - '{{ ansible_facts.env.HOME }}/ahk-portable'
-        - '{{ ansible_facts.env.HOME }}/ahk-portable/mt'
+    - name: Set AutoHotkey facts (Cygwin)
+      ansible.builtin.set_fact:
+        ahk_install_dir: '{{ ansible_facts.env.HOME }}/ahk-portable'
+        ahk_setup_dir: '{{ ansible_facts.env.HOME }}/ahk-portable/mt'
+        ahk_exe_path: '{{ ansible_facts.env.HOME }}/ahk-portable/AutoHotkeyU64.exe'
+        ahk_zip_path: '{{ ansible_facts.env.HOME }}/ahk-portable.zip'
+        mt_setup_path: '{{ ansible_facts.env.HOME }}/ahk-portable/mt/setup.exe'
+        ahk_is_windows: false
       when: platform_name == 'Cygwin'
-    - name: Verify AutoHotkey executable exists (Cygwin)
-      ansible.builtin.stat:
-        path: '{{ ansible_facts.env.HOME }}/ahk-portable/AutoHotkeyU64.exe'
-      register: ahk_stat_cygwin
-      when: platform_name == 'Cygwin'
-    - name: Download AutoHotkey archive (Cygwin)
-      ansible.builtin.get_url:
-        url: '{{ metatrader_autohotkey_url }}'
-        dest: '{{ ansible_facts.env.HOME }}/ahk-portable.zip'
-        mode: '0644'
-      when:
-        - platform_name == 'Cygwin'
-        - not ahk_stat_cygwin.stat.exists
-    - name: Extract AutoHotkey (Cygwin)
-      ansible.builtin.unarchive:
-        src: '{{ ansible_facts.env.HOME }}/ahk-portable.zip'
-        dest: '{{ ansible_facts.env.HOME }}/ahk-portable'
-        remote_src: true
-        creates: '{{ ansible_facts.env.HOME }}/ahk-portable/AutoHotkeyU64.exe'
-      when: platform_name == 'Cygwin'
-    - name: Verify MetaTrader installer exists (Cygwin)
-      ansible.builtin.stat:
-        path: '{{ ansible_facts.env.HOME }}/ahk-portable/mt/setup.exe'
-      register: mt_setup_stat_cygwin
-      when: platform_name == 'Cygwin'
-    - name: Download MetaTrader installer (Cygwin)
-      ansible.builtin.get_url:
-        url: '{{ metatrader_setup_url }}'
-        dest: '{{ ansible_facts.env.HOME }}/ahk-portable/mt/setup.exe'
-        mode: '0755'
-      when:
-        - platform_name == 'Cygwin'
-        - not mt_setup_stat_cygwin.stat.exists
-    - name: Verify MetaTrader installer exists after download (Cygwin)
-      ansible.builtin.stat:
-        path: '{{ ansible_facts.env.HOME }}/ahk-portable/mt/setup.exe'
-      register: mt_setup_stat_cygwin
-      when: platform_name == 'Cygwin'
-    - name: Fail if MetaTrader installer is not available (Cygwin)
-      ansible.builtin.fail:
-        msg: MetaTrader setup download failed on Cygwin.
-      when:
-        - platform_name == 'Cygwin'
-        - not mt_setup_stat_cygwin.stat.exists
-    - name: Verify AutoHotkey executable exists after download (Cygwin)
-      ansible.builtin.stat:
-        path: '{{ ansible_facts.env.HOME }}/ahk-portable/AutoHotkeyU64.exe'
-      register: ahk_stat_cygwin
-      when: platform_name == 'Cygwin'
-    - name: Fail if AutoHotkey is not available (Cygwin)
-      ansible.builtin.fail:
-        msg: AutoHotkey download or extraction failed on Cygwin.
-      when:
-        - platform_name == 'Cygwin'
-        - not ahk_stat_cygwin.stat.exists
-    - name: Ensure AutoHotkey directories exist (Windows)
-      ansible.windows.win_file:
-        path: '{{ item }}'
-        state: directory
-      loop:
-        - '{{ ansible_facts.env.USERPROFILE }}\ahk-portable'
-        - '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt'
+    - name: Set AutoHotkey facts (Windows)
+      ansible.builtin.set_fact:
+        ahk_install_dir: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable'
+        ahk_setup_dir: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt'
+        ahk_exe_path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\AutoHotkeyU64.exe'
+        ahk_zip_path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable.zip'
+        mt_setup_path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt\setup.exe'
+        ahk_is_windows: true
       when: platform_name == 'Windows'
-    - name: Verify AutoHotkey executable exists (Windows)
-      ansible.windows.win_stat:
-        path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\AutoHotkeyU64.exe'
-      register: ahk_stat_windows
-      when: platform_name == 'Windows'
-    - name: Download AutoHotkey archive (Windows)
-      ansible.windows.win_get_url:
-        url: '{{ metatrader_autohotkey_url }}'
-        dest: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable.zip'
-      when:
-        - platform_name == 'Windows'
-        - not ahk_stat_windows.stat.exists
-    - name: Extract AutoHotkey (Windows)
-      community.windows.win_unzip:
-        src: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable.zip'
-        dest: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable'
-        creates: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\AutoHotkeyU64.exe'
-      when: platform_name == 'Windows'
-    - name: Verify MetaTrader installer exists (Windows)
-      ansible.windows.win_stat:
-        path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt\setup.exe'
-      register: mt_setup_stat_windows
-      when: platform_name == 'Windows'
-    - name: Download MetaTrader installer (Windows)
-      ansible.windows.win_get_url:
-        url: '{{ metatrader_setup_url }}'
-        dest: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt\setup.exe'
-      when:
-        - platform_name == 'Windows'
-        - not mt_setup_stat_windows.stat.exists
-    - name: Verify MetaTrader installer exists after download (Windows)
-      ansible.windows.win_stat:
-        path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt\setup.exe'
-      register: mt_setup_stat_windows
-      when: platform_name == 'Windows'
-    - name: Fail if MetaTrader installer is not available (Windows)
-      ansible.builtin.fail:
-        msg: MetaTrader setup download failed on Windows.
-      when:
-        - platform_name == 'Windows'
-        - not mt_setup_stat_windows.stat.exists
-    - name: Verify AutoHotkey executable exists after download (Windows)
-      ansible.windows.win_stat:
-        path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\AutoHotkeyU64.exe'
-      register: ahk_stat_windows
-      when: platform_name == 'Windows'
-    - name: Fail if AutoHotkey is not available (Windows)
-      ansible.builtin.fail:
-        msg: AutoHotkey download or extraction failed on Windows.
-      when:
-        - platform_name == 'Windows'
-        - not ahk_stat_windows.stat.exists
+    - name: Install AutoHotkey
+      ansible.builtin.include_tasks: install_ahk.yml
+      when: platform_name in ['Cygwin', 'Windows']
     - name: Run installation with AutoHotkey (Cygwin)
       ansible.builtin.shell:
         cmd: >-
@@ -295,13 +193,13 @@
   tags:
     - metatrader_verify
 - name: Saves platform facts
-  become: "{{ (needs_privilege_escalation | bool) or platform_name == 'Cygwin' }}"
+  become: "{{ needs_privilege_escalation | bool }}"
   become_method: '{{ metatrader_become_method[detected_os_family] }}'
   when:
     - >-
       (ansible_local['metatrader'] is not defined)
       or (metatrader_saved_path | length == 0)
-      or (find_mt_path_folder | default('') != metatrader_saved_path)
+      or (find_mt_path_folder is defined and find_mt_path_folder != metatrader_saved_path)
   block:
     - name: Sets fact
       ansible.builtin.set_fact:
