@@ -16,6 +16,9 @@ lint: |
   yamllint .
   ansible-lint
 platforms:
+  - name: nixos-latest
+    image: nixos/nix:latest
+    dockerfile: ../resources/playbooks/Dockerfile.j2
   - name: ubuntu-latest
     image: ubuntu:latest
   - name: ubuntu-noble

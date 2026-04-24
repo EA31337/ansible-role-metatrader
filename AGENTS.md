@@ -87,6 +87,7 @@ For project overview and install instructions, see [README.md](README.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
+| `nixos-latest` | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
 | `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: jammy` |
 | `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: jammy` |
 
@@ -400,7 +401,8 @@ all Linux scenarios):
   `async: 300`, and the MT4 installer exceeded that five-minute limit on
   both Ubuntu platforms during the 2026-04-24 Molecule run.
 - **Fix**: Increased the task timeout (`async: 1200`) and the internal AutoHotkey timeout (`600000`).
-- **Fix**: Improved AutoHotkey script robustness by using `SetTitleMatchMode, 2`, increasing wait times, and removing potential quoting/splitting issues in the `w_ahk_do` override.
+- **Fix**: Improved AutoHotkey script robustness by using `SetTitleMatchMode, 2`, increasing wait times, and removing
+  potential quoting/splitting issues in the `w_ahk_do` override.
 - **Fix**: Corrected `Send` command syntax in AutoHotkey scripts for more reliable dialog closing.
 
 ## Common Tasks
