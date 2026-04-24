@@ -16,14 +16,6 @@ lint: |
   yamllint .
   ansible-lint
 platforms:
-  - name: debian-latest
-    image: debian:latest
-  - name: nixos-latest
-    dockerfile: ../resources/playbooks/Dockerfile.j2
-    image: nixos/nix:latest
-    pre_build_image: false
-  - name: ubuntu-jammy
-    image: ubuntu:jammy
   - name: ubuntu-latest
     image: ubuntu:latest
   - name: ubuntu-noble
@@ -57,12 +49,6 @@ provisioner:
         wine_release: stable
         wine_winetricks_winver: win10
     host_vars:
-      debian-latest:
-        wine_release_codename: '{{ ansible_facts.distribution_release | lower }}'
-      nixos-latest:
-        ansible_python_interpreter: /root/.nix-profile/bin/python3
-      ubuntu-jammy:
-        wine_release_codename: jammy
       ubuntu-latest:
         wine_release_codename: '{{ ansible_facts.distribution_release | lower }}'
       ubuntu-noble:

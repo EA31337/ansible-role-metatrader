@@ -5,7 +5,7 @@ name: Molecule
 on:
   pull_request:
     paths-ignore:
-      - '!.github/workflows/**'
+      - .github/workflows/**
       - '**.cfg'
       - '**.md'
       - .*
@@ -13,18 +13,18 @@ on:
       - Pipfile*
   push:
     paths-ignore:
-      - '!.github/workflows/**'
+      - .github/workflows/**
       - '**.cfg'
       - '**.md'
       - .*
       - LICENSE
       - Pipfile*
-permissions:
-  actions: write
-  contents: read
 concurrency:
   cancel-in-progress: true
   group: ${{ github.workflow }}-${{ github.ref }}
+permissions:
+  actions: write
+  contents: read
 jobs:
   test:
     name: ${{ matrix.scenario }} / ${{ matrix.platform }}
@@ -35,9 +35,6 @@ jobs:
       fail-fast: true
       matrix:
         platform:
-          - debian-latest
-          - nixos-latest
-          - ubuntu-jammy
           - ubuntu-noble
           - ubuntu-latest
         scenario:
@@ -48,22 +45,36 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          path: ${{ github.repository }}
-      - name: Cache Ansible Galaxy
-        uses: actions/cache@v5
+          persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
+      - name: Set up Python
+        uses: actions/setup-python@v6.1.0
         with:
-          key: galaxy-${{ hashFiles('**/requirements.yml') }}
+          python-version: '3.11'
+      - name: Cache pip
+        uses: actions/cache@v5.0.1
+        with:
+          key: >-
+            ${{ runner.os }}-pip-${{ hashFiles(
+              format('{0}/Pipfile*', github.repository),
+              format('{0}/.devcontainer/requirements.txt', github.repository)
+            ) }}
+          path: ~/.cache/pip
           restore-keys: |
-            galaxy-
+            ${{ runner.os }}-pip-
+      - name: Cache Ansible Galaxy
+        uses: actions/cache@v5.0.1
+        with:
+          key: ${{ runner.os }}-galaxy-${{ hashFiles(format('{0}/requirements.yml', github.repository)) }}
           path: |
             ~/.ansible/roles
             ~/.ansible/collections
-            ${{ github.repository }}/collections
+            ${{ github.workspace }}/collections
+          restore-keys: |
+            ${{ runner.os }}-galaxy-
       - name: Install Ansible collections
         run: |
           pip install ansible-core
           ansible-galaxy collection install -r requirements.yml -p collections
-        working-directory: ${{ github.repository }}
       - name: Filter molecule platforms to ${{ matrix.platform }}
         run: |
           SCENARIO="${{ matrix.scenario }}"
@@ -74,11 +85,11 @@ jobs:
             "$MOL_FILE"
           echo "Filtered platforms:"
           yq '.platforms[].name' "$MOL_FILE"
-        working-directory: ${{ github.repository }}
-      - uses: gofrolist/molecule-action@v2
+      - name: Run Molecule test
+        uses: gofrolist/molecule-action@v2
         env:
           ANSIBLE_COLLECTIONS_PATH: >-
-            ${{ github.workspace }}/${{ github.repository }}/collections
+            ${{ github.workspace }}/collections
           ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
           ANSIBLE_FORCE_COLOR: '1'
           ANSIBLE_STDOUT_CALLBACK: >-
@@ -88,7 +99,6 @@ jobs:
             --scenario-name ${{ matrix.scenario }}
           molecule_command: test
           molecule_options: ${{ runner.debug == '1' && '--verbose' || '' }}
-          molecule_working_dir: ${{ github.repository }}
       - if: ${{ failure() && runner.debug == '1' }}
         uses: mxschmitt/action-tmate@v3
     timeout-minutes: 120
@@ -112,9 +122,6 @@ jobs:
             // Keep in sync with the strategy.matrix above.
             const scenarios = ['default', 'mt4', 'mt5'];
             const platforms = [
-              'debian-latest',
-              'nixos-latest',
-              'ubuntu-jammy',
               'ubuntu-noble',
               'ubuntu-latest',
             ];
@@ -125,20 +132,14 @@ jobs:
             for (const job of jobs) {
               lookup[job.name] = job.conclusion;
             }
-            let table = '| Platform |';
-            for (const s of scenarios) table += ` ${s} |`;
-            table += '\n| --- |';
-            for (const s of scenarios) table += ' :---: |';
-            table += '\n';
-            for (const p of platforms) {
-              table += `| \`${p}\` |`;
-              for (const s of scenarios) {
-                const key = `${s} / ${p}`;
-                table += ` ${icon(lookup[key])} |`;
-              }
-              table += '\n';
-            }
+            const tableData = [
+              ['Platform', ...scenarios].map((data) => ({ data, header: true })),
+              ...platforms.map((p) => [
+                `\`${p}\``,
+                ...scenarios.map((s) => icon(lookup[`${s} / ${p}`])),
+              ]),
+            ];
             await core.summary
               .addHeading('Molecule Test Results', 2)
-              .addRaw(table)
+              .addTable(tableData)
               .write();
