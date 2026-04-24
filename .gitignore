@@ -13,4 +13,5 @@ requirements-local.yml
 *.swp
 *.txt
 *.verb
+*.json
 roles/
