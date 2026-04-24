@@ -24,6 +24,12 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
+      - name: Clone agents
+        run: git clone --depth=1 https://github.com/Cogni-AI-OU/cogni-ai-agents .github/agents
+      - name: Clone instructions
+        run: git clone --depth=1 https://github.com/Cogni-AI-OU/cogni-ai-agent-instructions .github/instructions
+      - name: Clone skills
+        run: git clone --depth=1 https://github.com/Cogni-AI-OU/cogni-ai-agent-skills .github/skills
       - uses: actions/setup-python@v6.1.0
         with:
           python-version: '3.12'
