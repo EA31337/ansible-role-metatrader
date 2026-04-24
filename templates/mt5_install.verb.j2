@@ -88,8 +88,8 @@ load_mt5_install()
                 break
             }
 
-            ; Close a blocking "Proxy Server" dialog if it appears.
-            if (WinExist("Proxy Server"))
+            ; Close a blocking \"Proxy Server\" dialog if it appears.
+            if (WinExist(\"Proxy Server\"))
             {
                 WinActivate, Proxy Server
                 Send, {Esc}
