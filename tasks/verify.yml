@@ -18,7 +18,7 @@
         paths: '{{ mt_runner_mt_path_host }}'
         patterns: terminal*.exe
         recurse: true
-      register: find_mt_res
+      register: find_mt_res_unix
       when: is_unix or platform_name == 'Cygwin'
     - name: Checks if platform's terminal exists (Windows)
       changed_when: false
@@ -27,8 +27,11 @@
         paths: '{{ mt_runner_mt_path_host }}'
         patterns: terminal*.exe
         recurse: true
-      register: find_mt_res
+      register: find_mt_res_win
       when: platform_name == 'Windows'
+    - name: Consolidate terminal find result
+      ansible.builtin.set_fact:
+        find_mt_res: "{{ find_mt_res_win if platform_name == 'Windows' else find_mt_res_unix }}"
     - name: Store platform's path
       ansible.builtin.set_fact:
         find_mt_path: >-
@@ -45,7 +48,7 @@
         paths: '{{ mt_runner_mt_path_host }}'
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
-      register: find_mte_res
+      register: find_mte_res_unix
       when: is_unix or platform_name == 'Cygwin'
     - name: Checks if platform's editor exists (Windows)
       changed_when: false
@@ -54,8 +57,11 @@
         paths: '{{ mt_runner_mt_path_host }}'
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
-      register: find_mte_res
+      register: find_mte_res_win
       when: platform_name == 'Windows'
+    - name: Consolidate editor find result
+      ansible.builtin.set_fact:
+        find_mte_res: "{{ find_mte_res_win if platform_name == 'Windows' else find_mte_res_unix }}"
     - name: Store platform's editor path
       ansible.builtin.set_fact:
         find_mte_path: >-

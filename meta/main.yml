@@ -6,6 +6,8 @@ dependencies:
     vars:
       wine_install_winetricks: true
       wine_version: "{{ '9' if ansible_facts.os_family == 'Alpine' else '10.0' }}"
+    scm: git
+    src: https://github.com/EA31337/ansible-role-wine.git
     version: v1.0.4  # This should match version in requirements.yml
     when: ansible_facts.os_family != "Windows"
   - name: ea31337.xvfb

@@ -21,14 +21,18 @@
 - name: Verify AutoHotkey executable exists (Unix/Cygwin)
   ansible.builtin.stat:
     path: "{{ ahk_exe_path }}"
-  register: ahk_stat_res
+  register: ahk_stat_unix
   when: not ahk_is_windows
 
 - name: Verify AutoHotkey executable exists (Windows)
   ansible.windows.win_stat:
     path: "{{ ahk_exe_path }}"
-  register: ahk_stat_res
+  register: ahk_stat_win
   when: ahk_is_windows
+
+- name: Consolidate AutoHotkey stat result
+  ansible.builtin.set_fact:
+    ahk_stat_res: "{{ ahk_stat_win if ahk_is_windows else ahk_stat_unix }}"
 
 - name: Download AutoHotkey archive (Unix/Cygwin)
   ansible.builtin.get_url:
@@ -65,14 +69,18 @@
 - name: Verify MetaTrader installer exists (Unix/Cygwin)
   ansible.builtin.stat:
     path: "{{ mt_setup_path }}"
-  register: mt_setup_stat_res
+  register: mt_setup_stat_unix
   when: not ahk_is_windows
 
 - name: Verify MetaTrader installer exists (Windows)
   ansible.windows.win_stat:
     path: "{{ mt_setup_path }}"
-  register: mt_setup_stat_res
+  register: mt_setup_stat_win
   when: ahk_is_windows
+
+- name: Consolidate MetaTrader installer stat result
+  ansible.builtin.set_fact:
+    mt_setup_stat_res: "{{ mt_setup_stat_win if ahk_is_windows else mt_setup_stat_unix }}"
 
 - name: Download MetaTrader installer (Unix/Cygwin)
   ansible.builtin.get_url:
@@ -94,14 +102,18 @@
 - name: Verify MetaTrader installer exists after download (Unix/Cygwin)
   ansible.builtin.stat:
     path: "{{ mt_setup_path }}"
-  register: mt_setup_stat_res
+  register: mt_setup_stat_unix_after
   when: not ahk_is_windows
 
 - name: Verify MetaTrader installer exists after download (Windows)
   ansible.windows.win_stat:
     path: "{{ mt_setup_path }}"
-  register: mt_setup_stat_res
+  register: mt_setup_stat_win_after
   when: ahk_is_windows
+
+- name: Consolidate MetaTrader installer stat result after download
+  ansible.builtin.set_fact:
+    mt_setup_stat_res: "{{ mt_setup_stat_win_after if ahk_is_windows else mt_setup_stat_unix_after }}"
 
 - name: Fail if MetaTrader installer is not available
   ansible.builtin.fail:
@@ -111,14 +123,18 @@
 - name: Verify AutoHotkey executable exists after download (Unix/Cygwin)
   ansible.builtin.stat:
     path: "{{ ahk_exe_path }}"
-  register: ahk_stat_res
+  register: ahk_stat_unix_after
   when: not ahk_is_windows
 
 - name: Verify AutoHotkey executable exists after download (Windows)
   ansible.windows.win_stat:
     path: "{{ ahk_exe_path }}"
-  register: ahk_stat_res
+  register: ahk_stat_win_after
   when: ahk_is_windows
+
+- name: Consolidate AutoHotkey stat result after download
+  ansible.builtin.set_fact:
+    ahk_stat_res: "{{ ahk_stat_win_after if ahk_is_windows else ahk_stat_unix_after }}"
 
 - name: Fail if AutoHotkey is not available
   ansible.builtin.fail:

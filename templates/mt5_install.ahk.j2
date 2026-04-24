@@ -42,8 +42,8 @@ Loop
         Sleep, 1000
     }
 
-    ; Is "Finish" button visible?
-    ControlGet, FinishVisible, Visible,, Finish
+    ; Is "Finish" button visible? (target the MT5 setup window explicitly)
+    ControlGet, FinishVisible, Visible,, Finish, MetaTrader 5
 
     if (FinishVisible)
     {
