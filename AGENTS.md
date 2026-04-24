@@ -87,9 +87,6 @@ For project overview and install instructions, see [README.md](README.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `debian-latest` | `debian:latest` | WineHQ repo with `wine_release_codename: bookworm` |
-| `nixos-latest` | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
-| `ubuntu-jammy` | `ubuntu:jammy` | WineHQ repo with `wine_release_codename: jammy` |
 | `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: jammy` |
 | `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: jammy` |
 
@@ -108,7 +105,7 @@ molecule test
 molecule test -s default
 
 # Single platform in a scenario
-molecule test -s default --platform-name debian-latest
+molecule test -s default --platform-name ubuntu-latest
 
 # Step-by-step debugging (useful for troubleshooting)
 molecule destroy -s default              # clean up any leftover state
@@ -130,12 +127,12 @@ molecule syntax -s mt5
 For CI or automated environments, use timeouts:
 
 ```bash
-# Test a single platform with timeout (10 minutes)
-timeout 600 molecule test -s default --platform-name debian-latest
+# Test a single platform with timeout (15 minutes)
+timeout 900 molecule test -s default --platform-name ubuntu-latest
 
 # If converge fails, debug interactively:
-molecule create -s default --platform-name debian-latest
-molecule converge -s default --platform-name debian-latest
+molecule create -s default --platform-name ubuntu-latest
+molecule converge -s default --platform-name ubuntu-latest
 # (inspect container state, then clean up)
 molecule destroy -s default
 ```
@@ -240,16 +237,16 @@ molecule destroy -s default
 - **Fallback**: winetricks also tries `web.archive.org` as fallback; both
   hosts must be in the allowlist.
 
-### MetaTrader installer shows "Sorry, something went wrong"
+### Platform installer shows "Sorry, something went wrong"
 
-> The MT5 setup bootstrapper downloads successfully but the actual
+> The setup bootstrapper downloads successfully but the actual
 > installation fails with "Sorry, something went wrong: try again later!"
 
 - **Root cause**: The `mt5setup.exe` bootstrapper is a small stub that
-  downloads the real MT5 files from MetaQuotes CDN servers at runtime.
+  downloads the platform CDN servers at runtime.
   If those servers (`www.mql5.com`, `cdn.mql5.com`, `trade.mql5.com`)
   are DNS-blocked, the installer cannot fetch platform files.
-- **Fix**: Ensure **all** MetaQuotes hosts are in the firewall allowlist
+- **Fix**: Ensure **all** hosts are in the firewall allowlist
   (see [Required Hosts](#required-hosts) table below).
 - **Diagnosis**: A "Proxy Server" dialog may also appear before the error
   if SSL interception is active. See
@@ -263,63 +260,88 @@ When the installer hangs or fails inside a container, use these steps:
 # 1. Install xdotool in the container
 docker exec CONTAINER apt-get install -y -q xdotool
 
-# 2. List all visible X windows (check for "Proxy Server" dialogs)
+# 2. List all visible X windows
 docker exec -e DISPLAY=:0 CONTAINER \
-  bash -c 'for wid in $(xdotool search --name "."); do
+  bash -c 'for wid in $(xdotool search --onlyvisible --name "." 2>/dev/null); do
     echo "Window $wid: $(xdotool getwindowname $wid 2>/dev/null)"
   done'
 
-# 3. Close a blocking "Proxy Server" dialog
+# 3. Check the active window title
+docker exec -e DISPLAY=:0 CONTAINER \
+  bash -c 'wid=$(xdotool getactivewindow 2>/dev/null) &&
+           echo "Active window: $wid $(xdotool getwindowname "$wid" 2>/dev/null)"'
+
+# 4. Close a blocking "Proxy Server" dialog
 docker exec -e DISPLAY=:0 CONTAINER \
   xdotool search --name "Proxy Server" windowfocus key Escape
 
-# 4. Take a screenshot of the X display
+# 5. Take a screenshot of the X display
 docker exec CONTAINER apt-get install -y -q imagemagick
 docker exec -e DISPLAY=:0 CONTAINER import -window root /tmp/screen.png
 docker cp CONTAINER:/tmp/screen.png ./screen.png
 
-# 5. Check which MetaQuotes hosts are reachable from the container
-docker exec CONTAINER bash -c '
-  for h in download.mql5.com www.mql5.com cdn.mql5.com \
-           trade.mql5.com mt5-trade.metaquotes.net; do
-    printf "%-35s " "$h"
-    curl -sI --connect-timeout 5 "https://$h" 2>&1 | head -1
-  done'
-
-# 6. Check if terminal.exe was installed
+# 6. Inspect the generated AutoHotkey script
 docker exec CONTAINER \
-  find /root/.wine/drive_c -name "terminal*" -o -name "metaeditor*"
+  bash -lc 'nl -ba /root/.wine/drive_c/windows/temp/_mt5_install/mt5_install.ahk | sed -n "1,160p"'
 
-# 7. Check running Wine/MT5 processes
+# 7. Check which hosts are reachable from the container via docker exec using curl.
+
+# 8. Check if terminal file was installed.
+
+# 9. Check running Wine/MT5 processes
 docker exec CONTAINER ps aux | grep -E "mt5|terminal|wine" | grep -v defunct
 ```
 
+How to analyze the output:
+
+- If `xdotool search --onlyvisible --name "."` shows only `Default IME`
+  plus `mt5_install.ahk`, the installer GUI likely did not open and
+  AutoHotkey is probably showing an error instead.
+- If the active/visible window is `Proxy Server`, dismiss it first and then
+  re-check the visible windows list.
+- If the screenshot shows an AutoHotkey syntax error instead of the MetaTrader
+  installer window, inspect the generated `.ahk` file before investigating
+  network access.
+- In the 2026-04-24 `metatrader-on-ubuntu-latest` manual debug session, the
+  screenshot matched a broken generated script:
+
+  ```text
+  32 ; Close a blocking Proxy
+  33 Server dialog if it appears.
+  34 if (WinExist(Proxy
+  35 Server))
+  ```
+
+- That pattern means shell quoting broke the `w_ahk_do " ... "` block before
+  it was written to the temporary AutoHotkey file, so the install was not
+  actually stuck in the MT5 UI.
+- If the screenshot instead shows the bootstrapper window with
+  "Sorry, something went wrong", treat it as a connectivity issue
+  and verify the required hosts listed below.
+
 ## Test Results Matrix
 
-Results from testing on 2026-04-19 (re-test, all MetaQuotes hosts
+Results from testing on 2026-04-19 (re-test, all hosts
 allowlisted):
 
-| Step | debian-latest | nixos-latest | ubuntu-jammy | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: | :---: | :---: | :---: |
-| create | ✅ | ✅ | ✅ | ✅ | ✅ |
-| prepare | ✅ | ✅ | ✅ | ✅ | ✅ |
-| converge | ❌ | ❌ | ❌ | ❌ | ❌ |
-| — wine | ✅ | ✅ | ✅ | ✅ | ✅ |
-| — xvfb | ✅ | ❌ | ✅ | ✅ | ✅ |
-| — metatrader | ❌ | ⏭️ | ❌ | ❌ | ❌ |
-| verify | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ |
+| Step | ubuntu-noble | ubuntu-latest |
+| --- | :---: | :---: |
+| create | ✅ | ✅ |
+| prepare | ✅ | ✅ |
+| converge | ❌ | ❌ |
+| — wine | ✅ | ✅ |
+| — xvfb | ✅ | ✅ |
+| — metatrader | ❌ | ❌ |
+| verify | ⏭️ | ⏭️ |
 
 ### Failure Details
 
-- **nixos-latest / xvfb**: The `ea31337.xvfb` role tries to include
-  `OtherLinux.yml` which does not exist. NixOS reports `os_family` as
-  `OtherLinux` and the xvfb role has no matching include file.
-- **debian/ubuntu / metatrader verify**: Wine and MT5 setup download
+- **ubuntu / metatrader verify**: Wine and MT5 setup download
   succeed (`mt5setup.exe` downloaded, `winetricks` verb completed with
   `rc=0`), but `terminal64.exe` / `metaeditor64.exe` are not found
   under `~/.wine/drive_c`. The MT5 stub installer runs but does not
   extract platform binaries — likely the runtime download from
-  MetaQuotes CDN servers (`cdn.mql5.com`, `trade.mql5.com`) is blocked
+  CDN servers (`cdn.mql5.com`, `trade.mql5.com`) is blocked
   or fails silently inside Wine.
 
 ## Common Tasks
@@ -376,7 +398,7 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 | Host | Purpose |
 | ---- | ------- |
 | `cache.nixos.org` | Nix binary cache (pre-built packages) |
-| `cdn.mql5.com` | MetaQuotes CDN (MT5 platform files) |
+| `cdn.mql5.com` | CDN (MT5 platform files) |
 | `channels.nixos.org` | Nix channel metadata (redirects to releases) |
 | `codeload.github.com` | GitHub archive download (dependency) |
 | `dl-cdn.alpinelinux.org` | Alpine Linux package repository |
@@ -384,13 +406,13 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 | `download.mql5.com` | MetaTrader setup executable download |
 | `galaxy.ansible.com` | Ansible Galaxy collections |
 | `github.com` | AutoHotkey download (used by winetricks verb) |
-| `mt5-trade.metaquotes.net` | MetaQuotes trade server (installer backend) |
+| `mt5-trade.metaquotes.net` | Trade server (installer backend) |
 | `raw.githubusercontent.com` | OpenSymbol font download (winetricks verb) |
 
 | `releases.nixos.org` | Nix channel tarballs (redirect target) |
-| `trade.mql5.com` | MetaQuotes trade server (installer registration) |
+| `trade.mql5.com` | Trade server (installer registration) |
 | `web.archive.org` | Winetricks fallback download mirror |
-| `www.mql5.com` | MetaQuotes website (installer backend) |
+| `www.mql5.com` | Main website (installer backend) |
 
 ## References
 

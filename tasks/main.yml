@@ -27,18 +27,25 @@
   ansible.builtin.include_tasks: paths.yml
   tags:
     - metatrader_paths
-- name: Checks if platform already exist
+- name: Checks if platform already exists
   ansible.builtin.stat:
     path: '{{ mt_runner_mt_path_host }}'
-  register: stat_mt
+  register: stat_mt_unix
+  when: platform_name != "Windows"
+- name: Checks if platform already exists (Windows)
+  ansible.windows.win_stat:
+    path: '{{ mt_runner_mt_path_host }}'
+  register: stat_mt_windows
+  when: platform_name == "Windows"
+- name: Set stat_mt fact
+  ansible.builtin.set_fact:
+    stat_mt: "{{ stat_mt_windows if platform_name == 'Windows' else stat_mt_unix }}"
 - name: Ensures platform is installed
   when:
     - >-
       (ansible_local['metatrader'] is not defined) or
       (ansible_local['metatrader'][metatrader_version | string] is not defined) or
-      (not ansible_local['metatrader'][metatrader_version | string].path)
-    - detected_os_family != "Windows" # gather_facts is required.
-    - (stat_mt.stat is not defined) or (not stat_mt.stat.exists)
+      (not stat_mt.stat.exists)
   block:
     - name: Validates variables
       ansible.builtin.assert:
@@ -136,8 +143,11 @@
         # noqa command-instead-of-shell
         cmd: >
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
-      args:
+          && touch ~/.wine/.installed-mt{{ metatrader_version }}
+        creates: ~/.wine/.installed-mt{{ metatrader_version }}
         executable: /bin/bash
+      async: 300
+      poll: 10
       environment:
         DISPLAY: :0
         WINEDLLOVERRIDES: mscoree,mshtml=,winebrowser.exe=
@@ -302,10 +312,11 @@
     or (detected_os_family == 'Windows') }}
   become_method: '{{ metatrader_become_method[detected_os_family] }}'
   when:
-    - >
-      (ansible_local['metatrader'] is not defined) or
-      (ansible_local['metatrader'][metatrader_version | string] is not defined) or
-      (find_mt_path_folder != ansible_local['metatrader'][metatrader_version | string].path)
+    - >-
+      ansible_local['metatrader'] is not defined
+      or ansible_local['metatrader'][metatrader_version | string] is not defined
+      or (find_mt_path_folder)
+      != ansible_local['metatrader'][metatrader_version | string].path
   block:
     - name: Sets fact
       ansible.builtin.set_fact:

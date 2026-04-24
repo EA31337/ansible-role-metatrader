@@ -66,7 +66,7 @@ load_mt4_install()
         ; Maximum time for setup to complete.
         Timeout := 600000 ; 10 min.
 
-        ; Searching for a setup's EXE file.
+        ; Searching for a setup EXE file.
         loop, Files, *.exe
         {
             ExePath := A_LoopFileFullPath
@@ -80,7 +80,7 @@ load_mt4_install()
         ; Awaiting for setup window to appear.
         WinWait, 4 Setup,, 30
 
-        ; Clicking "Next".
+        ; Clicking \"Next\".
         Send, !n
 
         StartTime := A_TickCount
@@ -93,15 +93,15 @@ load_mt4_install()
                 break
             }
 
-            ; Close a blocking "Proxy Server" dialog if it appears.
-            if (WinExist("Proxy Server"))
+            ; Close a blocking \"Proxy Server\" dialog if it appears.
+            if (WinExist(\"Proxy Server\"))
             {
                 WinActivate, Proxy Server
                 Send, {Esc}
                 Sleep, 1000
             }
 
-            ; Is "Finish" button visible?
+            ; Is \"Finish\" button visible?
             ControlGet, FinishVisible, Visible,, Finish
 
             if (FinishVisible)
@@ -113,7 +113,7 @@ load_mt4_install()
             Sleep, 1000
         }
 
-        ; Clicking "Finish".
+        ; Clicking \"Finish\".
         Send, {Enter}
 
 
@@ -127,7 +127,7 @@ load_mt4_install()
         ; Awaiting terminal window to close for 2s.
         WinWaitClose, ahk_exe terminal.exe, 2
 
-        ; If terminal didn't close in 2s then we're forcing it to close.
+        ; If terminal didn't close in 2s then we are forcing it to close.
         Process, Close, terminal.exe
     "
 }
