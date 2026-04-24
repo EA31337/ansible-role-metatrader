@@ -35,9 +35,6 @@ jobs:
       fail-fast: true
       matrix:
         platform:
-          - debian-latest
-          - nixos-latest
-          - ubuntu-jammy
           - ubuntu-noble
           - ubuntu-latest
         scenario:
@@ -119,9 +116,6 @@ jobs:
             // Keep in sync with the strategy.matrix above.
             const scenarios = ['default', 'mt4', 'mt5'];
             const platforms = [
-              'debian-latest',
-              'nixos-latest',
-              'ubuntu-jammy',
               'ubuntu-noble',
               'ubuntu-latest',
             ];
