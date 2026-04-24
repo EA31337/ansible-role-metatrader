@@ -91,11 +91,8 @@ load_mt5_install()
                 ExitApp, 1
         }
 
-        WinActivate, MetaTrader 5
-        Sleep, 1000
-
         ; Clicking "Next".
-        Send, !n
+        ControlSend,, !n, MetaTrader 5
         Sleep, 1000
 
         StartTime := A_TickCount
@@ -117,7 +114,7 @@ load_mt5_install()
             }
 
             ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
+            ControlGet, FinishVisible, Visible,, Finish, MetaTrader 5
 
             if (FinishVisible)
             {
@@ -129,7 +126,7 @@ load_mt5_install()
         }
 
         ; Clicking "Finish".
-        Send, {Enter}
+        ControlSend,, {Enter}, MetaTrader 5
         Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
@@ -146,15 +143,15 @@ load_mt5_install()
         WinWaitActive, MetaTrader,, 60
 
         ; Closing dialogs and exiting from the terminal.
-        Send, {Esc}
+        ControlSend,, {Esc}, MetaTrader
         Sleep, 1000
-        Send, {Esc}
+        ControlSend,, {Esc}, MetaTrader
         Sleep, 1000
-        Send, !f
+        ControlSend,, !f, MetaTrader
         Sleep, 1000
-        Send, x
+        ControlSend,, x, MetaTrader
         Sleep, 1000
-        Send, !{F4}
+        ControlSend,, !{F4}, MetaTrader
 
         ; Awaiting terminal window to close for 20s.
         loop 20

@@ -92,11 +92,8 @@ load_mt4_install()
                 ExitApp, 1
         }
 
-        WinActivate, 4 Setup
-        Sleep, 1000
-
         ; Clicking "Next".
-        Send, !n
+        ControlSend,, !n, 4 Setup
         Sleep, 1000
 
         StartTime := A_TickCount
@@ -118,7 +115,7 @@ load_mt4_install()
             }
 
             ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
+            ControlGet, FinishVisible, Visible,, Finish, 4 Setup
 
             if (FinishVisible)
             {
@@ -130,7 +127,7 @@ load_mt4_install()
         }
 
         ; Clicking "Finish".
-        Send, {Enter}
+        ControlSend,, {Enter}, 4 Setup
         Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
@@ -144,15 +141,15 @@ load_mt4_install()
         WinWaitActive, MetaTrader,, 60
 
         ; Closing dialogs and exiting from the terminal.
-        Send, {Esc}
+        ControlSend,, {Esc}, MetaTrader
         Sleep, 1000
-        Send, {Esc}
+        ControlSend,, {Esc}, MetaTrader
         Sleep, 1000
-        Send, !f
+        ControlSend,, !f, MetaTrader
         Sleep, 1000
-        Send, x
+        ControlSend,, x, MetaTrader
         Sleep, 1000
-        Send, !{F4}
+        ControlSend,, !{F4}, MetaTrader
 
         ; Awaiting terminal window to close for 20s.
         loop 20
