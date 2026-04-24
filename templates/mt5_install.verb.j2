@@ -57,7 +57,7 @@ load_mt5_install() {
         LogFile := "C:\windows\temp\mt5_install.log"
         FileAppend, %A_Now%: Starting MT5 setup`n, %LogFile%
 
-        ; Searching for a setup's EXE file.
+        ; Searching for a setup EXE file.
         loop, Files, *.exe
         {
             ExePath := A_LoopFileFullPath
