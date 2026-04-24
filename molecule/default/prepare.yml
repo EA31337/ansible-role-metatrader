@@ -3,7 +3,7 @@
   hosts: all
   gather_facts: false
   tasks:
-    - name: Bootstrap Python and sudo
+    - name: Bootstrap Python and Sudo
       ansible.builtin.raw: |
         if (command -v python3 >/dev/null 2>&1 || command -v python >/dev/null 2>&1) && \
            (command -v sudo >/dev/null 2>&1 || [ -d /nix ]) && \
@@ -13,16 +13,23 @@
         if command -v apk >/dev/null 2>&1; then
           apk add --no-cache python3 py3-pip sudo ca-certificates
         elif command -v apt-get >/dev/null 2>&1; then
-          export DEBIAN_FRONTEND=noninteractive
           if grep -qi '^ID=ubuntu' /etc/os-release 2>/dev/null; then
             mirror="http://azure.archive.ubuntu.com/ubuntu"
-            sed -i \
-              -e "s|http://archive.ubuntu.com/ubuntu|$mirror|g" \
-              -e "s|http://security.ubuntu.com/ubuntu|$mirror|g" \
-              /etc/apt/sources.list
+            if [ -f /etc/apt/sources.list ]; then
+              sed -i \
+                -e "s|http://archive.ubuntu.com/ubuntu|$mirror|g" \
+                -e "s|http://security.ubuntu.com/ubuntu|$mirror|g" \
+                /etc/apt/sources.list
+            fi
+            if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+              sed -i \
+                -e "s|http://archive.ubuntu.com/ubuntu|$mirror|g" \
+                -e "s|http://security.ubuntu.com/ubuntu|$mirror|g" \
+                /etc/apt/sources.list.d/ubuntu.sources
+            fi
           fi
           apt-get update -qq && \
-            apt-get install -y -q python3-minimal sudo ca-certificates
+            DEBIAN_FRONTEND=noninteractive apt-get install -y -q python3-minimal sudo ca-certificates
         elif command -v nix-env >/dev/null 2>&1; then
           mkdir -p /etc/nix
           [ -f /etc/nix/nix.conf ] || touch /etc/nix/nix.conf

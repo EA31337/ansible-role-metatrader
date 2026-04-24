@@ -94,12 +94,44 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
           ANSIBLE_STDOUT_CALLBACK: >-
             ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
+          MOLECULE_REPORT: molecule-${{ matrix.scenario }}-report.html
         with:
           molecule_args: >-
             --scenario-name ${{ matrix.scenario }}
           molecule_command: test
           molecule_options: ${{ runner.debug == '1' && '--verbose' || '' }}
           molecule_working_dir: .
+      - if: always()
+        name: Summarize Molecule report
+        run: |
+          REPORT="molecule-${{ matrix.scenario }}-report.html"
+          if [ -f "$REPORT" ]; then
+            echo "## Molecule Summary - ${{ matrix.scenario }}" >> $GITHUB_STEP_SUMMARY
+
+            # Extract Play Recap
+            echo "### Play Recap" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            sed 's/<[^>]*>//g; s/&nbsp;/ /g; s/&lt;/</g; s/&gt;/>/g; s/&amp;/\&/g' "$REPORT" | \
+              awk '/PLAY RECAP/ {p=1} p; /^[[:space:]]*$/ && p {p=0}' | \
+              grep -v "^$" | head -n 20 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+
+            # Extract Errors and Warnings
+            echo "<details><summary>Errors and Warnings (click to expand)</summary>" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            sed 's/<[^>]*>//g; s/&nbsp;/ /g; s/&lt;/</g; s/&gt;/>/g; s/&amp;/\&/g' "$REPORT" | \
+              grep -iE "error|warning|fail" | grep -vE "ok=|changed=" | head -n 50 >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "</details>" >> $GITHUB_STEP_SUMMARY
+          fi
+      - if: always()
+        name: Upload Molecule report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: molecule-${{ matrix.scenario }}-${{ matrix.platform }}-report
+          path: molecule-${{ matrix.scenario }}-report.html
       - if: ${{ failure() && runner.debug == '1' }}
         uses: mxschmitt/action-tmate@v3
     timeout-minutes: 120

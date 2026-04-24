@@ -212,10 +212,15 @@ molecule destroy -s default
   `allow_broken_conditionals: true` in
   `provisioner.config_options.defaults`. Custom `create.yml`/`destroy.yml`
   avoid this pattern.
-- **Ref**:
-  <https://github.com/ansible-community/molecule-plugins/issues>
+
+### GitHub Actions Molecule report step fails with summary size limit
+
+- **Root cause**: GitHub job summaries are capped at 1 MiB, but full Molecule HTML-to-Markdown conversions can exceed it.
+- **Fix**: Upload full Molecule HTML reports as workflow artifacts and append only a concise filtered summary
+  (e.g., Play Recap, errors, and warnings) to `$GITHUB_STEP_SUMMARY`.
 
 ### Wine APT cache update fails
+
 
 > `Failed to update apt cache after 5 retries`
 
@@ -425,6 +430,14 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 - Refer to <https://gh.io/copilot/firewall-config> for agent firewall
   setup.
 - Do not work around blocked URLs; request allowlisting instead.
+
+### Alpine bootstrap fails with TLS error
+
+- **Root cause**: Alpine `apk update` fails with `TLS: unspecified error` when behind an SSL-intercepting proxy
+  if the proxy CA is not in the build-time trust store.
+- **Fix**: The custom `Dockerfile.j2` injects host CA certificates directly into `/etc/ssl/cert.pem`
+  during the build phase so `apk` can fetch dependencies safely.
+- **Prevention**: Verify `dl-cdn.alpinelinux.org` is reachable from inside the container.
 
 ### Required Hosts
 
