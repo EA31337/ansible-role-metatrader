@@ -10,8 +10,6 @@ dependencies:
     when: ansible_facts.os_family != "Windows"
   - name: ea31337.xvfb
     role: ea31337.xvfb
-    scm: git
-    src: https://github.com/EA31337/ansible-role-xvfb.git
     version: v1.0.4  # This should match version in requirements.yml
     when: ansible_facts.os_family != "Windows"
 galaxy_info:

@@ -17,12 +17,14 @@ and troubleshooting guidance.
    ansible-galaxy collection install -r requirements.yml -p collections
    ```
 
-2. For each scenario below, run each Molecule step individually
-   to isolate failures, using a **15-minute timeout** for each:
+2. For each scenario below, run the scenario-level commands (they cover
+   both Linux platforms) with a **15-minute timeout** for each step, then
+   derive per-platform results from the Molecule output:
 
    ```bash
    timeout 900 molecule destroy -s <scenario>
    timeout 900 molecule create -s <scenario>
+   timeout 900 molecule prepare -s <scenario>
    timeout 900 molecule converge -s <scenario>
    timeout 900 molecule idempotence -s <scenario>
    timeout 900 molecule verify -s <scenario>

@@ -46,6 +46,9 @@ check [`defaults/main.yml`][defaults-link].
 
 ### Variables
 
+- `metatrader_autohotkey_url`
+  The URL to the AutoHotkey zip used by the role.
+  Default `https://www.autohotkey.com/download/1.1/AutoHotkey_1.1.37.02.zip`.
 - `metatrader_setup_url`
   The URL of the setup file to run.
 - `metatrader_version`

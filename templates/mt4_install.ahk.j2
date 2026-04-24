@@ -1,11 +1,17 @@
 ; Maximum time for setup to complete.
 Timeout := 600000 ; 10 min.
+ExePath := ""
 
 ; Searching for a setup's EXE file.
-loop, Files, *.exe
+Loop, Files, setup.exe
 {
     ExePath := A_LoopFileFullPath
     break
+}
+
+if (!ExePath)
+{
+    ExitApp, 1
 }
 
 ; Running setup.
@@ -14,23 +20,34 @@ SetTitleMatchMode, RegEx
 
 ; Awaiting for setup window to appear.
 WinWait, 4 Setup,, 30
+if (ErrorLevel)
+{
+    ExitApp, 3
+}
 
 ; Clicking "Next".
 Send, !n
 
 StartTime := A_TickCount
 
-loop
+Loop
 {
-        ; Check if timeout have passed.
-        if (A_TickCount - StartTime > Timeout)
-
+    ; Check if timeout has passed.
+    if (A_TickCount - StartTime > Timeout)
     {
-        break
+        ExitApp, 2
     }
 
-    ; Is "Finish" button visible?
-    ControlGet, FinishVisible, Visible,, Finish
+    ; Close a blocking "Proxy Server" dialog if it appears.
+    if (WinExist("Proxy Server"))
+    {
+        WinActivate, Proxy Server
+        Send, {Esc}
+        Sleep, 1000
+    }
+
+    ; Is "Finish" button visible? (target the MT4 setup window explicitly)
+    ControlGet, FinishVisible, Visible,, Finish, 4 Setup
 
     if (FinishVisible)
     {
@@ -45,8 +62,12 @@ loop
 Send, {Enter}
 
 ; Awaiting for terminal process and window to appear.
-Process, Wait, terminal.exe, 5
-WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00
+Process, Wait, terminal.exe, 30
+WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00,, 30
+if (ErrorLevel)
+{
+    ExitApp, 4
+}
 
 ; Closing dialogs and exiting from the terminal.
 Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4

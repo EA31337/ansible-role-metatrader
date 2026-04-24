@@ -23,8 +23,10 @@ For project overview and install instructions, see [README.md](README.md).
 | ---- | ------- |
 | `defaults/main.yml` | Role defaults (`metatrader_setup_url`, `metatrader_version`) |
 | `vars/main.yml` | Internal variables (`metatrader_become_method` per OS) |
-| `tasks/main.yml` | Role entry point; installs MetaTrader via winetricks verb |
+| `tasks/main.yml` | Role entry point; installs MetaTrader (Unix: winetricks verb; Cygwin/Windows: AutoHotkey) |
 | `tasks/verify.yml` | Post-install verification (terminal.exe, metaeditor.exe) |
+| `templates/mt4_install.ahk.j2` | MT4 AutoHotkey installer template (Cygwin/Windows) |
+| `templates/mt5_install.ahk.j2` | MT5 AutoHotkey installer template (Cygwin/Windows) |
 | `templates/mt4_install.verb.j2` | MT4 winetricks verb template |
 | `templates/mt5_install.verb.j2` | MT5 winetricks verb template |
 | `meta/main.yml` | Galaxy metadata + role dependencies (wine, xvfb) |
@@ -283,6 +285,10 @@ docker cp CONTAINER:/tmp/screen.png ./screen.png
 # 6. Inspect the generated AutoHotkey script
 docker exec CONTAINER \
   bash -lc 'nl -ba /root/.wine/drive_c/windows/temp/_mt5_install/mt5_install.ahk | sed -n "1,160p"'
+# On Cygwin:
+# nl -ba /tmp/mt5_install.ahk | sed -n '1,160p'
+# On Windows:
+# powershell -Command "Get-Content C:\Temp\mt5_install.ahk | select -first 160"
 
 # 7. Check which hosts are reachable from the container via docker exec using curl.
 
@@ -321,28 +327,87 @@ How to analyze the output:
 
 ## Test Results Matrix
 
-Results from testing on 2026-04-19 (re-test, all hosts
-allowlisted):
+Results from testing on 2026-04-24 (step-by-step Molecule re-test,
+all Linux scenarios):
+
+### `default`
 
 | Step | ubuntu-noble | ubuntu-latest |
 | --- | :---: | :---: |
+| destroy | ✅ | ✅ |
 | create | ✅ | ✅ |
 | prepare | ✅ | ✅ |
 | converge | ❌ | ❌ |
 | — wine | ✅ | ✅ |
 | — xvfb | ✅ | ✅ |
 | — metatrader | ❌ | ❌ |
+| idempotence | ⏭️ | ⏭️ |
 | verify | ⏭️ | ⏭️ |
+| destroy (final) | ✅ | ✅ |
+
+### `mt4`
+
+| Step | ubuntu-noble | ubuntu-latest |
+| --- | :---: | :---: |
+| destroy | ✅ | ✅ |
+| create | ✅ | ✅ |
+| prepare | ✅ | ✅ |
+| converge | ❌ | ❌ |
+| — wine | ✅ | ✅ |
+| — xvfb | ✅ | ✅ |
+| — metatrader | ❌ | ❌ |
+| idempotence | ⏭️ | ⏭️ |
+| verify | ⏭️ | ⏭️ |
+| destroy (final) | ✅ | ✅ |
+
+### `mt5`
+
+| Step | ubuntu-noble | ubuntu-latest |
+| --- | :---: | :---: |
+| destroy | ✅ | ✅ |
+| create | ✅ | ✅ |
+| prepare | ✅ | ✅ |
+| converge | ❌ | ❌ |
+| — wine | ✅ | ✅ |
+| — xvfb | ✅ | ✅ |
+| — metatrader | ❌ | ❌ |
+| idempotence | ⏭️ | ⏭️ |
+| verify | ⏭️ | ⏭️ |
+| destroy (final) | ✅ | ✅ |
 
 ### Failure Details
 
-- **ubuntu / metatrader verify**: Wine and MT5 setup download
-  succeed (`mt5setup.exe` downloaded, `winetricks` verb completed with
-  `rc=0`), but `terminal64.exe` / `metaeditor64.exe` are not found
-  under `~/.wine/drive_c`. The MT5 stub installer runs but does not
-  extract platform binaries — likely the runtime download from
-  CDN servers (`cdn.mql5.com`, `trade.mql5.com`) is blocked
-  or fails silently inside Wine.
+- **default / ubuntu-noble / converge**: Task
+  `ea31337.metatrader : Checks if platform's terminal exists (Unix)`
+  fails after the winetricks verb finishes. `terminal*.exe` is not found
+  under `~/.wine/drive_c`, so the MT5 bootstrapper did not leave installed
+  binaries behind.
+- **default / ubuntu-latest / converge**: Same failure as `ubuntu-noble`;
+  `terminal*.exe` is missing after the MT5 install task reports success.
+- **mt4 / ubuntu-noble / converge**: Task
+  `ea31337.metatrader : Ensures MetaTrader is installed (via verb file)`
+  fails with `Timeout exceeded` from the task's internal
+  `async: 300`/`poll: 10` limit.
+- **mt4 / ubuntu-latest / converge**: Same failure as `ubuntu-noble`; the
+  MT4 winetricks install task exceeds the role's 300-second async limit.
+- **mt5 / ubuntu-noble / converge**: Task
+  `ea31337.metatrader : Checks if platform's terminal exists (Unix)`
+  fails after the verb install completes because `terminal*.exe` is still
+  missing.
+- **mt5 / ubuntu-latest / converge**: Same failure as `ubuntu-noble`;
+  `terminal*.exe` is still missing after the MT5 install task.
+
+### MT4 install task exceeds role async timeout
+
+> `Timeout exceeded` in
+> `ea31337.metatrader : Ensures MetaTrader is installed (via verb file)`
+
+- **Root cause**: The role caps the winetricks install task at
+  `async: 300`, and the MT4 installer exceeded that five-minute limit on
+  both Ubuntu platforms during the 2026-04-24 Molecule run.
+- **Fix**: Increased the task timeout (`async: 1200`) and the internal AutoHotkey timeout (`600000`).
+- **Fix**: Improved AutoHotkey script robustness by using `SetTitleMatchMode, 2`, increasing wait times, and removing potential quoting/splitting issues in the `w_ahk_do` override.
+- **Fix**: Corrected `Send` command syntax in AutoHotkey scripts for more reliable dialog closing.
 
 ## Common Tasks
 

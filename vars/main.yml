@@ -3,6 +3,7 @@
 # Note: Keep YAML keys sorted alphabetically.
 metatrader_become_method:
   Alpine: ansible.builtin.su
+  Cygwin: ansible.builtin.su
   Darwin: ansible.builtin.sudo
   Debian: ansible.builtin.su
   NixOS: ansible.builtin.su
