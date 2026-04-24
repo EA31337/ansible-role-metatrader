@@ -18,15 +18,15 @@ and troubleshooting guidance.
    ```
 
 2. For each scenario below, run each Molecule step individually
-   to isolate failures:
+   to isolate failures, using a **15-minute timeout** for each:
 
    ```bash
-   molecule destroy -s <scenario>
-   molecule create -s <scenario>
-   molecule converge -s <scenario>
-   molecule idempotence -s <scenario>
-   molecule verify -s <scenario>
-   molecule destroy -s <scenario>
+   timeout 900 molecule destroy -s <scenario>
+   timeout 900 molecule create -s <scenario>
+   timeout 900 molecule converge -s <scenario>
+   timeout 900 molecule idempotence -s <scenario>
+   timeout 900 molecule verify -s <scenario>
+   timeout 900 molecule destroy -s <scenario>
    ```
 
 3. Record every step outcome (✅ pass, ❌ fail, ⏭️ skipped).
@@ -40,15 +40,11 @@ and troubleshooting guidance.
 | `default` | `5`                  | Default MT5 install                |
 | `mt4`     | `4`                  | MT4 install with custom setup URL  |
 | `mt5`     | `5`                  | Explicit MT5 install               |
-| `mt5-win` | `5`                  | Windows container (disabled in CI) |
 
 ## Platforms (shared by all Linux scenarios)
 
 | Container       | Image              | Notes                              |
 | --------------- | ------------------ | ---------------------------------- |
-| `debian-latest` | `debian:latest`    | WineHQ repo; codename: `bookworm`  |
-| `nixos-latest`  | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
-| `ubuntu-jammy`  | `ubuntu:jammy`     | WineHQ repo; codename: `jammy`     |
 | `ubuntu-noble`  | `ubuntu:noble`     | WineHQ repo; codename: `jammy`     |
 | `ubuntu-latest` | `ubuntu:latest`    | WineHQ repo; codename: `jammy`     |
 
@@ -63,9 +59,6 @@ For each scenario, report per-platform step results:
 
 | Platform        | create | prepare | converge | idempotence | verify |
 | --------------- | :----: | :-----: | :------: | :---------: | :----: |
-| `debian-latest` |        |         |          |             |        |
-| `nixos-latest`  |        |         |          |             |        |
-| `ubuntu-jammy`  |        |         |          |             |        |
 | `ubuntu-noble`  |        |         |          |             |        |
 | `ubuntu-latest` |        |         |          |             |        |
 
@@ -75,21 +68,15 @@ For converge failures, break down by sub-step:
 
 | Platform        | wine | xvfb | metatrader |
 | --------------- | :--: | :--: | :--------: |
-| `debian-latest` |      |      |            |
-| `nixos-latest`  |      |      |            |
-| `ubuntu-jammy`  |      |      |            |
 | `ubuntu-noble`  |      |      |            |
 | `ubuntu-latest` |      |      |            |
 
 ### Summary (all scenarios)
 
-| Platform        | default | mt4 | mt5 | mt5-win |
-| --------------- | :-----: | :-: | :-: | :-----: |
-| `debian-latest` |         |     |     |         |
-| `nixos-latest`  |         |     |     |         |
-| `ubuntu-jammy`  |         |     |     |         |
-| `ubuntu-noble`  |         |     |     |         |
-| `ubuntu-latest` |         |     |     |         |
+| Platform        | default | mt4 | mt5 |
+| --------------- | :-----: | :-: | :-: |
+| `ubuntu-noble`  |         |     |     |
+| `ubuntu-latest` |         |     |     |
 
 ### Failure Details
 
