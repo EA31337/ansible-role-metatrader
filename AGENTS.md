@@ -244,7 +244,8 @@ molecule destroy -s default
 
 - **Root cause**: The `mt5setup.exe` bootstrapper is a small stub that
   downloads the platform CDN servers at runtime.
-  If those servers (`www.mql5.com`, `cdn.mql5.com`, `trade.mql5.com`)
+  If those servers (`www.mql5.com`, `cdn.mql5.com`, `trade.mql5.com`,
+  `mt5-trade.metaquotes.net`)
   are DNS-blocked, the installer cannot fetch platform files.
 - **Fix**: Ensure **all** hosts are in the firewall allowlist
   (see [Required Hosts](#required-hosts) table below).
@@ -318,6 +319,22 @@ How to analyze the output:
 - If the screenshot instead shows the bootstrapper window with
   "Sorry, something went wrong", treat it as a connectivity issue
   and verify the required hosts listed below.
+- If `winetricks` exits after ~10 minutes with
+  `warning: Note: command load_mt5_install returned status 1. Aborting.`
+  while `mt5setup.exe` is still running, verify DNS resolution for installer
+  backend hosts from inside the container:
+
+  ```bash
+  docker exec CONTAINER bash -lc '
+    for h in download.mql5.com www.mql5.com cdn.mql5.com trade.mql5.com mt5-trade.metaquotes.net; do
+      printf "%s: " "$h"
+      timeout 10s getent hosts "$h" >/dev/null && echo DNS_OK || echo DNS_FAIL
+    done
+  '
+  ```
+
+  DNS failures for `cdn.mql5.com` or `mt5-trade.metaquotes.net` can leave
+  the installer window open indefinitely and cause the AutoHotkey timeout.
 
 ## Test Results Matrix
 
