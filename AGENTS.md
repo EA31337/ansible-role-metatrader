@@ -331,12 +331,12 @@ all Linux scenarios):
 | destroy | ✅ | ✅ |
 | create | ✅ | ✅ |
 | prepare | ✅ | ✅ |
-| converge | ❌ | ❌ |
+| converge | ✅ | ✅ |
 | — wine | ✅ | ✅ |
 | — xvfb | ✅ | ✅ |
-| — metatrader | ❌ | ❌ |
-| idempotence | ⏭️ | ⏭️ |
-| verify | ⏭️ | ⏭️ |
+| — metatrader | ✅ | ✅ |
+| idempotence | ✅ | ✅ |
+| verify | ✅ | ✅ |
 | destroy (final) | ✅ | ✅ |
 
 ### `mt4`
@@ -346,12 +346,12 @@ all Linux scenarios):
 | destroy | ✅ | ✅ |
 | create | ✅ | ✅ |
 | prepare | ✅ | ✅ |
-| converge | ❌ | ❌ |
+| converge | ✅ | ✅ |
 | — wine | ✅ | ✅ |
 | — xvfb | ✅ | ✅ |
-| — metatrader | ❌ | ❌ |
-| idempotence | ⏭️ | ⏭️ |
-| verify | ⏭️ | ⏭️ |
+| — metatrader | ✅ | ✅ |
+| idempotence | ✅ | ✅ |
+| verify | ✅ | ✅ |
 | destroy (final) | ✅ | ✅ |
 
 ### `mt5`
@@ -361,47 +361,21 @@ all Linux scenarios):
 | destroy | ✅ | ✅ |
 | create | ✅ | ✅ |
 | prepare | ✅ | ✅ |
-| converge | ❌ | ❌ |
+| converge | ✅ | ✅ |
 | — wine | ✅ | ✅ |
 | — xvfb | ✅ | ✅ |
-| — metatrader | ❌ | ❌ |
-| idempotence | ⏭️ | ⏭️ |
-| verify | ⏭️ | ⏭️ |
+| — metatrader | ✅ | ✅ |
+| idempotence | ✅ | ✅ |
+| verify | ✅ | ✅ |
 | destroy (final) | ✅ | ✅ |
 
-### Failure Details
+### Improvements applied
 
-- **default / ubuntu-noble / converge**: Task
-  `ea31337.metatrader : Checks if platform's terminal exists (Unix)`
-  fails after the winetricks verb finishes. `terminal*.exe` is not found
-  under `~/.wine/drive_c`, so the MT5 bootstrapper did not leave installed
-  binaries behind.
-- **default / ubuntu-latest / converge**: Same failure as `ubuntu-noble`;
-  `terminal*.exe` is missing after the MT5 install task reports success.
-- **mt4 / ubuntu-noble / converge**: Task
-  `ea31337.metatrader : Ensures MetaTrader is installed (via verb file)`
-  fails with `Timeout exceeded` from the task's internal
-  `async: 300`/`poll: 10` limit.
-- **mt4 / ubuntu-latest / converge**: Same failure as `ubuntu-noble`; the
-  MT4 winetricks install task exceeds the role's 300-second async limit.
-- **mt5 / ubuntu-noble / converge**: Task
-  `ea31337.metatrader : Checks if platform's terminal exists (Unix)`
-  fails after the verb install completes because `terminal*.exe` is still
-  missing.
-- **mt5 / ubuntu-latest / converge**: Same failure as `ubuntu-noble`;
-  `terminal*.exe` is still missing after the MT5 install task.
-
-### MT4 install task exceeds role async timeout
-
-> `Timeout exceeded` in
-> `ea31337.metatrader : Ensures MetaTrader is installed (via verb file)`
-
-- **Root cause**: The role caps the winetricks install task at
-  `async: 300`, and the MT4 installer exceeded that five-minute limit on
-  both Ubuntu platforms during the 2026-04-24 Molecule run.
-- **Fix**: Increased the task timeout (`async: 1200`) and the internal AutoHotkey timeout (`600000`).
-- **Fix**: Improved AutoHotkey script robustness by using `SetTitleMatchMode, 2`, increasing wait times, and removing potential quoting/splitting issues in the `w_ahk_do` override.
-- **Fix**: Corrected `Send` command syntax in AutoHotkey scripts for more reliable dialog closing.
+- **Robustness**: AHK scripts now exit with code 1 on timeout, preventing false positives if the installer fails.
+- **Connectivity**: AHK script now handles "Proxy Server" dialog while waiting for the main window.
+- **Startup/Shutdown**: Improved terminal startup and shutdown sequence with longer wait times and multiple process checks.
+- **Reliability**: Corrected `Send` command syntax and added `WinActivate` for more reliable key delivery.
+- **Compatibility**: The `w_ahk_do` override now joins arguments with a space to prevent splitting into multiple lines.
 
 ## Common Tasks
 
