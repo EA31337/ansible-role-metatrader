@@ -2,7 +2,6 @@
 - name: Build Docker container
   hosts: localhost
   gather_facts: false
-  connection: community.docker.docker_api
   vars:
     container_name: '{{ metatrader_container_name }}'
     docker_image: '{{ metatrader_base_image | default("ubuntu:latest") }}'
@@ -24,14 +23,15 @@
     - name: Add container as host
       ansible.builtin.add_host:
         hostname: '{{ container_name }}'
+        groups: metatrader_containers
 - name: Configure container
-  hosts: all
-  gather_facts: false
+  hosts: metatrader_containers
+  gather_facts: true
   connection: community.docker.docker_api
   tasks:
     - name: Apply role
       ansible.builtin.include_role:
-        name: metatrader
+        name: ea31337.metatrader
         tasks_from: main
     - name: Run hostname
       ansible.builtin.command: hostname
@@ -39,6 +39,7 @@
 - name: Commit and push Docker image
   hosts: localhost
   gather_facts: false
+  connection: local
   vars:
     container_name: '{{ metatrader_container_name }}'
   tasks:
