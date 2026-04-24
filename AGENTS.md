@@ -127,8 +127,8 @@ molecule syntax -s mt5
 For CI or automated environments, use timeouts:
 
 ```bash
-# Test a single platform with timeout (10 minutes)
-timeout 600 molecule test -s default --platform-name ubuntu-latest
+# Test a single platform with timeout (15 minutes)
+timeout 900 molecule test -s default --platform-name ubuntu-latest
 
 # If converge fails, debug interactively:
 molecule create -s default --platform-name ubuntu-latest
