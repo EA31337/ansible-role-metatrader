@@ -14,9 +14,11 @@
     - name: Checks if platform's terminal exists
       module_defaults:
         ansible.builtin.find:
+          paths: '{{ mt_runner_mt_path_host }}'
           patterns: terminal*.exe
           recurse: true
         ansible.windows.win_find:
+          paths: '{{ mt_runner_mt_path_host }}'
           patterns: terminal*.exe
           recurse: true
       block:
@@ -49,9 +51,11 @@
     - name: Checks if platform's editor exists
       module_defaults:
         ansible.builtin.find:
+          paths: '{{ mt_runner_mt_path_host }}'
           patterns: '[mM]eta[eE]ditor*.exe'
           recurse: true
         ansible.windows.win_find:
+          paths: '{{ mt_runner_mt_path_host }}'
           patterns: '[mM]eta[eE]ditor*.exe'
           recurse: true
       block:

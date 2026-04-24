@@ -64,7 +64,7 @@ jobs:
       - name: Cache Ansible Galaxy
         uses: actions/cache@v5.0.1
         with:
-          key: ${{ runner.os }}-galaxy-${{ hashFiles('requirements.yml', 'molecule/*/requirements.yml') }}
+          key: ${{ runner.os }}-galaxy-${{ hashFiles('requirements.yml') }}
           path: |
             ~/.ansible/roles
             ~/.ansible/collections

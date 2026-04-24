@@ -20,6 +20,10 @@ SetTitleMatchMode, RegEx
 
 ; Awaiting for setup window to appear.
 WinWait, MetaTrader 5,, 30
+if (ErrorLevel)
+{
+    ExitApp, 3
+}
 
 ; Clicking "Next".
 Send, !n
@@ -60,6 +64,10 @@ Send, {Enter}
 ; Awaiting for terminal process and window to appear.
 Process, Wait, terminal64.exe, 30
 WinWaitActive, ahk_class MetaQuotes::MetaTrader::5.00,, 30
+if (ErrorLevel)
+{
+    ExitApp, 4
+}
 
 ; Closing dialogs and exiting from the terminal.
 Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4
