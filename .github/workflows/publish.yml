@@ -47,7 +47,6 @@ jobs:
         run: pip install -r .devcontainer/requirements.txt
       - name: Install Ansible Galaxy requirements
         run: |
-          ansible-galaxy collection install -r requirements.yml -p collections
           ansible-galaxy install -r requirements.yml
           jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
           ansible-galaxy install -r requirements-local.yml && rm requirements-local.yml
