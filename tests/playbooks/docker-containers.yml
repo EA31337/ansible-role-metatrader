@@ -19,7 +19,7 @@
         image: '{{ container_image }}'
         state: started
         command: sleep infinity
-        # Mount host CA certificates for proxy/firewall SSL interception environments.
+        # Mount each host CA certificate to the same path inside container (src:dest:ro).
         volumes: >-
           {{
             host_ca_certs
@@ -64,9 +64,18 @@
         fi
       changed_when: false
       when: container_image is search("ubuntu") or container_image is search("debian")
-    - name: Configure APT to use mounted proxy CA for WineHQ (if present)
+    - name: Build proxy CA bundle for WineHQ APT (if present)
+      ansible.builtin.raw: |
+        cat /usr/local/share/ca-certificates/*.crt > /usr/local/share/ca-certificates/winehq-proxy-ca-bundle.crt
+      changed_when: false
+      when:
+        - container_image is search("ubuntu") or container_image is search("debian")
+        - host_ca_certs | length > 0
+    - name: Configure APT to use proxy CA bundle for WineHQ (if present)
       ansible.builtin.copy:
-        content: 'Acquire::https::dl.winehq.org::CaInfo "{{ host_ca_certs | first }}";'
+        content: >-
+          Acquire::https::dl.winehq.org::CaInfo
+          "/usr/local/share/ca-certificates/winehq-proxy-ca-bundle.crt";
         dest: /etc/apt/apt.conf.d/99winehq-proxy-ca
         mode: '0644'
       when:
