@@ -320,7 +320,7 @@ How to analyze the output:
   "Sorry, something went wrong", treat it as a connectivity issue
   and verify the required hosts listed below.
 - If `winetricks` exits after ~10 minutes with
-  `warning: Note: command load_mt5_install returned status 1. Aborting.`
+  `warning: Note: command load_mt4_install/load_mt5_install returned status 1.`
   while `mt5setup.exe` is still running, verify DNS resolution for installer
   backend hosts from inside the container:
 
