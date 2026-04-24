@@ -4,6 +4,8 @@ metatrader_setup_url: https://download.mql5.com/cdn/web/metaquotes.software.corp
 metatrader_version: 5
 
 # Docker image configuration
+metatrader_default_container_name: metatrader-worker
+metatrader_container_name: '{{ metatrader_default_container_name }}'
 metatrader_docker_image: ea31337/metatrader
 metatrader_docker_push: false
 metatrader_docker_tag: latest

@@ -4,7 +4,7 @@
   gather_facts: false
   connection: community.docker.docker_api
   vars:
-    container_name: '{{ metatrader_container_name | default("metatrader-worker") }}'
+    container_name: '{{ metatrader_container_name }}'
     docker_image: '{{ metatrader_base_image | default("ubuntu:latest") }}'
   tasks:
     - name: Pull image  # noqa: syntax-check[unknown-module]
@@ -40,7 +40,7 @@
   hosts: localhost
   gather_facts: false
   vars:
-    container_name: '{{ metatrader_container_name | default("metatrader-worker") }}'
+    container_name: '{{ metatrader_container_name }}'
   tasks:
     - name: Commit container  # noqa: syntax-check[unknown-module] args[module]
       community.docker.docker_image:
