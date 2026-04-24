@@ -22,6 +22,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
       - uses: actions/setup-python@v6.1.0
         with:
           python-version: '3.12'
