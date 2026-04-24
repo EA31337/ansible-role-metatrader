@@ -59,24 +59,42 @@ load_mt5_install()
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do "
         ; Maximum time for setup to complete.
-        Timeout := 200000 ; 3.3 min.
+        Timeout := 7200000 ; 120 min.
+        LogFile := \"C:\\windows\\temp\\mt5_install.log\"
+        FileAppend, %A_Now%: Starting MT5 setup`n, %LogFile%
 
         ; Searching for a setup's EXE file.
         loop, Files, *.exe
         {
             ExePath := A_LoopFileFullPath
+            FileAppend, %A_Now%: Found exe: %ExePath%`n, %LogFile%
             break
+        }
+
+        if (ExePath = \"\") {
+            FileAppend, %A_Now%: Error: setup exe not found`n, %LogFile%
+            ExitApp, 1
         }
 
         ; Running setup.
         Run, %ExePath%
-        SetTitleMatchMode, RegEx
+        SetTitleMatchMode, 2 ; Match if contains
 
         ; Awaiting for setup window to appear.
-        WinWait, MetaTrader 5,, 30
+        FileAppend, %A_Now%: Waiting for setup window`n, %LogFile%
+        WinWait, MetaTrader 5,, 120
+        if (ErrorLevel)
+        {
+            FileAppend, %A_Now%: Error: setup window did not appear`n, %LogFile%
+            ExitApp, 1
+        }
 
-        ; Clicking "Next".
-        Send, !n
+        WinActivate, MetaTrader 5
+        WinWaitActive, MetaTrader 5,, 10
+
+        ; Clicking \"Next\".
+        FileAppend, %A_Now%: Clicking Next`n, %LogFile%
+        Send, {Enter}
 
         StartTime := A_TickCount
 
@@ -85,42 +103,63 @@ load_mt5_install()
             ; Check if timeout have passed.
             if (A_TickCount - StartTime > Timeout)
             {
+                FileAppend, %A_Now%: Error: installation timed out`n, %LogFile%
                 break
             }
 
-            ; Close a blocking "Proxy Server" dialog if it appears.
-            if (WinExist("Proxy Server"))
+            ; Close a blocking \"Proxy Server\" dialog if it appears.
+            if (WinExist(\"Proxy Server\"))
             {
+                FileAppend, %A_Now%: Closing Proxy Server dialog`n, %LogFile%
                 WinActivate, Proxy Server
                 Send, {Esc}
                 Sleep, 1000
             }
 
-            ; Is "Finish" button visible?
+            ; Is \"Finish\" button visible?
             ControlGet, FinishVisible, Visible,, Finish
 
             if (FinishVisible)
             {
+                FileAppend, %A_Now%: Finish button is visible`n, %LogFile%
                 break
             }
 
             ; Sleeping for a short while before checking again.
-            Sleep, 1000
+            Sleep, 5000
         }
 
-        ; Clicking "Finish".
+        ; Clicking \"Finish\".
+        FileAppend, %A_Now%: Clicking Finish`n, %LogFile%
         Send, {Enter}
 
         ; Awaiting for terminal process and window to appear.
-        Process, Wait, terminal64.exe, 5
+        FileAppend, %A_Now%: Waiting for terminal64.exe`n, %LogFile%
+        Process, Wait, terminal64.exe, 60
+        if (ErrorLevel = 0) {
+             FileAppend, %A_Now%: Error: terminal64.exe did not start`n, %LogFile%
+        } else {
+             FileAppend, %A_Now%: terminal64.exe started with PID %ErrorLevel%`n, %LogFile%
+        }
 
         ; Closing dialogs and exiting from the terminal.
-        Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4
+        Sleep, 5000
+        WinActivate, ahk_exe terminal64.exe
+        Send, {Esc}{Esc}
+        Sleep, 1000
+        Send, !fx
+        Sleep, 1000
+        Send, !{F4}
 
-        ; Awaiting terminal window to close for 2s.
-        WinWaitClose, ahk_exe terminal64.exe, 2
+        ; Awaiting terminal window to close for 10s.
+        WinWaitClose, ahk_exe terminal64.exe, 10
 
-        ; If terminal didn't close in 2s then we're forcing it to close.
-        Process, Close, terminal64.exe
+        ; If terminal didn't close in 10s then we're forcing it to close.
+        if (WinExist(\"ahk_exe terminal64.exe\")) {
+            FileAppend, %A_Now%: Forcing terminal to close`n, %LogFile%
+            Process, Close, terminal64.exe
+        }
+
+        FileAppend, %A_Now%: Setup finished`n, %LogFile%
     "
 }
