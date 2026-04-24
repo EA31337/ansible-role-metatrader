@@ -105,6 +105,7 @@ jobs:
               hexdump*: allow
               jq*: allow
               links*: allow
+              ls*: allow
               mawk*: allow
               molecule*: allow
               pipx*: allow
