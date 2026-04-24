@@ -331,7 +331,7 @@ all Linux scenarios):
 | destroy | ✅ | ✅ |
 | create | ✅ | ✅ |
 | prepare | ✅ | ✅ |
-| converge | ❌ | ❌ |
+| converge | ✅ | ✅ |
 | — wine | ✅ | ✅ |
 | — xvfb | ✅ | ✅ |
 | — metatrader | ✅ | ✅ |
