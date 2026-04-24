@@ -120,10 +120,10 @@ load_mt4_install()
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}{Esc}!fx!{F4} ; File->Exit, Alt-F4
 
-        ; Awaiting terminal window to close for 2s.
+        ; Awaiting terminal window to close for 10s.
         WinWaitClose, ahk_exe terminal.exe, 10
 
-        ; If terminal didn't close in 2s then we are forcing it to close.
+        ; If terminal didn't close in 10s then we are forcing it to close.
         Process, Close, terminal.exe
 EOF
 }

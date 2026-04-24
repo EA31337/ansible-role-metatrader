@@ -111,16 +111,16 @@ load_mt5_install()
         ; Clicking \"Finish\".
         Send, {Enter}
 
-        ; Awaiting for terminal process and window to appear.
+        ; Awaiting for terminal process to appear.
         Process, Wait, terminal64.exe, 60
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}{Esc}!fx!{F4} ; File->Exit, Alt-F4
 
-        ; Awaiting terminal window to close for 2s.
+        ; Awaiting terminal window to close for 10s.
         WinWaitClose, ahk_exe terminal64.exe, 10
 
-        ; If terminal didn't close in 2s then we are forcing it to close.
+        ; If terminal didn't close in 10s then we are forcing it to close.
         Process, Close, terminal64.exe
 EOF
 }
