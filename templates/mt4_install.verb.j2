@@ -30,7 +30,7 @@ w_ahk_do()
 
     local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
     mkdir -p "${_script_dir}"
-    printf '%s\n' "$@" > "${_script_dir}/${W_PACKAGE}.ahk"
+    cat > "${_script_dir}/${W_PACKAGE}.ahk"
 
     wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
@@ -58,9 +58,9 @@ load_mt4_install()
 
     # No documented silent install option, unfortunately.
     w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
+    w_ahk_do <<'EOF'
         ; Maximum time for setup to complete.
-        Timeout := 200000 ; 3.3 min.
+        Timeout := 300000 ; 5 min.
 
         ; Searching for a setup EXE file.
         loop, Files, *.exe
@@ -89,8 +89,8 @@ load_mt4_install()
                 break
             }
 
-            ; Close a blocking \"Proxy Server\" dialog if it appears.
-            if (WinExist(\"Proxy Server\"))
+            ; Close a blocking "Proxy Server" dialog if it appears.
+            if (WinExist("Proxy Server"))
             {
                 WinActivate, Proxy Server
                 Send, {Esc}
@@ -114,8 +114,8 @@ load_mt4_install()
 
 
         ; Awaiting for terminal process and window to appear.
-        Process, Wait, terminal.exe, 5
-        WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00
+        Process, Wait, terminal.exe, 30
+        WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00,, 30
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4
@@ -125,5 +125,5 @@ load_mt4_install()
 
         ; If terminal didn't close in 2s then we are forcing it to close.
         Process, Close, terminal.exe
-    "
+EOF
 }
