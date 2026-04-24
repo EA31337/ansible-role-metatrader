@@ -20,7 +20,12 @@
         state: started
         command: sleep infinity
         # Mount host CA certificates for proxy/firewall SSL interception environments.
-        volumes: "{{ host_ca_certs | map('regex_replace', '^(.+)$', '\\1:\\1:ro') | list or omit }}"
+        volumes: >-
+          {{
+            host_ca_certs
+            | map('regex_replace', '^(.*)$', '\1:\1:ro')
+            | list if host_ca_certs else omit
+          }}
       delegate_to: localhost
       vars:
         # Use system Python with requests installed for controller-side Docker modules.
@@ -59,6 +64,14 @@
         fi
       changed_when: false
       when: container_image is search("ubuntu") or container_image is search("debian")
+    - name: Configure APT to use mounted proxy CA for WineHQ (if present)
+      ansible.builtin.copy:
+        content: 'Acquire::https::dl.winehq.org::CaInfo "{{ host_ca_certs | first }}";'
+        dest: /etc/apt/apt.conf.d/99winehq-proxy-ca
+        mode: '0644'
+      when:
+        - container_image is search("ubuntu") or container_image is search("debian")
+        - host_ca_certs | length > 0
     - name: Gather facts
       ansible.builtin.setup:
     - name: Install Python packages for Ubuntu/Debian
@@ -73,8 +86,7 @@
   tags: always
   vars:
     controller_python: '{{ ansible_playbook_python }}'
-    host_ca_certs: >-
-      {{ lookup('ansible.builtin.fileglob', '/usr/local/share/ca-certificates/*.crt', wantlist=True) }}
+    host_ca_certs: "{{ lookup('ansible.builtin.fileglob', '/usr/local/share/ca-certificates/*.crt', wantlist=True) }}"
     container_image_map:
       metatrader-on-alpine-latest: alpine:3.20
       metatrader-on-debian-latest: debian:latest
