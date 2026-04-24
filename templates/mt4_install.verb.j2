@@ -30,11 +30,7 @@ w_ahk_do()
 
     local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
     mkdir -p "${_script_dir}"
-    if [ $# -eq 0 ]; then
-        cat > "${_script_dir}/${W_PACKAGE}.ahk"
-    else
-        printf '%s\n' "$*" > "${_script_dir}/${W_PACKAGE}.ahk"
-    fi
+    cat > "${_script_dir}/${W_PACKAGE}.ahk"
 
     wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
