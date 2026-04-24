@@ -13,7 +13,7 @@ roles:
     scm: git
     src: https://github.com/EA31337/ansible-role-wine.git
     # This should match version in meta/main.yml
-    version: master
+    version: v1.0.4
   - name: ea31337.xvfb
     scm: git
     src: https://github.com/EA31337/ansible-role-xvfb.git
