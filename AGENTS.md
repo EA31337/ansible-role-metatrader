@@ -257,32 +257,37 @@ molecule destroy -s default
 
 ### Debugging the MT5 installer
 
-When the installer hangs or fails inside a container, use these steps to troubleshoot interactively:
+When the installer hangs or fails inside a container, use these steps:
 
 ```bash
-# 1. Install xdotool and imagemagick in the container
-docker exec CONTAINER bash -lc '
-  apt-get update >/dev/null && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y -q xdotool imagemagick >/dev/null && \
-  echo "Tools installed successfully"'
+# 1. Install xdotool in the container
+docker exec CONTAINER apt-get install -y -q xdotool
 
-# 2. List all visible X windows (check for "Proxy Server" or error dialogs)
+# 2. List all visible X windows
 docker exec -e DISPLAY=:0 CONTAINER \
-  bash -c 'for wid in $(xdotool search --name "." 2>/dev/null); do
-    printf "[%s] %s\n" "$wid" "$(xdotool getwindowname $wid 2>/dev/null)"
+  bash -c 'for wid in $(xdotool search --onlyvisible --name "." 2>/dev/null); do
+    echo "Window $wid: $(xdotool getwindowname $wid 2>/dev/null)"
   done'
 
-# 3. Close a blocking "Proxy Server" dialog if found
+# 3. Check the active window title
+docker exec -e DISPLAY=:0 CONTAINER \
+  bash -c 'wid=$(xdotool getactivewindow 2>/dev/null) &&
+           echo "Active window: $wid $(xdotool getwindowname "$wid" 2>/dev/null)"'
+
+# 4. Close a blocking "Proxy Server" dialog
 docker exec -e DISPLAY=:0 CONTAINER \
   xdotool search --name "Proxy Server" windowfocus key Escape
 
-# 4. Take a screenshot of the X display
-docker exec -e DISPLAY=:0 CONTAINER bash -lc 'import -window root /tmp/screen.png'
-
-# 5. Copy the screenshot to the host for analysis
+# 5. Take a screenshot of the X display
+docker exec CONTAINER apt-get install -y -q imagemagick
+docker exec -e DISPLAY=:0 CONTAINER import -window root /tmp/screen.png
 docker cp CONTAINER:/tmp/screen.png ./screen.png
 
-# 6. Check which MetaQuotes hosts are reachable from the container
+# 6. Inspect the generated AutoHotkey script
+docker exec CONTAINER \
+  bash -lc 'nl -ba /root/.wine/drive_c/windows/temp/_mt5_install/mt5_install.ahk | sed -n "1,160p"'
+
+# 7. Check which MetaQuotes hosts are reachable from the container
 docker exec CONTAINER bash -c '
   for h in download.mql5.com www.mql5.com cdn.mql5.com \
            trade.mql5.com mt5-trade.metaquotes.net; do
@@ -290,13 +295,40 @@ docker exec CONTAINER bash -c '
     curl -sI --connect-timeout 5 "https://$h" 2>&1 | head -1
   done'
 
-# 7. Check if terminal.exe was installed
+# 8. Check if terminal.exe was installed
 docker exec CONTAINER \
   find /root/.wine/drive_c -name "terminal*" -o -name "metaeditor*"
 
-# 8. Check running Wine/MT5 processes
+# 9. Check running Wine/MT5 processes
 docker exec CONTAINER ps aux | grep -E "mt5|terminal|wine" | grep -v defunct
 ```
+
+How to analyze the output:
+
+- If `xdotool search --onlyvisible --name "."` shows only `Default IME`
+  plus `mt5_install.ahk`, the installer GUI likely did not open and
+  AutoHotkey is probably showing an error instead.
+- If the active/visible window is `Proxy Server`, dismiss it first and then
+  re-check the visible windows list.
+- If the screenshot shows an AutoHotkey syntax error instead of the MetaTrader
+  installer window, inspect the generated `.ahk` file before investigating
+  MetaQuotes network access.
+- In the 2026-04-24 `metatrader-on-ubuntu-latest` manual debug session, the
+  screenshot matched a broken generated script:
+
+  ```text
+  32 ; Close a blocking Proxy
+  33 Server dialog if it appears.
+  34 if (WinExist(Proxy
+  35 Server))
+  ```
+
+- That pattern means shell quoting broke the `w_ahk_do " ... "` block before
+  it was written to the temporary AutoHotkey file, so the install was not
+  actually stuck in the MT5 UI.
+- If the screenshot instead shows the bootstrapper window with
+  "Sorry, something went wrong", treat it as a MetaQuotes connectivity issue
+  and verify the required hosts listed below.
 
 ## Test Results Matrix
 
