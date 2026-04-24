@@ -47,6 +47,17 @@ jobs:
         with:
           path: ${{ github.repository }}
           persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
+      - name: Set up Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.11'
+      - name: Cache pip
+        uses: actions/cache@v5.0.1
+        with:
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/Pipfile*', '**/.devcontainer/requirements.txt') }}
+          path: ~/.cache/pip
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Cache Ansible Galaxy
         uses: actions/cache@v5.0.1
         with:
@@ -57,13 +68,6 @@ jobs:
             ${{ github.workspace }}/${{ github.repository }}/collections
           restore-keys: |
             ${{ runner.os }}-galaxy-
-      - name: Cache pip
-        uses: actions/cache@v5.0.1
-        with:
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/Pipfile*') }}
-          path: ~/.cache/pip
-          restore-keys: |
-            ${{ runner.os }}-pip-
       - name: Install Ansible collections
         run: |
           pip install ansible-core
