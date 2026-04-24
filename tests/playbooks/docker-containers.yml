@@ -24,7 +24,7 @@
           {{
             host_ca_certs
             | map('regex_replace', '^(.*)$', '\1:\1:ro')
-            | list if host_ca_certs | length > 0 else omit
+            | list if (host_ca_certs | length > 0) else omit
           }}
       delegate_to: localhost
       vars:
@@ -66,9 +66,14 @@
       when: container_image is search("ubuntu") or container_image is search("debian")
     - name: Build proxy CA bundle for WineHQ APT (if present)
       ansible.builtin.shell: |
-        set -e
-        ls /usr/local/share/ca-certificates/*.crt >/dev/null 2>&1
-        cat /usr/local/share/ca-certificates/*.crt > /usr/local/share/ca-certificates/winehq-proxy-ca-bundle.crt
+        set -o pipefail
+        out="/usr/local/share/ca-certificates/winehq-proxy-ca-bundle.crt"
+        if ! find /usr/local/share/ca-certificates -maxdepth 1 -type f -name '*.crt' \
+          ! -name 'winehq-proxy-ca-bundle.crt' -print -quit | grep -q .; then
+          exit 0
+        fi
+        find /usr/local/share/ca-certificates -maxdepth 1 -type f -name '*.crt' \
+          ! -name 'winehq-proxy-ca-bundle.crt' -print0 | xargs -0 -r cat > "$out"
       args:
         executable: /bin/bash
       changed_when: false
