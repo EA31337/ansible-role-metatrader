@@ -30,7 +30,11 @@ w_ahk_do()
 
     local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
     mkdir -p "${_script_dir}"
-    printf '%s\n' "$@" > "${_script_dir}/${W_PACKAGE}.ahk"
+    if [ $# -eq 0 ]; then
+        cat > "${_script_dir}/${W_PACKAGE}.ahk"
+    else
+        printf '%s\n' "$@" > "${_script_dir}/${W_PACKAGE}.ahk"
+    fi
 
     wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
@@ -58,9 +62,9 @@ load_mt4_install()
 
     # No documented silent install option, unfortunately.
     w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
+    w_ahk_do <<'EOF'
         ; Maximum time for setup to complete.
-        Timeout := 200000 ; 3.3 min.
+        Timeout := 300000 ; 5 min.
 
         ; Searching for a setup EXE file.
         loop, Files, *.exe
@@ -76,7 +80,7 @@ load_mt4_install()
         ; Awaiting for setup window to appear.
         WinWait, 4 Setup,, 30
 
-        ; Clicking \"Next\".
+        ; Clicking "Next".
         Send, !n
 
         StartTime := A_TickCount
@@ -89,15 +93,15 @@ load_mt4_install()
                 break
             }
 
-            ; Close a blocking \"Proxy Server\" dialog if it appears.
-            if (WinExist(\"Proxy Server\"))
+            ; Close a blocking "Proxy Server" dialog if it appears.
+            if (WinExist("Proxy Server"))
             {
                 WinActivate, Proxy Server
                 Send, {Esc}
                 Sleep, 1000
             }
 
-            ; Is \"Finish\" button visible?
+            ; Is "Finish" button visible?
             ControlGet, FinishVisible, Visible,, Finish
 
             if (FinishVisible)
@@ -109,21 +113,21 @@ load_mt4_install()
             Sleep, 1000
         }
 
-        ; Clicking \"Finish\".
+        ; Clicking "Finish".
         Send, {Enter}
 
 
         ; Awaiting for terminal process and window to appear.
-        Process, Wait, terminal.exe, 5
-        WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00
+        Process, Wait, terminal.exe, 10
+        WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00,, 10
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4
 
-        ; Awaiting terminal window to close for 2s.
-        WinWaitClose, ahk_exe terminal.exe, 2
+        ; Awaiting terminal window to close for 5s.
+        WinWaitClose, ahk_exe terminal.exe, 5
 
-        ; If terminal didn't close in 2s then we are forcing it to close.
+        ; If terminal didn't close in 5s then we are forcing it to close.
         Process, Close, terminal.exe
-    "
+EOF
 }
