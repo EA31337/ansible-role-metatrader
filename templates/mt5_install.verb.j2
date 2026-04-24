@@ -1,5 +1,3 @@
-#!/bin/sh
-
 w_metadata mt5_install apps title="MetaTrader 5" year="2021" media="download"
 
 # Override winetricks' built-in w_ahk_do to use 64-bit AutoHotkey.
@@ -26,13 +24,13 @@ w_ahk_do() {
 
     local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
     mkdir -p "${_script_dir}"
-    printf '%s\n' "$@" > "${_script_dir}/${W_PACKAGE}.ahk"
+    cat > "${_script_dir}/${W_PACKAGE}.ahk"
 
     wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
 
 load_mt5_install() {
-    w_download {{ metatrader_setup_url }}
+    w_download "{{ metatrader_setup_url }}"
 
     if w_workaround_wine_bug 7156 "${title} needs wingdings.ttf, installing opensymbol"
     then
@@ -41,7 +39,8 @@ load_mt5_install() {
         _font_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/Fonts"
         mkdir -p "${_font_dir}"
         if curl -fsSL -o "${_font_dir}/opensymbol.ttf" \
-            "https://raw.githubusercontent.com/apache/openoffice/5f13fa00702a0abe48858d443bc306f5c5ba26d8/main/extras/source/truetype/symbol/opens___.ttf"; then
+            "https://raw.githubusercontent.com/apache/openoffice/5f13fa00702a0abe48858d443bc306f5c5ba26d8/main/extras/source/truetype/symbol/opens___.ttf"
+        then
             wine reg add "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" \
                 /v "OpenSymbol (TrueType)" /t REG_SZ /d "opensymbol.ttf" /f 2>/dev/null || true
         fi
@@ -52,10 +51,10 @@ load_mt5_install() {
     w_try wine reg add "HKCU\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
+    w_ahk_do <<'EOF'
         ; Maximum time for setup to complete.
         Timeout := 7200000 ; 120 min.
-        LogFile := \"C:\\windows\\temp\\mt5_install.log\"
+        LogFile := "C:\windows\temp\mt5_install.log"
         FileAppend, %A_Now%: Starting MT5 setup`n, %LogFile%
 
         ; Searching for a setup's EXE file.
@@ -66,7 +65,7 @@ load_mt5_install() {
             break
         }
 
-        if (ExePath = \"\") {
+        if (ExePath = "") {
             FileAppend, %A_Now%: Error: setup exe not found`n, %LogFile%
             ExitApp, 1
         }
@@ -87,7 +86,7 @@ load_mt5_install() {
         WinActivate, MetaTrader 5
         WinWaitActive, MetaTrader 5,, 10
 
-        ; Clicking \"Next\".
+        ; Clicking "Next".
         FileAppend, %A_Now%: Clicking Next`n, %LogFile%
         Send, {Enter}
 
@@ -102,8 +101,8 @@ load_mt5_install() {
                 ExitApp, 1
             }
 
-            ; Close a blocking \"Proxy Server\" dialog if it appears.
-            if (WinExist(\"Proxy Server\"))
+            ; Close a blocking "Proxy Server" dialog if it appears.
+            if (WinExist("Proxy Server"))
             {
                 FileAppend, %A_Now%: Closing Proxy Server dialog`n, %LogFile%
                 WinActivate, Proxy Server
@@ -111,7 +110,7 @@ load_mt5_install() {
                 Sleep, 1000
             }
 
-            ; Is \"Finish\" button visible?
+            ; Is "Finish" button visible?
             ControlGet, FinishVisible, Visible,, Finish
 
             if (FinishVisible)
@@ -124,7 +123,7 @@ load_mt5_install() {
             Sleep, 5000
         }
 
-        ; Clicking \"Finish\".
+        ; Clicking "Finish".
         FileAppend, %A_Now%: Clicking Finish`n, %LogFile%
         Send, {Enter}
 
@@ -150,11 +149,11 @@ load_mt5_install() {
         WinWaitClose, ahk_exe terminal64.exe, 10
 
         ; If terminal didn't close in 10s then we're forcing it to close.
-        if (WinExist(\"ahk_exe terminal64.exe\")) {
+        if (WinExist("ahk_exe terminal64.exe")) {
             FileAppend, %A_Now%: Forcing terminal to close`n, %LogFile%
             Process, Close, terminal64.exe
         }
 
         FileAppend, %A_Now%: Setup finished`n, %LogFile%
-    "
+EOF
 }
