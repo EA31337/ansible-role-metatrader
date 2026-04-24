@@ -87,9 +87,6 @@ For project overview and install instructions, see [README.md](README.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `debian-latest` | `debian:latest` | WineHQ repo with `wine_release_codename: bookworm` |
-| `nixos-latest` | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
-| `ubuntu-jammy` | `ubuntu:jammy` | WineHQ repo with `wine_release_codename: jammy` |
 | `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: jammy` |
 | `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: jammy` |
 
@@ -108,7 +105,7 @@ molecule test
 molecule test -s default
 
 # Single platform in a scenario
-molecule test -s default --platform-name debian-latest
+molecule test -s default --platform-name ubuntu-latest
 
 # Step-by-step debugging (useful for troubleshooting)
 molecule destroy -s default              # clean up any leftover state
@@ -131,11 +128,11 @@ For CI or automated environments, use timeouts:
 
 ```bash
 # Test a single platform with timeout (10 minutes)
-timeout 600 molecule test -s default --platform-name debian-latest
+timeout 600 molecule test -s default --platform-name ubuntu-latest
 
 # If converge fails, debug interactively:
-molecule create -s default --platform-name debian-latest
-molecule converge -s default --platform-name debian-latest
+molecule create -s default --platform-name ubuntu-latest
+molecule converge -s default --platform-name ubuntu-latest
 # (inspect container state, then clean up)
 molecule destroy -s default
 ```
@@ -299,22 +296,19 @@ docker exec CONTAINER ps aux | grep -E "mt5|terminal|wine" | grep -v defunct
 Results from testing on 2026-04-19 (re-test, all MetaQuotes hosts
 allowlisted):
 
-| Step | debian-latest | nixos-latest | ubuntu-jammy | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: | :---: | :---: | :---: |
-| create | ✅ | ✅ | ✅ | ✅ | ✅ |
-| prepare | ✅ | ✅ | ✅ | ✅ | ✅ |
-| converge | ❌ | ❌ | ❌ | ❌ | ❌ |
-| — wine | ✅ | ✅ | ✅ | ✅ | ✅ |
-| — xvfb | ✅ | ❌ | ✅ | ✅ | ✅ |
-| — metatrader | ❌ | ⏭️ | ❌ | ❌ | ❌ |
-| verify | ⏭️ | ⏭️ | ⏭️ | ⏭️ | ⏭️ |
+| Step | ubuntu-noble | ubuntu-latest |
+| --- | :---: | :---: |
+| create | ✅ | ✅ |
+| prepare | ✅ | ✅ |
+| converge | ❌ | ❌ |
+| — wine | ✅ | ✅ |
+| — xvfb | ✅ | ✅ |
+| — metatrader | ❌ | ❌ |
+| verify | ⏭️ | ⏭️ |
 
 ### Failure Details
 
-- **nixos-latest / xvfb**: The `ea31337.xvfb` role tries to include
-  `OtherLinux.yml` which does not exist. NixOS reports `os_family` as
-  `OtherLinux` and the xvfb role has no matching include file.
-- **debian/ubuntu / metatrader verify**: Wine and MT5 setup download
+- **ubuntu / metatrader verify**: Wine and MT5 setup download
   succeed (`mt5setup.exe` downloaded, `winetricks` verb completed with
   `rc=0`), but `terminal64.exe` / `metaeditor64.exe` are not found
   under `~/.wine/drive_c`. The MT5 stub installer runs but does not
