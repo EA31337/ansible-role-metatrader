@@ -1,15 +1,11 @@
 #!/bin/sh
 
-w_metadata mt5_install apps \
-    title="MetaTrader 5" \
-    year="2021" \
-    media="download"
+w_metadata mt5_install apps title="MetaTrader 5" year="2021" media="download"
 
 # Override winetricks' built-in w_ahk_do to use 64-bit AutoHotkey.
 # Required on Alpine linux where wine is wow64-only (no 32-bit support)
 # and running AutoHotkeyU32.exe fails with "could not load kernel32.dll".
-w_ahk_do()
-{
+w_ahk_do() {
     local _ahk_ver="1.1.36.01"
     local _ahk_dir="${W_CACHE}/ahk"
     local _ahk_setup="${_ahk_dir}/AutoHotkey_${_ahk_ver}_setup.exe"
@@ -35,8 +31,7 @@ w_ahk_do()
     wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
 
-load_mt5_install()
-{
+load_mt5_install() {
     w_download {{ metatrader_setup_url }}
 
     if w_workaround_wine_bug 7156 "${title} needs wingdings.ttf, installing opensymbol"
