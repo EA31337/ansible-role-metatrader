@@ -321,28 +321,86 @@ How to analyze the output:
 
 ## Test Results Matrix
 
-Results from testing on 2026-04-19 (re-test, all hosts
-allowlisted):
+Results from testing on 2026-04-24 (step-by-step Molecule re-test,
+all Linux scenarios):
+
+### `default`
 
 | Step | ubuntu-noble | ubuntu-latest |
 | --- | :---: | :---: |
+| destroy | ✅ | ✅ |
 | create | ✅ | ✅ |
 | prepare | ✅ | ✅ |
 | converge | ❌ | ❌ |
 | — wine | ✅ | ✅ |
 | — xvfb | ✅ | ✅ |
 | — metatrader | ❌ | ❌ |
+| idempotence | ⏭️ | ⏭️ |
 | verify | ⏭️ | ⏭️ |
+| destroy (final) | ✅ | ✅ |
+
+### `mt4`
+
+| Step | ubuntu-noble | ubuntu-latest |
+| --- | :---: | :---: |
+| destroy | ✅ | ✅ |
+| create | ✅ | ✅ |
+| prepare | ✅ | ✅ |
+| converge | ❌ | ❌ |
+| — wine | ✅ | ✅ |
+| — xvfb | ✅ | ✅ |
+| — metatrader | ❌ | ❌ |
+| idempotence | ⏭️ | ⏭️ |
+| verify | ⏭️ | ⏭️ |
+| destroy (final) | ✅ | ✅ |
+
+### `mt5`
+
+| Step | ubuntu-noble | ubuntu-latest |
+| --- | :---: | :---: |
+| destroy | ✅ | ✅ |
+| create | ✅ | ✅ |
+| prepare | ✅ | ✅ |
+| converge | ❌ | ❌ |
+| — wine | ✅ | ✅ |
+| — xvfb | ✅ | ✅ |
+| — metatrader | ❌ | ❌ |
+| idempotence | ⏭️ | ⏭️ |
+| verify | ⏭️ | ⏭️ |
+| destroy (final) | ✅ | ✅ |
 
 ### Failure Details
 
-- **ubuntu / metatrader verify**: Wine and MT5 setup download
-  succeed (`mt5setup.exe` downloaded, `winetricks` verb completed with
-  `rc=0`), but `terminal64.exe` / `metaeditor64.exe` are not found
-  under `~/.wine/drive_c`. The MT5 stub installer runs but does not
-  extract platform binaries — likely the runtime download from
-  CDN servers (`cdn.mql5.com`, `trade.mql5.com`) is blocked
-  or fails silently inside Wine.
+- **default / ubuntu-noble / converge**: Task
+  `ea31337.metatrader : Checks if platform's terminal exists (Unix)`
+  fails after the winetricks verb finishes. `terminal*.exe` is not found
+  under `~/.wine/drive_c`, so the MT5 bootstrapper did not leave installed
+  binaries behind.
+- **default / ubuntu-latest / converge**: Same failure as `ubuntu-noble`;
+  `terminal*.exe` is missing after the MT5 install task reports success.
+- **mt4 / ubuntu-noble / converge**: Task
+  `ea31337.metatrader : Ensures MetaTrader is installed (via verb file)`
+  fails with `Timeout exceeded` from the task's internal
+  `async: 300`/`poll: 10` limit.
+- **mt4 / ubuntu-latest / converge**: Same failure as `ubuntu-noble`; the
+  MT4 winetricks install task exceeds the role's 300-second async limit.
+- **mt5 / ubuntu-noble / converge**: Task
+  `ea31337.metatrader : Checks if platform's terminal exists (Unix)`
+  fails after the verb install completes because `terminal*.exe` is still
+  missing.
+- **mt5 / ubuntu-latest / converge**: Same failure as `ubuntu-noble`;
+  `terminal*.exe` is still missing after the MT5 install task.
+
+### MT4 install task exceeds role async timeout
+
+> `Timeout exceeded` in
+> `ea31337.metatrader : Ensures MetaTrader is installed (via verb file)`
+
+- **Root cause**: The role caps the winetricks install task at
+  `async: 300`, and the MT4 installer exceeded that five-minute limit on
+  both Ubuntu platforms during the 2026-04-24 Molecule run.
+- **Fix**: Increase the task timeout or make the MT4 installer path finish
+  within the existing async window before re-running Molecule.
 
 ## Common Tasks
 
