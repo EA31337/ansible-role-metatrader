@@ -85,7 +85,10 @@ load_mt5_install()
         loop 60
         {
             if (WinExist("Setup") or WinExist("MetaTrader"))
+            {
+                SetupID := WinExist()
                 break
+            }
             if (WinExist("Proxy Server"))
             {
                 WinActivate, Proxy Server
@@ -97,8 +100,11 @@ load_mt5_install()
         }
 
         ; Clicking "Next".
-        WinActivate
-        ControlSend,, !n
+        WinActivate, ahk_id %SetupID%
+        WinWaitActive, ahk_id %SetupID%,, 10
+        ControlSend,, !n, ahk_id %SetupID%
+        Sleep, 500
+        ControlSend,, {Enter}, ahk_id %SetupID%
         Sleep, 1000
 
         StartTime := A_TickCount
@@ -120,16 +126,21 @@ load_mt5_install()
             }
 
             ; Check for "Sorry, something went wrong" text
-            WinGetText, SetupText
+            WinGetText, SetupText, ahk_id %SetupID%
             if (InStr(SetupText, "Sorry, something went wrong"))
             {
                 ExitApp, 1
             }
 
             ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
-
+            ControlGet, FinishVisible, Visible,, Finish, ahk_id %SetupID%
             if (FinishVisible)
+            {
+                break
+            }
+
+            ; Alternative check: look for "Finish" or "successfully completed" in window text
+            if (InStr(SetupText, "Finish") or InStr(SetupText, "successfully completed"))
             {
                 break
             }
@@ -139,8 +150,11 @@ load_mt5_install()
         }
 
         ; Clicking "Finish".
-        WinActivate
-        ControlSend,, {Enter}
+        WinActivate, ahk_id %SetupID%
+        WinWaitActive, ahk_id %SetupID%,, 5
+        ControlSend,, {Enter}, ahk_id %SetupID%
+        Sleep, 500
+        ControlSend,, !f, ahk_id %SetupID%
         Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
@@ -155,17 +169,18 @@ load_mt5_install()
             Sleep, 1000
         }
         WinWaitActive, MetaTrader,, 60
+        TerminalID := WinActive("MetaTrader")
 
         ; Closing dialogs and exiting from the terminal.
-        ControlSend,, {Esc}, MetaTrader
+        ControlSend,, {Esc}, ahk_id %TerminalID%
         Sleep, 1000
-        ControlSend,, {Esc}, MetaTrader
+        ControlSend,, {Esc}, ahk_id %TerminalID%
         Sleep, 1000
-        ControlSend,, !f, MetaTrader
+        ControlSend,, !f, ahk_id %TerminalID%
         Sleep, 1000
-        ControlSend,, x, MetaTrader
+        ControlSend,, x, ahk_id %TerminalID%
         Sleep, 1000
-        ControlSend,, !{F4}, MetaTrader
+        ControlSend,, !{F4}, ahk_id %TerminalID%
 
         ; Awaiting terminal window to close for 20s.
         loop 20
