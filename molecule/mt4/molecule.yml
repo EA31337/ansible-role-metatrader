@@ -56,6 +56,8 @@ provisioner:
         wine_release: stable
         wine_winetricks_winver: win10
     host_vars:
+      nixos-latest:
+        wine_winetricks_url: ''
       ubuntu-latest:
         wine_release_codename: '{{ ansible_facts.distribution_release | lower }}'
       ubuntu-noble:

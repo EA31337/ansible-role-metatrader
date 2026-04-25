@@ -100,6 +100,22 @@ load_mt5_install()
                 Sleep, 1000
             }
 
+            ; Close Wine Mono/Gecko installer dialogs if they appear.
+            if (WinExist("Wine Mono Installer") or WinExist("Wine Gecko Installer"))
+            {
+                WinActivate
+                Send, {Esc}
+                Sleep, 1000
+            }
+
+            ; Close debugger detection warning if it appears.
+            if (WinExist("ahk_class #32770", "A debugger has been found"))
+            {
+                WinActivate
+                Send, {Esc}
+                Sleep, 1000
+            }
+
             ; Is "Finish" button visible?
             ControlGet, FinishVisible, Visible,, Finish
 

@@ -31,6 +31,8 @@ RUN combined="/etc/nix/ca-bundle.crt" && \
 
 # Install required packages for Ansible to work on NixOS.
 RUN nix-channel --update && \
-    nix-env -iA nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip
+    nix-env -iA nixpkgs.gnused nixpkgs.gnugrep nixpkgs.gawk nixpkgs.gnutar nixpkgs.which \
+            nixpkgs.file nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip \
+            nixpkgs.imagemagick nixpkgs.xdotool nixpkgs.psmisc
 
 {% endif %}
