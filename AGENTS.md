@@ -392,6 +392,7 @@ all Linux scenarios):
 - **Connectivity**: AHK script now handles "Proxy Server" dialog while waiting for the main window.
 - **Startup/Shutdown**: Improved terminal startup and shutdown sequence with longer wait times and multiple process checks.
 - **Reliability**: Corrected `Send` command syntax and added `WinActivate` for more reliable key delivery.
+- **Robustness**: AHK scripts now detect "Sorry, something went wrong" dialogs and exit early with error code.
 - **Compatibility**: The `w_ahk_do` override now joins arguments with a space to prevent splitting into multiple lines.
 
 ## Common Tasks

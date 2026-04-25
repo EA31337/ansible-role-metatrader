@@ -72,6 +72,11 @@ load_mt5_install()
             break
         }
 
+        if (ExePath == "")
+        {
+            ExitApp, 1
+        }
+
         ; Running setup.
         Run, %ExePath%
         SetTitleMatchMode, 2 ; Match anywhere in title
@@ -79,7 +84,7 @@ load_mt5_install()
         ; Awaiting for setup window to appear.
         loop 60
         {
-            if (WinExist("MetaTrader 5"))
+            if (WinExist("Setup") or WinExist("MetaTrader"))
                 break
             if (WinExist("Proxy Server"))
             {
@@ -92,7 +97,8 @@ load_mt5_install()
         }
 
         ; Clicking "Next".
-        ControlSend,, !n, MetaTrader 5
+        WinActivate
+        ControlSend,, !n
         Sleep, 1000
 
         StartTime := A_TickCount
@@ -113,8 +119,15 @@ load_mt5_install()
                 Sleep, 1000
             }
 
+            ; Check for "Sorry, something went wrong" text
+            WinGetText, SetupText
+            if (InStr(SetupText, "Sorry, something went wrong"))
+            {
+                ExitApp, 1
+            }
+
             ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish, MetaTrader 5
+            ControlGet, FinishVisible, Visible,, Finish
 
             if (FinishVisible)
             {
@@ -126,7 +139,8 @@ load_mt5_install()
         }
 
         ; Clicking "Finish".
-        ControlSend,, {Enter}, MetaTrader 5
+        WinActivate
+        ControlSend,, {Enter}
         Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.

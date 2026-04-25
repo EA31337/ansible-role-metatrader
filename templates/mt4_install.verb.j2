@@ -73,6 +73,11 @@ load_mt4_install()
             break
         }
 
+        if (ExePath == "")
+        {
+            ExitApp, 1
+        }
+
         ; Running setup.
         Run, %ExePath%
         SetTitleMatchMode, 2 ; Match anywhere in title
@@ -80,7 +85,7 @@ load_mt4_install()
         ; Awaiting for setup window to appear.
         loop 60
         {
-            if (WinExist("4 Setup"))
+            if (WinExist("Setup") or WinExist("MetaTrader"))
                 break
             if (WinExist("Proxy Server"))
             {
@@ -93,7 +98,8 @@ load_mt4_install()
         }
 
         ; Clicking "Next".
-        ControlSend,, !n, 4 Setup
+        WinActivate
+        ControlSend,, !n
         Sleep, 1000
 
         StartTime := A_TickCount
@@ -114,8 +120,15 @@ load_mt4_install()
                 Sleep, 1000
             }
 
+            ; Check for "Sorry, something went wrong" text
+            WinGetText, SetupText
+            if (InStr(SetupText, "Sorry, something went wrong"))
+            {
+                ExitApp, 1
+            }
+
             ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish, 4 Setup
+            ControlGet, FinishVisible, Visible,, Finish
 
             if (FinishVisible)
             {
@@ -127,7 +140,8 @@ load_mt4_install()
         }
 
         ; Clicking "Finish".
-        ControlSend,, {Enter}, 4 Setup
+        WinActivate
+        ControlSend,, {Enter}
         Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
