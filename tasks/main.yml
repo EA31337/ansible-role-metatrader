@@ -49,9 +49,9 @@
         path: ~/.wine/.installed-mt{{ metatrader_version }}
       when:
         - detected_os_family != "Windows"
-    - name: Ensures Curl is present (standard distros)
+    - name: Ensures required packages are present (standard distros)
       ansible.builtin.package:
-        name: curl
+        name: "{{ ['curl', 'gnutls'] if ansible_facts.os_family == 'Alpine' else ['curl'] }}"
         state: present
       when:
         - detected_os_family not in ["Windows", "NixOS"]

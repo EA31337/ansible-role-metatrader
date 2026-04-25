@@ -463,6 +463,14 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
   during the build phase so `apk` can fetch dependencies safely.
 - **Prevention**: Verify `dl-cdn.alpinelinux.org` is reachable from inside the container.
 
+### Alpine MetaTrader installation fails with "Proxy Server" dialog
+
+- **Root cause**: MetaTrader installer (running in Wine) fails to establish secure connections (TLS) to CDN hosts
+  if the CA certificate bundle is not properly trusted or if `gnutls` is missing on Alpine.
+- **Fix**: Use the custom `Dockerfile.j2` for Alpine platforms to ensure CA certs are injected, and install the
+  `gnutls` package to provide TLS support for Wine.
+- **Verification**: Ensure `gnutls` is installed via `apk add gnutls` and CA certs are updated via `update-ca-certificates`.
+
 ### Required Hosts
 
 | Host | Purpose |

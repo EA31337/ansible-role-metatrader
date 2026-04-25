@@ -19,6 +19,7 @@ lint: |
 platforms:
   - name: alpine-latest
     image: alpine:latest
+    dockerfile: ../resources/playbooks/Dockerfile.j2
   - name: ubuntu-latest
     image: ubuntu:latest
   - name: ubuntu-noble
