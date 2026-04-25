@@ -139,8 +139,8 @@ load_mt5_install()
                 break
             }
 
-            ; Alternative check: look for "Finish" or "successfully completed" in window text
-            if (InStr(SetupText, "Finish") or InStr(SetupText, "successfully completed"))
+            ; Alternative check: look for specific text on the final screen
+            if (InStr(SetupText, "successfully installed") or InStr(SetupText, "MQL5.community"))
             {
                 break
             }
@@ -155,7 +155,9 @@ load_mt5_install()
         ControlSend,, {Enter}, ahk_id %SetupID%
         Sleep, 500
         ControlSend,, !f, ahk_id %SetupID%
-        Sleep, 5000
+
+        ; Wait for the setup window to close.
+        WinWaitClose, ahk_id %SetupID%,, 30
 
         ; Awaiting for terminal process and window to appear.
         loop 60
@@ -168,8 +170,20 @@ load_mt5_install()
                 break
             Sleep, 1000
         }
-        WinWaitActive, MetaTrader,, 60
-        TerminalID := WinActive("MetaTrader")
+
+        ; Wait for terminal window using class or exe to avoid matching installer.
+        WinWaitActive, ahk_class MetaQuotes::MetaTrader::5.00,, 60
+        if (ErrorLevel)
+        {
+            WinWaitActive, ahk_exe terminal64.exe,, 30
+            if (ErrorLevel)
+            {
+                WinWaitActive, ahk_exe terminal.exe,, 30
+                if (ErrorLevel)
+                    ExitApp, 1
+            }
+        }
+        TerminalID := WinActive()
 
         ; Closing dialogs and exiting from the terminal.
         ControlSend,, {Esc}, ahk_id %TerminalID%
