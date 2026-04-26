@@ -93,8 +93,11 @@
       register: xdpyinfo_check
       failed_when: false
       changed_when: false
+      until: xdpyinfo_check.rc == 0
+      retries: 10
+      delay: 3
       environment:
-        DISPLAY: "{{ ansible_env.DISPLAY | default(':99') }}"
+        DISPLAY: "{{ ansible_env.DISPLAY | default(':0') }}"
         XDG_RUNTIME_DIR: "{{ ansible_env.XDG_RUNTIME_DIR | default('/tmp/runtime-root') }}"
       when:
         - not file_mt_installed_exists.stat.exists
@@ -107,7 +110,7 @@
           {% if xdpyinfo_check.rc | default(0) == 127 %}
           The 'xdpyinfo' command is missing. Ensure 'x11-utils' or equivalent is installed.
           {% else %}
-          X display is not available (DISPLAY={{ ansible_env.DISPLAY | default(':99') }}).
+          X display is not available (DISPLAY={{ ansible_env.DISPLAY | default(':0') }}).
           Ensure Xvfb or another X server is running.
           {% endif %}
       when:
@@ -123,7 +126,7 @@
       async: 1200
       poll: 10
       environment:
-        DISPLAY: "{{ ansible_env.DISPLAY | default(':99') }}"
+        DISPLAY: "{{ ansible_env.DISPLAY | default(':0') }}"
         WINEDEBUG: -all
         WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
         WINETRICKS_DOWNLOADER: curl
