@@ -5,20 +5,22 @@ w_metadata mt4_install apps \
     year="2021" \
     media="download"
 
-# Override winetricks' built-in w_ahk_do to use 64-bit AutoHotkey.
-# Required on Alpine linux where wine is wow64-only (no 32-bit support)
-# and running AutoHotkeyU32.exe fails with "could not load kernel32.dll".
+# Override winetricks' built-in w_ahk_do to use 64-bit AutoHotkey on Alpine Linux.
+# Required because Alpine's wine is wow64-only and 32-bit AutoHotkey fails.
+if [ -f /etc/alpine-release ]; then
 w_ahk_do()
 {
     local _ahk_ver="1.1.36.01"
     local _ahk_dir="${W_CACHE}/ahk"
     local _ahk_setup="${_ahk_dir}/AutoHotkey_${_ahk_ver}_setup.exe"
+    local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
+    local _script="${_script_dir}/${W_PACKAGE}.ahk"
 
     if ! command -v 7z >/dev/null 2>&1; then
-        w_die "w_ahk_do: '7z' is required (install p7zip/p7zip-full)"
+        w_die "w_ahk_do: '7z' is required (install 7zip or p7zip)"
     fi
 
-    mkdir -p "${_ahk_dir}"
+    mkdir -p "${_ahk_dir}" "${_script_dir}"
     if [ ! -f "${_ahk_setup}" ]; then
         w_try curl -fL "https://github.com/AutoHotkey/AutoHotkey/releases/download/v${_ahk_ver}/AutoHotkey_${_ahk_ver}_setup.exe" \
             -o "${_ahk_setup}"
@@ -28,12 +30,15 @@ w_ahk_do()
         w_try 7z x "${_ahk_setup}" -o"${_ahk_dir}" AutoHotkeyU64.exe -y
     fi
 
-    local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
-    mkdir -p "${_script_dir}"
-    cat > "${_script_dir}/${W_PACKAGE}.ahk"
+    if [ $# -gt 0 ]; then
+        echo "$*" > "${_script}"
+    else
+        cat > "${_script}"
+    fi
 
-    wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
+    w_try wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
+fi
 
 load_mt4_install()
 {
@@ -76,7 +81,7 @@ load_mt4_install()
         ; Awaiting for setup window to appear.
         loop 120
         {
-            if (WinExist("i)MetaTrader") or WinExist("i)Setup"))
+            if (WinExist("i)MetaTrader|Setup"))
                 break
             if (WinExist("i)Proxy Server"))
             {
@@ -88,7 +93,7 @@ load_mt4_install()
                 ExitApp, 1
         }
 
-        WinActivate, i)MetaTrader|i)Setup
+        WinActivate, i)MetaTrader|Setup
         Sleep, 1000
 
         ; Clicking "Next".

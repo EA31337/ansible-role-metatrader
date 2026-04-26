@@ -51,7 +51,7 @@
         - detected_os_family != "Windows"
     - name: Ensures required packages are present (standard distros)
       ansible.builtin.package:
-        name: "{{ ['curl', 'gnutls', 'gnutls-utils', 'libnsl'] if ansible_facts.os_family == 'Alpine' else ['curl'] }}"
+        name: "{{ ['curl', 'gnutls', 'gnutls-utils', 'libnsl', '7zip'] if ansible_facts.os_family == 'Alpine' else ['curl', 'p7zip-full'] }}"
         state: present
       when:
         - detected_os_family not in ["Windows", "NixOS"]
