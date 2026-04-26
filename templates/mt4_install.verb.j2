@@ -5,9 +5,7 @@ w_metadata mt4_install apps \
     year="2021" \
     media="download"
 
-# Override winetricks' built-in w_ahk_do to use 64-bit AutoHotkey on Alpine Linux.
-# Required because Alpine's wine is wow64-only and 32-bit AutoHotkey fails.
-if [ -f /etc/alpine-release ]; then
+# Override winetricks' built-in w_ahk_do to support heredoc and 64-bit AHK on Alpine.
 w_ahk_do()
 {
     local _ahk_ver="1.1.36.01"
@@ -15,6 +13,12 @@ w_ahk_do()
     local _ahk_setup="${_ahk_dir}/AutoHotkey_${_ahk_ver}_setup.exe"
     local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
     local _script="${_script_dir}/${W_PACKAGE}.ahk"
+
+    # Detect architecture. Use 64-bit on Alpine or if WINEARCH is win64.
+    local _ahk_exe="AutoHotkeyU32.exe"
+    if [ -f /etc/alpine-release ] || [ "$WINEARCH" = "win64" ]; then
+        _ahk_exe="AutoHotkeyU64.exe"
+    fi
 
     if ! command -v 7z >/dev/null 2>&1; then
         w_die "w_ahk_do: '7z' is required (install 7zip or p7zip)"
@@ -26,19 +30,18 @@ w_ahk_do()
             -o "${_ahk_setup}"
     fi
 
-    if [ ! -f "${_ahk_dir}/AutoHotkeyU64.exe" ]; then
-        w_try 7z x "${_ahk_setup}" -o"${_ahk_dir}" AutoHotkeyU64.exe -y
+    if [ ! -f "${_ahk_dir}/${_ahk_exe}" ]; then
+        w_try 7z x "${_ahk_setup}" -o"${_ahk_dir}" "${_ahk_exe}" -y
     fi
 
     if [ $# -gt 0 ]; then
-        echo "$*" > "${_script}"
+        printf "%s\n" "$*" > "${_script}"
     else
         cat > "${_script}"
     fi
 
-    w_try wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
+    w_try wine "${_ahk_dir}/${_ahk_exe}" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
-fi
 
 load_mt4_install()
 {
