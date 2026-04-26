@@ -20,8 +20,15 @@ w_ahk_do()
         _ahk_exe="AutoHotkeyU64.exe"
     fi
 
+    local _7z_exe="7z"
     if ! command -v 7z >/dev/null 2>&1; then
-        w_die "w_ahk_do: '7z' is required (install 7zip or p7zip)"
+        if command -v 7zz >/dev/null 2>&1; then
+            _7z_exe="7zz"
+        elif command -v 7za >/dev/null 2>&1; then
+            _7z_exe="7za"
+        else
+            w_die "w_ahk_do: '7z', '7zz' or '7za' is required (install 7zip or p7zip)"
+        fi
     fi
 
     mkdir -p "${_ahk_dir}" "${_script_dir}"
@@ -31,7 +38,7 @@ w_ahk_do()
     fi
 
     if [ ! -f "${_ahk_dir}/${_ahk_exe}" ]; then
-        w_try 7z x "${_ahk_setup}" -o"${_ahk_dir}" "${_ahk_exe}" -y
+        w_try "${_7z_exe}" x "${_ahk_setup}" -o"${_ahk_dir}" "${_ahk_exe}" -y
     fi
 
     if [ $# -gt 0 ]; then
@@ -40,7 +47,7 @@ w_ahk_do()
         cat > "${_script}"
     fi
 
-    w_try wine "${_ahk_dir}/${_ahk_exe}" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
+    w_try wine "${_ahk_dir}/${_ahk_exe}" "${_script}"
 }
 
 load_mt4_install()
@@ -97,11 +104,8 @@ load_mt4_install()
         }
 
         WinActivate, i)MetaTrader|Setup
-        Sleep, 1000
-
-        ; Clicking "Next".
-        Send, !n
-        Sleep, 1000
+        WinWaitActive, i)MetaTrader|Setup,, 10
+        Send, {Enter} ; Click Next
 
         StartTime := A_TickCount
 
@@ -121,19 +125,21 @@ load_mt4_install()
                 Sleep, 1000
             }
 
-            ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
-
-            if (FinishVisible)
-            {
+            ; Check if terminal process is running as a sign of completion.
+            Process, Exist, terminal.exe
+            if (ErrorLevel)
                 break
-            }
 
-            ; Sleeping for a short while before checking again.
-            Sleep, 1000
+            ; Check for "Finish", "Готово", "Ende" or "Terminar" text in the window.
+            WinGetText, winText, i)MetaTrader|Setup
+            if (InStr(winText, "Finish") or InStr(winText, "Готово") or InStr(winText, "Ende") or InStr(winText, "Terminar"))
+                break
+
+            Sleep, 2000
         }
 
         ; Clicking "Finish".
+        WinActivate, i)MetaTrader|Setup
         Send, {Enter}
         Sleep, 5000
 
