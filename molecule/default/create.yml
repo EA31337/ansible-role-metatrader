@@ -4,6 +4,7 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  collections: [community.docker]
   vars:
     # Use controller Python (Ansible's interpreter)
     ansible_python_interpreter: '{{ ansible_playbook_python }}'
@@ -16,9 +17,16 @@
     - name: Discover proxy CA certificates on the host
       ansible.builtin.set_fact:
         host_ca_certs: >-
-          {{ lookup('ansible.builtin.fileglob', '/usr/local/share/ca-certificates/*.crt', wantlist=True) }}
-    - name: Prepare build context for custom images
-      when: molecule_yml.platforms | selectattr('dockerfile', 'defined') | list | length > 0
+          {{
+            (lookup('ansible.builtin.fileglob', '/usr/local/share/ca-certificates/*.crt', wantlist=True) +
+             lookup('ansible.builtin.fileglob', '/etc/pki/ca-trust/source/anchors/*.crt', wantlist=True) +
+             lookup('ansible.builtin.fileglob', '/etc/ca-certificates/trust-source/anchors/*.crt', wantlist=True))
+            | unique
+          }}
+    - name: Prepare build context for custom images and CA certificates
+      when:
+        - (molecule_yml.platforms | selectattr('dockerfile', 'defined') | list | length > 0) or
+          (host_ca_certs | length > 0)
       block:
         - name: Ensure build context directory exists
           ansible.builtin.file:
@@ -60,8 +68,22 @@
         recreate: true
         pull: "{{ false if (item.dockerfile is defined or 'nixos' in item.name) else true }}"
         # Mount host CA certificates for proxy/firewall SSL interception environments.
-        volumes: "{{ host_ca_certs | map('regex_replace', '^(.+)$', '\\1:\\1:ro') | list or omit }}"
+        volumes: >-
+          {{ [molecule_ephemeral_directory ~ '/ca-certificates:/usr/local/share/ca-certificates:ro']
+             if host_ca_certs | length > 0 else omit }}
       loop: '{{ molecule_yml.platforms }}'
+      register: container_results
+      # Allow enough time for image pulls/builds in constrained CI environments.
+      async: 7200
+      poll: 0
+    - name: Wait for container(s) creation to complete
+      ansible.builtin.async_status:
+        jid: '{{ item.ansible_job_id }}'
+      loop: '{{ container_results.results }}'
+      register: async_job_results
+      until: async_job_results.finished
+      retries: 300
+      delay: 5
     - name: Write molecule instance config
       ansible.builtin.copy:
         content: |

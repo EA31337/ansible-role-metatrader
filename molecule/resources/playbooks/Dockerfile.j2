@@ -1,38 +1,54 @@
 {% set base_image = item.base_image | default(item.image) %}
-{% if 'nixos' in base_image %}
 FROM {{ base_image }}
 
-# Workaround for containerd 2.2.0+ / Go 1.24 "path escapes from parent" error.
-# Convert absolute symlinks (/nix/store/...) to relative ones.
-# See: https://github.com/containerd/containerd/issues/12683
-RUN ln --symbolic --force \
-      "$(realpath --relative-to=/etc /etc/passwd)" /etc/passwd && \
-    ln --symbolic --force \
-      "$(realpath --relative-to=/etc /etc/group)" /etc/group
+{% if 'nixos' in base_image %}
 
-# Trust proxy CA certificates (if present on the host during build).
-# Store combined cert in /etc/nix/ - files in /etc/ssl/certs/ vanish across
-# Docker overlay layers in the NixOS image due to a containerd/overlayfs bug.
-# See: https://github.com/containerd/containerd/issues/12683
+# Prepare NixOS environment: containerd workarounds, proxy CA certs, and Ansible dependencies.
 COPY ca-certificates/ /tmp/host-ca/
-RUN combined="/etc/nix/ca-bundle.crt" && \
+RUN \
+    # Workaround for containerd 2.2.0+ / Go 1.24 "path escapes from parent" error.
+    # Convert absolute symlinks (/etc/passwd -> /nix/store/...) to relative ones.
+    # See: https://github.com/containerd/containerd/issues/12683
+    ln --symbolic --force "$(realpath --relative-to=/etc /etc/passwd)" /etc/passwd && \
+    ln --symbolic --force "$(realpath --relative-to=/etc /etc/group)" /etc/group && \
+    # Trust proxy CA certificates (files in /etc/ssl/certs/ vanish across NixOS image layers).
+    # Store combined cert in /etc/nix/ and inject into Nix configuration.
+    combined="/etc/nix/ca-bundle.crt" && \
     nix_bundle="/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt" && \
     if ls /tmp/host-ca/*.crt >/dev/null 2>&1; then \
       mkdir -p /etc/nix && \
-      if [ -f "$nix_bundle" ]; then \
-        cp "$nix_bundle" "$combined"; \
-      else \
-        touch "$combined"; \
-      fi && \
+      cp "$nix_bundle" "$combined" && \
       for c in /tmp/host-ca/*.crt; do cat "$c" >> "$combined"; done && \
       printf "ssl-cert-file = %s\n" "$combined" >> /etc/nix/nix.conf; \
     fi && \
-    rm -rf /tmp/host-ca
-
-# Install required packages for Ansible to work on NixOS.
-RUN nix-channel --update && \
+    rm -rf /tmp/host-ca && \
+    # Install required packages for Ansible to work on NixOS.
+    nix-channel --update && \
     nix-env -iA nixpkgs.gnused nixpkgs.gnugrep nixpkgs.gawk nixpkgs.gnutar nixpkgs.which \
             nixpkgs.file nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip \
             nixpkgs.imagemagick nixpkgs.xdotool nixpkgs.psmisc
+
+{% elif 'alpine' in base_image %}
+
+# Prepare Alpine environment: trust proxy CA certs and install Ansible dependencies.
+COPY ca-certificates/ /tmp/host-ca/
+RUN \
+    # Trust proxy CA certificates if present (appended to live bundles for immediate use by apk).
+    if ls /tmp/host-ca/*.crt >/dev/null 2>&1; then \
+      mkdir -p /usr/local/share/ca-certificates && \
+      cp /tmp/host-ca/*.crt /usr/local/share/ca-certificates/ && \
+      # apk uses /etc/ssl/cert.pem directly in minimal Alpine images.
+      for c in /tmp/host-ca/*.crt; do cat "$c" >> /etc/ssl/cert.pem; done && \
+      # Keep the common OpenSSL bundle in sync when present.
+      if [ -f /etc/ssl/certs/ca-certificates.crt ]; then \
+        for c in /tmp/host-ca/*.crt; do cat "$c" >> /etc/ssl/certs/ca-certificates.crt; done; \
+      fi; \
+    fi && \
+    rm -rf /tmp/host-ca && \
+    # Install required packages for Ansible.
+    apk update && \
+    apk add --no-cache python3 sudo bash ca-certificates && \
+    # Ensure CA certs are properly registered in the system.
+    update-ca-certificates
 
 {% endif %}

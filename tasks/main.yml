@@ -84,8 +84,6 @@
       poll: 10
       environment:
         DISPLAY: :0
-        FONTCONFIG_FILE: '{{ ansible_facts.env.HOME }}/.config/fontconfig/fonts.conf'
-        FONTCONFIG_PATH: '{{ ansible_facts.env.HOME }}/.config/fontconfig'
         WINEDEBUG: -all
         WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
         WINETRICKS_DOWNLOADER: curl
