@@ -41,13 +41,20 @@ w_ahk_do()
         w_try "${_7z_exe}" x "${_ahk_setup}" -o"${_ahk_dir}" "${_ahk_exe}" -y
     fi
 
+    rm -f "${_script}"
     if [ $# -gt 0 ]; then
-        printf "%s\n" "$*" > "${_script}"
+        for _line in "$@"; do
+            printf "%s\n" "${_line}" >> "${_script}"
+        done
     else
-        cat > "${_script}"
+        # Remove leading spaces from heredoc to ensure clean AHK script.
+        # We use a more careful sed to only remove the common 8-space indentation if possible,
+        # but removing all leading whitespace is also fine for AHK.
+        sed 's/^[[:space:]]*//' >> "${_script}"
     fi
 
-    w_try wine "${_ahk_dir}/${_ahk_exe}" "${_script}"
+    # Use winetricks' ${WINE} if available, otherwise fallback to wine.
+    w_try ${WINE:-wine} "${_ahk_dir}/${_ahk_exe}" "${_script}"
 }
 
 load_mt4_install()
@@ -74,6 +81,9 @@ load_mt4_install()
     # No documented silent install option, unfortunately.
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do <<'EOF'
+        SetTitleMatchMode, RegEx
+        Title := "i)MetaTrader|Setup"
+
         ; Maximum time for setup to complete.
         Timeout := 600000 ; 10 min.
 
@@ -86,12 +96,11 @@ load_mt4_install()
 
         ; Running setup.
         Run, %ExePath%
-        SetTitleMatchMode, RegEx
 
         ; Awaiting for setup window to appear.
         loop 120
         {
-            if (WinExist("i)MetaTrader|Setup"))
+            if (WinExist(Title))
                 break
             if (WinExist("i)Proxy Server"))
             {
@@ -103,9 +112,22 @@ load_mt4_install()
                 ExitApp, 1
         }
 
-        WinActivate, i)MetaTrader|Setup
-        WinWaitActive, i)MetaTrader|Setup,, 10
-        Send, {Enter} ; Click Next
+        ; Click Next aggressively.
+        loop 10
+        {
+            WinActivate, %Title%
+            WinWaitActive, %Title%,, 2
+            if (!ErrorLevel)
+            {
+                Send, {Enter}
+                Send, !n
+                Sleep, 3000
+                WinGetText, winText, %Title%
+                if (InStr(winText, "Next") == 0)
+                    break
+            }
+            Sleep, 1000
+        }
 
         StartTime := A_TickCount
 
@@ -130,8 +152,8 @@ load_mt4_install()
             if (ErrorLevel)
                 break
 
-            ; Check for "Finish", "Готово", "Ende" or "Terminar" text in the window.
-            WinGetText, winText, i)MetaTrader|Setup
+            ; Check for completion text in the window.
+            WinGetText, winText, %Title%
             if (InStr(winText, "Finish") or InStr(winText, "Готово") or InStr(winText, "Ende") or InStr(winText, "Terminar"))
                 break
 
@@ -139,8 +161,9 @@ load_mt4_install()
         }
 
         ; Clicking "Finish".
-        WinActivate, i)MetaTrader|Setup
+        WinActivate, %Title%
         Send, {Enter}
+        Send, !f
         Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
