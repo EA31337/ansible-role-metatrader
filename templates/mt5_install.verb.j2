@@ -70,24 +70,24 @@ load_mt5_install()
 
         ; Running setup.
         Run, %ExePath%
-        SetTitleMatchMode, 2 ; Match anywhere in title
+        SetTitleMatchMode, RegEx
 
         ; Awaiting for setup window to appear.
-        loop 60
+        loop 120
         {
-            if (WinExist("MetaTrader 5"))
+            if (WinExist("i)MetaTrader") or WinExist("i)Setup"))
                 break
-            if (WinExist("Proxy Server"))
+            if (WinExist("i)Proxy Server"))
             {
-                WinActivate, Proxy Server
+                WinActivate, i)Proxy Server
                 Send, {Esc}
             }
             Sleep, 1000
-            if (A_Index == 60)
+            if (A_Index == 120)
                 ExitApp, 1
         }
 
-        WinActivate, MetaTrader 5
+        WinActivate, i)MetaTrader|i)Setup
         Sleep, 1000
 
         ; Clicking "Next".
@@ -105,9 +105,9 @@ load_mt5_install()
             }
 
             ; Close a blocking "Proxy Server" dialog if it appears.
-            if (WinExist("Proxy Server"))
+            if (WinExist("i)Proxy Server"))
             {
-                WinActivate, Proxy Server
+                WinActivate, i)Proxy Server
                 Send, {Esc}
                 Sleep, 1000
             }
@@ -139,7 +139,7 @@ load_mt5_install()
                 break
             Sleep, 1000
         }
-        WinWaitActive, MetaTrader,, 60
+        WinWaitActive, i)MetaTrader,, 60
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}

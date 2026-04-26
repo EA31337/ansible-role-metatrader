@@ -51,7 +51,7 @@
         - detected_os_family != "Windows"
     - name: Ensures required packages are present (standard distros)
       ansible.builtin.package:
-        name: "{{ ['curl', 'gnutls'] if ansible_facts.os_family == 'Alpine' else ['curl'] }}"
+        name: "{{ ['curl', 'gnutls', 'gnutls-utils', 'libnsl'] if ansible_facts.os_family == 'Alpine' else ['curl'] }}"
         state: present
       when:
         - detected_os_family not in ["Windows", "NixOS"]
@@ -85,7 +85,7 @@
       environment:
         DISPLAY: :0
         WINEDEBUG: -all
-        WINEDLLOVERRIDES: mscoree,mshtml=,winebrowser.exe=,dbghelp=n
+        WINEDLLOVERRIDES: mscoree,mshtml=,winebrowser.exe=,dbghelp=n,b
         WINETRICKS_DOWNLOADER: curl
       when:
         - not file_mt_installed_exists.stat.exists

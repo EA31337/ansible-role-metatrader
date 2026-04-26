@@ -4,7 +4,8 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  collections: [community.docker]
+  collections:
+    - community.docker
   vars:
     # Use controller Python (Ansible's interpreter)
     ansible_python_interpreter: '{{ ansible_playbook_python }}'
@@ -25,8 +26,8 @@
           }}
     - name: Prepare build context for custom images and CA certificates
       when:
-        - (molecule_yml.platforms | selectattr('dockerfile', 'defined') | list | length > 0) or
-          (host_ca_certs | length > 0)
+        - (molecule_yml.platforms | selectattr('dockerfile', 'defined') | list | length > 0) or (host_ca_certs | length
+          > 0)
       block:
         - name: Ensure build context directory exists
           ansible.builtin.file:
