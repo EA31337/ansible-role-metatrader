@@ -72,6 +72,25 @@
         mode: '0640'
       when:
         - not file_mt_installed_exists.stat.exists
+    - name: Verifies X display is available for Wine
+      ansible.builtin.shell: xdpyinfo >/dev/null 2>&1
+      register: xdpyinfo_check
+      failed_when: false
+      changed_when: false
+      environment:
+        DISPLAY: "{{ ansible_env.DISPLAY | default(':99') }}"
+      when:
+        - not file_mt_installed_exists.stat.exists
+    - name: Asserts X display is available
+      ansible.builtin.assert:
+        that: xdpyinfo_check.rc == 0
+        fail_msg: >-
+          X display is not available (DISPLAY={{ ansible_env.DISPLAY | default(':99') }}).
+          Ensure Xvfb or another X server is running.
+      when:
+        - not file_mt_installed_exists.stat.exists
+        - xdpyinfo_check.rc is defined
+        - xdpyinfo_check.rc != 127
     - name: Ensures MetaTrader is installed (via verb file)
       ansible.builtin.shell:
         # @todo: The winetricks command is executed directly without specifying the executable.
@@ -83,10 +102,13 @@
       async: 1200
       poll: 10
       environment:
-        DISPLAY: :0
+        DISPLAY: "{{ ansible_env.DISPLAY | default(':99') }}"
         WINEDEBUG: -all
-        WINEDLLOVERRIDES: mscoree,mshtml=,winebrowser.exe=,dbghelp=n
+        WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
         WINETRICKS_DOWNLOADER: curl
+        FONTCONFIG_FILE: >-
+          {{ '/etc/fonts/fonts.conf' if detected_os_family != 'NixOS'
+             else (ansible_env.FONTCONFIG_FILE | default('/run/current-system/sw/etc/fonts/fonts.conf')) }}
       when:
         - not file_mt_installed_exists.stat.exists
 - name: Verifies
