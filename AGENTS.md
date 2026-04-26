@@ -228,7 +228,6 @@ molecule destroy -s default
 
 ### Wine APT cache update fails
 
-
 > `Failed to update apt cache after 5 retries`
 
 - **Root cause**: Firewall/network policy blocks `dl.winehq.org`, or

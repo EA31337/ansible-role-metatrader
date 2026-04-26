@@ -115,7 +115,6 @@ jobs:
           if [ -f "$REPORT" ]; then
             # Fix permissions (the file might be owned by root if created in a container).
             sudo chown "$USER":"$USER" "$REPORT" || true
-
             {
               echo "## Molecule Summary - ${{ matrix.scenario }}"
               echo ""
