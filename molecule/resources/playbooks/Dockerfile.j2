@@ -26,7 +26,8 @@ RUN \
     nix-channel --update && \
     nix-env -iA nixpkgs.gnused nixpkgs.gnugrep nixpkgs.gawk nixpkgs.gnutar nixpkgs.which \
             nixpkgs.file nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip \
-            nixpkgs.imagemagick nixpkgs.xdotool nixpkgs.psmisc
+            nixpkgs.imagemagick nixpkgs.xdotool nixpkgs.psmisc nixpkgs.fontconfig \
+            nixpkgs.p7zip
 
 {% elif 'alpine' in base_image %}
 
