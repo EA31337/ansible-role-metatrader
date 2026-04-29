@@ -1,0 +1,32 @@
+---
+# Note: Keep keys and envs in alphabetical order.
+name: Galaxy Publish
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Publish to Ansible Galaxy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install ansible-core
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install 'ansible-core~=2.17.0'
+
+      - name: Publish role to Ansible Galaxy
+        env:
+          GALAXY_API_KEY: ${{ secrets.GALAXY_API_KEY }}
+        run: |
+          ansible-galaxy role import \
+            --api-key "$GALAXY_API_KEY" \
+            "$(echo "${{ github.repository }}" | cut -d/ -f1)" \
+            "$(echo "${{ github.repository }}" | cut -d/ -f2)"

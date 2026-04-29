@@ -11,6 +11,7 @@ on:
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/galaxy-publish.yml
       - .github/workflows/platform.yml
       - LICENSE
       - Pipfile*
@@ -22,6 +23,7 @@ on:
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/galaxy-publish.yml
       - .github/workflows/platform.yml
       - LICENSE
       - Pipfile*

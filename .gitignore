@@ -9,6 +9,7 @@ collections/
 *.log
 *.org
 *.orig
+*.patch
 *.png
 __pycache__
 requirements-local.yml
