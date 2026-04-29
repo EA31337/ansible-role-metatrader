@@ -52,7 +52,7 @@
     - name: Ensures required packages are present (standard distros)
       ansible.builtin.package:
         name: >-
-          {{ ['curl', 'gnutls', 'gnutls-utils', 'libnsl', '7zip']
+          {{ ['curl', 'gnutls', 'gnutls-utils', 'libnsl', '7zip', 'xdpyinfo']
           if ansible_facts.os_family == 'Alpine'
           else ['curl', 'p7zip-full'] }}
         state: present
@@ -73,7 +73,7 @@
         name: x11-utils
         state: present
       when:
-        - (detected_os_family | default(ansible_os_family)) not in ["Windows", "NixOS"]
+        - (detected_os_family | default(ansible_os_family)) not in ["Windows", "NixOS", "Alpine"]
         - ansible_facts.pkg_mgr not in ["unknown", ""]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures X11 utilities are present (NixOS)
@@ -131,7 +131,7 @@
       environment:
         DISPLAY: "{{ ansible_env.DISPLAY | default(':0') }}"
         WINEDEBUG: -all
-        WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=n,b
+        WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
         WINETRICKS_DOWNLOADER: curl
         XDG_RUNTIME_DIR: "{{ ansible_env.XDG_RUNTIME_DIR | default('/tmp/runtime-root') }}"
         FONTCONFIG_FILE: >-

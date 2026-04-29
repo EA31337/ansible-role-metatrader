@@ -467,8 +467,8 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 - **Root cause**: MetaTrader installer (running in Wine) fails to establish secure connections (TLS) to CDN hosts
   if the CA certificate bundle is not properly trusted or if `gnutls` is missing on Alpine.
 - **Fix**: Use the custom `Dockerfile.j2` for Alpine platforms to ensure CA certs are injected, and install the
-  `gnutls` package to provide TLS support for Wine.
-- **Verification**: Ensure `gnutls` is installed via `apk add gnutls` and CA certs are updated via `update-ca-certificates`.
+  `gnutls` and `xdpyinfo` packages to provide TLS support for Wine and X11 display verification.
+- **Verification**: Ensure `gnutls` and `xdpyinfo` are installed via `apk add gnutls xdpyinfo` and CA certs are updated via `update-ca-certificates`.
 
 ### Required Hosts
 

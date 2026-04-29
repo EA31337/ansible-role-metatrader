@@ -45,7 +45,7 @@ RUN \
     rm -rf /tmp/host-ca && \
     # Install required packages for Ansible.
     apk update && \
-    apk add --no-cache python3 sudo bash ca-certificates gnutls gnutls-utils libnsl 7zip && \
+    apk add --no-cache python3 sudo bash ca-certificates gnutls gnutls-utils libnsl 7zip xdpyinfo && \
     # Ensure CA certs are properly registered in the system.
     update-ca-certificates
 
