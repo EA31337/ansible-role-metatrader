@@ -55,7 +55,9 @@ jobs:
         run: jinja2 Dockerfile.j2 -D docker_image="${{ matrix.image }}" > Dockerfile
 
       - name: Normalize repository name
-        run: echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "REPO_LOWER=$REPO_LOWER" >> "$GITHUB_ENV"
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -87,22 +89,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - arch: linux/386
-            image: i386/alpine:latest
-            is_default: false
-            platform: alpine-latest
-          - arch: linux/amd64
-            image: debian:latest
-            is_default: false
-            platform: debian-latest
-          - arch: linux/amd64
-            image: nixos/nix:latest
-            is_default: false
-            platform: nixos-latest
-          - arch: linux/amd64
-            image: ubuntu:jammy
-            is_default: false
-            platform: ubuntu-jammy
           - arch: linux/amd64
             image: ubuntu:latest
             is_default: true
