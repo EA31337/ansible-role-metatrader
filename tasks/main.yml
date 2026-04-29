@@ -5,13 +5,13 @@
   changed_when: false
   failed_when: false
   check_mode: false
-  when: ansible_facts.os_family == 'OtherLinux' or ansible_facts.distribution == 'NixOS'
+  when: ansible_facts.os_family in ['OtherLinux', 'Alpine'] or ansible_facts.distribution == 'NixOS'
 - name: Sets detected_os_family fact
   ansible.builtin.set_fact:
     detected_os_family: >-
       {{ 'NixOS' if (ansible_facts.distribution == 'NixOS'
       or ansible_facts.os_family == 'NixOS'
-      or (ansible_facts.os_family == 'OtherLinux'
+      or (ansible_facts.os_family in ['OtherLinux', 'Alpine']
       and nix_check.rc | default(1) == 0))
       else ansible_facts.os_family }}
 - name: Sets ansible_os_family to NixOS if detected
@@ -131,9 +131,7 @@
         WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
         WINETRICKS_DOWNLOADER: curl
         XDG_RUNTIME_DIR: "{{ ansible_env.XDG_RUNTIME_DIR | default('/tmp/runtime-root') }}"
-        FONTCONFIG_FILE: >-
-          {{ '/etc/fonts/fonts.conf' if (detected_os_family | default(ansible_os_family)) != 'NixOS'
-             else (ansible_env.FONTCONFIG_FILE | default('/run/current-system/sw/etc/fonts/fonts.conf')) }}
+        FONTCONFIG_FILE: "{{ ansible_env.FONTCONFIG_FILE | default('/etc/fonts/fonts.conf') }}"
       when:
         - not file_mt_installed_exists.stat.exists
 - name: Verifies

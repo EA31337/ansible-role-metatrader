@@ -58,114 +58,155 @@ load_mt5_install()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do <<'EOF'
-        ; Maximum time for setup to complete.
-        Timeout := 600000 ; 10 min.
+; Maximum time for setup to complete.
+Timeout := 600000 ; 10 min.
 
-        ; Searching for a setup EXE file.
-        loop, Files, *.exe
-        {
-            ExePath := A_LoopFileFullPath
-            break
-        }
+; Searching for a setup EXE file.
+loop, *.exe
+{
+    ExePath := A_LoopFileFullPath
+    break
+}
 
-        ; Running setup.
-        Run, %ExePath%
-        SetTitleMatchMode, 2 ; Match anywhere in title
+; Running setup.
+FileAppend, Running setup: %ExePath%`n, *
+Run, %ExePath%
+SetTitleMatchMode, 2 ; Match anywhere in title
 
-        ; Awaiting for setup window to appear.
-        loop 60
-        {
-            if (WinExist("MetaTrader 5"))
-                break
-            if (WinExist("Proxy Server"))
-            {
-                WinActivate, Proxy Server
-                Send, {Esc}
-            }
-            Sleep, 1000
-            if (A_Index == 60)
-                ExitApp, 1
-        }
+; Awaiting for setup window to appear.
+loop 120 ; 2 minutes
+{
+    if (WinExist("MetaTrader 5") || WinExist("mt5setup") || WinExist("Setup") || WinExist("Install"))
+    {
+        if (WinExist("MetaTrader 5"))
+            TargetTitle := "MetaTrader 5"
+        else if (WinExist("mt5setup"))
+            TargetTitle := "mt5setup"
+        else if (WinExist("Setup"))
+            TargetTitle := "Setup"
+        else
+            TargetTitle := "Install"
+        FileAppend, Found window: %TargetTitle%`n, *
+        break
+    }
+    if (WinExist("Proxy Server"))
+    {
+        FileAppend, Closing Proxy Server dialog`n, *
+        WinActivate, Proxy Server
+        Send, {Esc}
+    }
+    Sleep, 1000
+    if (A_Index == 120)
+    {
+        FileAppend, Setup window not found after 2 minutes`n, *
+        ExitApp, 1
+    }
+}
 
-        WinActivate, MetaTrader 5
-        Sleep, 1000
+WinActivate, %TargetTitle%
+WinWaitActive, %TargetTitle%,, 10
+Sleep, 1000
 
-        ; Clicking "Next".
-        Send, !n
-        Sleep, 1000
+; Clicking "Next".
+FileAppend, Clicking Next`n, *
+Send, !n
+Sleep, 1000
+; If !n didn't work, try Enter
+Send, {Enter}
+Sleep, 1000
 
-        StartTime := A_TickCount
+StartTime := A_TickCount
 
-        loop
-        {
-            ; Check if timeout have passed.
-            if (A_TickCount - StartTime > Timeout)
-            {
-                ExitApp, 1 ; Exit with error on timeout
-            }
+loop
+{
+    ; Check if timeout have passed.
+    if (A_TickCount - StartTime > Timeout)
+    {
+        FileAppend, Setup timed out after 10 minutes`n, *
+        ExitApp, 1 ; Exit with error on timeout
+    }
 
-            ; Close a blocking "Proxy Server" dialog if it appears.
-            if (WinExist("Proxy Server"))
-            {
-                WinActivate, Proxy Server
-                Send, {Esc}
-                Sleep, 1000
-            }
+    WinActivate, %TargetTitle%
 
-            ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
-
-            if (FinishVisible)
-            {
-                break
-            }
-
-            ; Sleeping for a short while before checking again.
-            Sleep, 1000
-        }
-
-        ; Clicking "Finish".
-        Send, {Enter}
-        Sleep, 5000
-
-        ; Awaiting for terminal process and window to appear.
-        loop 60
-        {
-            Process, Exist, terminal64.exe
-            if (ErrorLevel)
-                break
-            Process, Exist, terminal.exe
-            if (ErrorLevel)
-                break
-            Sleep, 1000
-        }
-        WinWaitActive, MetaTrader,, 60
-
-        ; Closing dialogs and exiting from the terminal.
+    ; Close a blocking "Proxy Server" dialog if it appears.
+    if (WinExist("Proxy Server"))
+    {
+        FileAppend, Closing Proxy Server dialog`n, *
+        WinActivate, Proxy Server
         Send, {Esc}
         Sleep, 1000
+    }
+
+    ; Close Wine Mono/Gecko installer dialogs if they appear.
+    if (WinExist("Wine Mono Installer") || WinExist("Wine Gecko Installer"))
+    {
+        WinActivate
         Send, {Esc}
         Sleep, 1000
-        Send, !f
-        Sleep, 1000
-        Send, x
-        Sleep, 1000
-        Send, !{F4}
+    }
 
-        ; Awaiting terminal window to close for 20s.
-        loop 20
-        {
-            Process, Exist, terminal64.exe
-            if (!ErrorLevel)
-                break
-            Process, Exist, terminal.exe
-            if (!ErrorLevel)
-                break
-            Sleep, 1000
-        }
+    ; Close debugger detection warning if it appears.
+    if (WinExist("ahk_class #32770", "A debugger has been found"))
+    {
+        WinActivate
+        Send, {Esc}
+        Sleep, 1000
+    }
 
-        ; If terminal didn't close in 20s then we are forcing it to close.
-        Process, Close, terminal64.exe
-        Process, Close, terminal.exe
+    ; Is "Finish" button visible?
+    WinGetText, WindowText, %TargetTitle%
+    if (InStr(WindowText, "Finish") || InStr(WindowText, "finish") || InStr(WindowText, "Done"))
+    {
+        FileAppend, Finish button found`n, *
+        break
+    }
+
+    ; Sleeping for a short while before checking again.
+    Sleep, 1000
+}
+
+; Clicking "Finish".
+Send, {Enter}
+Sleep, 5000
+
+; Awaiting for terminal process and window to appear.
+loop 60
+{
+    Process, Exist, terminal64.exe
+    if (ErrorLevel)
+        break
+    Process, Exist, terminal.exe
+    if (ErrorLevel)
+        break
+    Sleep, 1000
+}
+WinWaitActive, MetaTrader,, 60
+
+; Closing dialogs and exiting from the terminal.
+Send, {Esc}
+Sleep, 1000
+Send, {Esc}
+Sleep, 1000
+Send, !f
+Sleep, 1000
+Send, x
+Sleep, 1000
+Send, !{F4}
+
+; Awaiting terminal window to close for 20s.
+loop 20
+{
+    Process, Exist, terminal64.exe
+    if (!ErrorLevel)
+        break
+    Process, Exist, terminal.exe
+    if (!ErrorLevel)
+        break
+    Sleep, 1000
+}
+
+; If terminal didn't close in 20s then we are forcing it to close.
+Process, Close, terminal64.exe
+Process, Close, terminal.exe
 EOF
 }

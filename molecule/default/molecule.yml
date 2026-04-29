@@ -17,6 +17,9 @@ lint: |
   ansible-lint
   molecule syntax
 platforms:
+  - name: nixos-latest
+    image: nixos/nix:latest
+    dockerfile: ../resources/playbooks/Dockerfile.j2
   - name: ubuntu-latest
     image: ubuntu:latest
   - name: ubuntu-noble
@@ -50,6 +53,8 @@ provisioner:
         wine_release: stable
         wine_winetricks_winver: win10
     host_vars:
+      nixos-latest:
+        wine_winetricks_url: ''
       ubuntu-latest:
         wine_release_codename: '{{ ansible_facts.distribution_release | lower }}'
       ubuntu-noble:
