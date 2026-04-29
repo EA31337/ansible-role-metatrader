@@ -468,7 +468,8 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
   if the CA certificate bundle is not properly trusted or if `gnutls` is missing on Alpine.
 - **Fix**: Use the custom `Dockerfile.j2` for Alpine platforms to ensure CA certs are injected, and install the
   `gnutls` and `xdpyinfo` packages to provide TLS support for Wine and X11 display verification.
-- **Verification**: Ensure `gnutls` and `xdpyinfo` are installed via `apk add gnutls xdpyinfo` and CA certs are updated via `update-ca-certificates`.
+- **Verification**: Ensure `gnutls` and `xdpyinfo` are installed via `apk add gnutls xdpyinfo` and CA certs are
+  updated via `update-ca-certificates`.
 
 ### Required Hosts
 
