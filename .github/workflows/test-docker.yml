@@ -1,0 +1,73 @@
+---
+name: Test Docker
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths-ignore:
+      - '.github/workflows/cogni-ai-agent.yml'
+      - '.github/workflows/copilot-setup-steps.yml'
+      - '.github/workflows/galaxy-publish.yml'
+      - '**/*.cfg'
+      - '**/*.md'
+      - '.*'
+      - Pipfile*
+  push:
+    paths-ignore:
+      - '.github/workflows/cogni-ai-agent.yml'
+      - '.github/workflows/copilot-setup-steps.yml'
+      - '.github/workflows/galaxy-publish.yml'
+      - '**/*.cfg'
+      - '**/*.md'
+      - '.*'
+      - Pipfile*
+  workflow_dispatch:
+
+jobs:
+  test-docker:
+    name: Test Docker Image
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: ${{ github.repository }}
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.11'
+
+      - name: Install Python's requirements
+        run: pip install -r .devcontainer/requirements.txt
+        working-directory: ${{ github.repository }}
+
+      - name: Install Ansible Galaxy requirements
+        run: ansible-galaxy install -r requirements.yml
+        working-directory: ${{ github.repository }}
+
+      - name: Install Ansible Galaxy local requirements
+        run: |
+          jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
+          ansible-galaxy install -r requirements-local.yml && rm requirements-local.yml
+        working-directory: ${{ github.repository }}
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Ansible playbook on Docker image
+        run: |
+          ansible-playbook -i tests/inventory/test-docker.yml tests/playbooks/test-docker.yml
+        working-directory: ${{ github.repository }}
+
+      # Debug with tmate on failure when debug logging is enabled.
+      - if: ${{ failure() && runner.debug == '1' }}
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 20

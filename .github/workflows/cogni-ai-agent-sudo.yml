@@ -1,0 +1,61 @@
+---
+# See: <https://opencode.ai/docs>
+name: Cogni AI Agent (Sudo)
+
+# yamllint disable-line rule:truthy
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        default: opencode/gemini-3-flash
+        description: Model to use for OpenCode
+        options:
+          - opencode/gemini-3.1-pro
+          - opencode/gemini-3-flash
+        required: true
+        type: choice
+      prompt:
+        description: Prompt for the agent
+        required: true
+        type: string
+
+jobs:
+  cogni-ai-agent-sudo:
+    name: Run Cogni AI agent (Sudo)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      issues: write
+      packages: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
+      - uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.12'
+      - name: Restore Python user site
+        id: python-user-site
+        uses: actions/cache@v5
+        with:
+          path: ~/.local
+          key: ${{ runner.os }}-pip-${{ hashFiles('.devcontainer/requirements.txt') }}
+      - name: Install Python dependencies
+        if: steps.python-user-site.outputs.cache-hit != 'true'
+        run: python -m pip install --user -r .devcontainer/requirements.txt
+      - name: Ensure local bin on PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      # See: <https://github.com/Cogni-AI-OU/cogni-ai-agent-action>
+      - name: Run Cogni AI Agent
+        uses: Cogni-AI-OU/cogni-ai-agent-action@main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: ${{ inputs.model }}
+          opencode-api-key: ${{ secrets.OPENCODE_API_KEY }}  # <https://opencode.ai/auth>
+          permissions: |-
+            bash:
+              '*': allow
+          prompt: ${{ inputs.prompt }}

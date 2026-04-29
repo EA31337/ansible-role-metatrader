@@ -1,0 +1,66 @@
+---
+- name: Configure Docker container
+  # Note: Since facts are not gathered, we're checking for ansible_user_id, connection_user or UID instead.
+  become: >-
+    {{
+      (connection_user | default('root')) != 'root'
+      or (ansible_user_id | default('root')) != 'root'
+      or (ansible_user_uid | default(0) | int) != 0
+      or (((ansible_env | default({}))['UID'] | default(0) | int) != 0)
+      or (
+        ((ansible_env | default({}))['USER']
+        | default(((ansible_env | default({}))['LOGNAME'] | default('root'))) )
+        != 'root'
+      )
+    }}
+  # Use su as become_method as sudo is not available in all containers.
+  become_method: ansible.builtin.su
+  gather_facts: false
+  hosts: docker_containers
+
+  vars:
+    metatrader_test_image: "ghcr.io/ea31337/ansible-role-metatrader:latest"
+
+  pre_tasks:
+    - name: Manage Docker container lifecycle
+      delegate_to: localhost
+      vars:
+        ansible_python_interpreter: "{{ ansible_playbook_python }}"
+      block:
+        - name: Ensure container is started
+          community.docker.docker_container:
+            name: "{{ inventory_hostname }}"
+            image: "{{ metatrader_test_image }}"
+            state: started
+            command: sleep infinity
+            recreate: true
+            pull: true
+
+        - name: Wait for container to be ready
+          community.docker.docker_container_info:
+            name: "{{ inventory_hostname }}"
+          register: container_info
+          until:
+            - container_info is defined
+            - container_info.container.State.Running | default(false) | bool
+          changed_when: false
+          delay: 2
+          retries: 10
+
+- name: Install ea31337.metatrader role on the container
+  hosts: docker_containers
+  gather_facts: true
+  tasks:
+    - name: Installs ea31337.metatrader role
+      ansible.builtin.import_role:
+        name: ea31337.metatrader
+
+  post_tasks:
+    - name: Stop Docker containers
+      community.docker.docker_container:
+        name: "{{ inventory_hostname }}"
+        state: absent
+      delegate_to: localhost
+      failed_when: false
+      vars:
+        ansible_python_interpreter: "{{ ansible_playbook_python }}"

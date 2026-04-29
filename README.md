@@ -87,6 +87,17 @@ To test using Molecule, run:
 molecule test
 ```
 
+## Docker Image
+
+The Docker image is automatically built and pushed to the GitHub Container Registry (GHCR) on every merge to `master`
+and on new tags.
+
+To pull the latest image:
+
+```shell
+docker pull ghcr.io/ea31337/ansible-role-metatrader:latest
+```
+
 ## License
 
 GNU GPL v3
