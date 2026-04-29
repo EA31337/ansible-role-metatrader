@@ -62,6 +62,7 @@ jobs:
       contents: write
       id-token: write
       issues: write
+      packages: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v6
