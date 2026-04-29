@@ -5,18 +5,24 @@ name: Molecule
 on:
   pull_request:
     paths-ignore:
-      - .github/workflows/**
       - '**.cfg'
       - '**.md'
       - .*
+      - .github/workflows/check.yml
+      - .github/workflows/cogni-ai-agent.yml
+      - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/platform.yml
       - LICENSE
       - Pipfile*
   push:
     paths-ignore:
-      - .github/workflows/**
       - '**.cfg'
       - '**.md'
       - .*
+      - .github/workflows/check.yml
+      - .github/workflows/cogni-ai-agent.yml
+      - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/platform.yml
       - LICENSE
       - Pipfile*
 concurrency:
@@ -55,8 +61,8 @@ jobs:
         with:
           key: >-
             ${{ runner.os }}-pip-${{ hashFiles(
-              format('{0}/Pipfile*', github.repository),
-              format('{0}/.devcontainer/requirements.txt', github.repository)
+              'Pipfile*',
+              '.devcontainer/requirements.txt'
             ) }}
           path: ~/.cache/pip
           restore-keys: |
@@ -64,7 +70,7 @@ jobs:
       - name: Cache Ansible Galaxy
         uses: actions/cache@v5.0.1
         with:
-          key: ${{ runner.os }}-galaxy-${{ hashFiles(format('{0}/requirements.yml', github.repository)) }}
+          key: ${{ runner.os }}-galaxy-${{ hashFiles('requirements.yml') }}
           path: |
             ~/.ansible/roles
             ~/.ansible/collections
@@ -94,11 +100,48 @@ jobs:
           ANSIBLE_FORCE_COLOR: '1'
           ANSIBLE_STDOUT_CALLBACK: >-
             ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
+          MOLECULE_REPORT: molecule-${{ matrix.scenario }}-report.html
         with:
           molecule_args: >-
             --scenario-name ${{ matrix.scenario }}
           molecule_command: test
           molecule_options: ${{ runner.debug == '1' && '--verbose' || '' }}
+          molecule_working_dir: .
+      - if: always()
+        name: Summarize Molecule report
+        run: |
+          REPORT="molecule-${{ matrix.scenario }}-report.html"
+          if [ -f "$REPORT" ]; then
+            # Fix permissions (the file might be owned by root if created in a container).
+            sudo chown "$USER":"$USER" "$REPORT" || true
+            {
+              echo "## Molecule Summary - ${{ matrix.scenario }}"
+              echo ""
+              # Extract Play Recap
+              echo "### Play Recap"
+              echo '```'
+              sed 's/<[^>]*>//g; s/&nbsp;/ /g; s/&lt;/</g; s/&gt;/>/g; s/&amp;/\&/g' "$REPORT" | \
+                awk '/PLAY RECAP/ {p=1} p; /^[[:space:]]*$/ && p {p=0}' | \
+                grep -v "^$" | head -n 20
+              echo '```'
+
+              # Extract Errors and Warnings
+              echo "<details><summary>Errors and Warnings (click to expand)</summary>"
+              echo ""
+              echo '```'
+              sed 's/<[^>]*>//g; s/&nbsp;/ /g; s/&lt;/</g; s/&gt;/>/g; s/&amp;/\&/g' "$REPORT" | \
+                grep -iE "error|warning|fail" | grep -vE "ok=|changed=" | head -n 50
+              echo '```'
+              echo "</details>"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - if: always()
+        name: Upload Molecule report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: warn
+          name: molecule-${{ matrix.scenario }}-${{ matrix.platform }}-report
+          path: molecule-${{ matrix.scenario }}-report.html
       - if: ${{ failure() && runner.debug == '1' }}
         uses: mxschmitt/action-tmate@v3
     timeout-minutes: 120

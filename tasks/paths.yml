@@ -3,12 +3,12 @@
   ansible.builtin.set_fact:
     mt_runner_mt_path_wine: C:\Program Files (x86)\MetaTrader 4
     mt_runner_mt_terminal_path_wine: C:\Program Files (x86)\MetaTrader 4\terminal.exe
-  when: (mt_runner_mt_version | int) == 4
+  when: (metatrader_version | int) == 4
 - name: Set platform's client OS directory path (MT5) - Windows-style path under Wine
   ansible.builtin.set_fact:
     mt_runner_mt_path_wine: C:\Program Files\MetaTrader 5
     mt_runner_mt_terminal_path_wine: C:\Program Files\MetaTrader 5\terminal64.exe
-  when: (mt_runner_mt_version | int) == 5
+  when: (metatrader_version | int) == 5
 - name: Set wine_prefix variable
   ansible.builtin.set_fact:
     wine_prefix: '{{ ansible_env.WINEPREFIX | default(ansible_env.HOME + "/.wine") }}'
@@ -20,7 +20,7 @@
     mt_runner_mt_terminal_path_windows: C:\Program Files (x86)\MetaTrader 4\terminal.exe
     mt_runner_mt_terminal_path_cygwin: /cygdrive/c/Program Files (x86)/MetaTrader 4/terminal.exe
     mt_runner_mt_terminal_path_unix: '{{ wine_prefix }}/drive_c/Program Files (x86)/MetaTrader 4/terminal.exe'
-  when: (mt_runner_mt_version | int) == 4
+  when: (metatrader_version | int) == 4
 - name: Set platform's host OS directory path (MT5) - Windows-style path, later converted to Unix if needed
   ansible.builtin.set_fact:
     mt_runner_mt_path_windows: C:\Program Files\MetaTrader 5
@@ -29,7 +29,7 @@
     mt_runner_mt_terminal_path_windows: C:\Program Files\MetaTrader 5\terminal64.exe
     mt_runner_mt_terminal_path_cygwin: /cygdrive/c/Program Files/MetaTrader 5/terminal64.exe
     mt_runner_mt_terminal_path_unix: '{{ wine_prefix }}/drive_c/Program Files/MetaTrader 5/terminal64.exe'
-  when: (mt_runner_mt_version | int) == 5
+  when: (metatrader_version | int) == 5
 - name: Pick the right path for the platform (Windows)
   ansible.builtin.set_fact:
     mt_runner_mt_path_host: '{{ mt_runner_mt_path_windows }}'

@@ -30,7 +30,7 @@ w_ahk_do()
 
     local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
     mkdir -p "${_script_dir}"
-    printf '%s\n' "$@" > "${_script_dir}/${W_PACKAGE}.ahk"
+    cat > "${_script_dir}/${W_PACKAGE}.ahk"
 
     wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
@@ -56,13 +56,9 @@ load_mt4_install()
     w_try wine reg add "HKLM\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
     w_try wine reg add "HKCU\\Software\\Wine" /v "HideWineExports" /t REG_SZ /d "Y" /f
 
-    # Opens a webpage.
-    WINEDLLOVERRIDES="mshtml=,winebrowser.exe="
-    export WINEDLLOVERRIDES
-
     # No documented silent install option, unfortunately.
     w_try_cd "$W_CACHE/$W_PACKAGE"
-    w_ahk_do "
+    w_ahk_do <<'EOF'
         ; Maximum time for setup to complete.
         Timeout := 600000 ; 10 min.
 
@@ -75,13 +71,29 @@ load_mt4_install()
 
         ; Running setup.
         Run, %ExePath%
-        SetTitleMatchMode, RegEx
+        SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        WinWait, 4 Setup,, 30
+        loop 60
+        {
+            if (WinExist("4 Setup"))
+                break
+            if (WinExist("Proxy Server"))
+            {
+                WinActivate, Proxy Server
+                Send, {Esc}
+            }
+            Sleep, 1000
+            if (A_Index == 60)
+                ExitApp, 1
+        }
 
-        ; Clicking \"Next\".
+        WinActivate, 4 Setup
+        Sleep, 1000
+
+        ; Clicking "Next".
         Send, !n
+        Sleep, 1000
 
         StartTime := A_TickCount
 
@@ -90,18 +102,18 @@ load_mt4_install()
             ; Check if timeout have passed.
             if (A_TickCount - StartTime > Timeout)
             {
-                break
+                ExitApp, 1 ; Exit with error on timeout
             }
 
-            ; Close a blocking \"Proxy Server\" dialog if it appears.
-            if (WinExist(\"Proxy Server\"))
+            ; Close a blocking "Proxy Server" dialog if it appears.
+            if (WinExist("Proxy Server"))
             {
                 WinActivate, Proxy Server
                 Send, {Esc}
                 Sleep, 1000
             }
 
-            ; Is \"Finish\" button visible?
+            ; Is "Finish" button visible?
             ControlGet, FinishVisible, Visible,, Finish
 
             if (FinishVisible)
@@ -113,21 +125,41 @@ load_mt4_install()
             Sleep, 1000
         }
 
-        ; Clicking \"Finish\".
+        ; Clicking "Finish".
         Send, {Enter}
-
+        Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
-        Process, Wait, terminal.exe, 5
-        WinWaitActive, ahk_class MetaQuotes::MetaTrader::4.00
+        loop 60
+        {
+            Process, Exist, terminal.exe
+            if (ErrorLevel)
+                break
+            Sleep, 1000
+        }
+        WinWaitActive, MetaTrader,, 60
 
         ; Closing dialogs and exiting from the terminal.
-        Send, {Esc}, {Esc}, !fx, !{F4} ; File->Exit, Alt-F4
+        Send, {Esc}
+        Sleep, 1000
+        Send, {Esc}
+        Sleep, 1000
+        Send, !f
+        Sleep, 1000
+        Send, x
+        Sleep, 1000
+        Send, !{F4}
 
-        ; Awaiting terminal window to close for 2s.
-        WinWaitClose, ahk_exe terminal.exe, 2
+        ; Awaiting terminal window to close for 20s.
+        loop 20
+        {
+            Process, Exist, terminal.exe
+            if (!ErrorLevel)
+                break
+            Sleep, 1000
+        }
 
-        ; If terminal didn't close in 2s then we are forcing it to close.
+        ; If terminal didn't close in 20s then we are forcing it to close.
         Process, Close, terminal.exe
-    "
+EOF
 }

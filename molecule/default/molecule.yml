@@ -15,6 +15,7 @@ lint: |
   set -e
   yamllint .
   ansible-lint
+  molecule syntax
 platforms:
   - name: ubuntu-latest
     image: ubuntu:latest
