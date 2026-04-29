@@ -3,7 +3,7 @@ all:
   children:
     docker_containers:
       hosts:
-        metatrader-on-package-image:
+        metatrader-on-wine-latest:
           ansible_connection: docker
-          ansible_host: metatrader-on-package-image
+          ansible_host: metatrader-on-wine-latest
           ansible_python_interpreter: /usr/bin/python3
