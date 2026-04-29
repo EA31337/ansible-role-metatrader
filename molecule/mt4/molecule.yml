@@ -18,9 +18,9 @@ lint: |
   molecule syntax
 platforms:
   - name: ubuntu-latest
-    image: ubuntu:latest
+    image: ghcr.io/ea31337/ansible-role-xvfb:1.0.4-ubuntu-latest
   - name: ubuntu-noble
-    image: ubuntu:noble
+    image: ghcr.io/ea31337/ansible-role-xvfb:1.0.4-ubuntu-noble
 provisioner:
   config_options:
     defaults:
