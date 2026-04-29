@@ -38,7 +38,7 @@
     - name: Verify terminal was found
       ansible.builtin.assert:
         that: find_mt_res.matched > 0
-        msg: "MetaTrader terminal not found in {{ mt_runner_mt_path_host }}"
+        msg: MetaTrader terminal not found in {{ mt_runner_mt_path_host }}
     - name: Store platform's path
       ansible.builtin.set_fact:
         find_mt_path: >-
@@ -75,7 +75,7 @@
     - name: Verify editor was found
       ansible.builtin.assert:
         that: find_mte_res.matched > 0
-        msg: "MetaTrader editor not found in {{ mt_runner_mt_path_host }}"
+        msg: MetaTrader editor not found in {{ mt_runner_mt_path_host }}
     - name: Store platform's editor path
       ansible.builtin.set_fact:
         find_mte_path: >-

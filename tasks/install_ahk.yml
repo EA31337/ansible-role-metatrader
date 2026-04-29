@@ -5,96 +5,83 @@
     state: directory
     mode: '0755'
   loop:
-    - "{{ ahk_install_dir }}"
-    - "{{ ahk_setup_dir }}"
+    - '{{ ahk_install_dir }}'
+    - '{{ ahk_setup_dir }}'
   when: not ahk_is_windows
-
 - name: Ensure AutoHotkey directories exist (Windows)
   ansible.windows.win_file:
     path: '{{ item }}'
     state: directory
   loop:
-    - "{{ ahk_install_dir }}"
-    - "{{ ahk_setup_dir }}"
+    - '{{ ahk_install_dir }}'
+    - '{{ ahk_setup_dir }}'
   when: ahk_is_windows
-
 - name: Verify AutoHotkey executable exists (Unix/Cygwin)
   ansible.builtin.stat:
-    path: "{{ ahk_exe_path }}"
+    path: '{{ ahk_exe_path }}'
   register: ahk_stat_unix
   when: not ahk_is_windows
-
 - name: Verify AutoHotkey executable exists (Windows)
   ansible.windows.win_stat:
-    path: "{{ ahk_exe_path }}"
+    path: '{{ ahk_exe_path }}'
   register: ahk_stat_win
   when: ahk_is_windows
-
 - name: Consolidate AutoHotkey stat result
   ansible.builtin.set_fact:
-    ahk_stat_res: "{{ ahk_stat_win if ahk_is_windows else ahk_stat_unix }}"
-
+    ahk_stat_res: '{{ ahk_stat_win if ahk_is_windows else ahk_stat_unix }}'
 - name: Download AutoHotkey archive (Unix/Cygwin)
   ansible.builtin.get_url:
     url: '{{ metatrader_autohotkey_url }}'
-    dest: "{{ ahk_zip_path }}"
+    dest: '{{ ahk_zip_path }}'
     mode: '0644'
   when:
     - not ahk_is_windows
     - not ahk_stat_res.stat.exists
-
 - name: Download AutoHotkey archive (Windows)
   ansible.windows.win_get_url:
     url: '{{ metatrader_autohotkey_url }}'
-    dest: "{{ ahk_zip_path }}"
+    dest: '{{ ahk_zip_path }}'
   when:
     - ahk_is_windows
     - not ahk_stat_res.stat.exists
-
 - name: Extract AutoHotkey (Unix/Cygwin)
   ansible.builtin.unarchive:
-    src: "{{ ahk_zip_path }}"
-    dest: "{{ ahk_install_dir }}"
+    src: '{{ ahk_zip_path }}'
+    dest: '{{ ahk_install_dir }}'
     remote_src: true
-    creates: "{{ ahk_exe_path }}"
+    creates: '{{ ahk_exe_path }}'
   when: not ahk_is_windows
-
 - name: Extract AutoHotkey (Windows)
   community.windows.win_unzip:
-    src: "{{ ahk_zip_path }}"
-    dest: "{{ ahk_install_dir }}"
-    creates: "{{ ahk_exe_path }}"
+    src: '{{ ahk_zip_path }}'
+    dest: '{{ ahk_install_dir }}'
+    creates: '{{ ahk_exe_path }}'
   when: ahk_is_windows
-
 - name: Verify MetaTrader installer exists (Unix/Cygwin)
   ansible.builtin.stat:
-    path: "{{ mt_setup_path }}"
+    path: '{{ mt_setup_path }}'
   register: mt_setup_stat_unix
   when: not ahk_is_windows
-
 - name: Verify MetaTrader installer exists (Windows)
   ansible.windows.win_stat:
-    path: "{{ mt_setup_path }}"
+    path: '{{ mt_setup_path }}'
   register: mt_setup_stat_win
   when: ahk_is_windows
-
 - name: Consolidate MetaTrader installer stat result
   ansible.builtin.set_fact:
-    mt_setup_stat_res: "{{ mt_setup_stat_win if ahk_is_windows else mt_setup_stat_unix }}"
-
+    mt_setup_stat_res: '{{ mt_setup_stat_win if ahk_is_windows else mt_setup_stat_unix }}'
 - name: Download MetaTrader installer (Unix/Cygwin)
   ansible.builtin.get_url:
     url: '{{ metatrader_setup_url }}'
-    dest: "{{ mt_setup_path }}"
+    dest: '{{ mt_setup_path }}'
     mode: '0755'
   when:
     - not ahk_is_windows
     - not mt_setup_stat_res.stat.exists
-
 - name: Download MetaTrader installer (Windows)
   ansible.windows.win_get_url:
     url: '{{ metatrader_setup_url }}'
-    dest: "{{ mt_setup_path }}"
+    dest: '{{ mt_setup_path }}'
   when:
     - ahk_is_windows
     - not mt_setup_stat_res.stat.exists
