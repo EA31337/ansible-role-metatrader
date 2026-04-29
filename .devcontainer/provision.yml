@@ -1,4 +1,7 @@
 ---
+# Ansible playbook file.
+# Usage: ansible-playbook .devcontainer/provision.yml
+# Note: Keep keys and lists in alphabetical order.
 - name: Provision dev container
   hosts: localhost
   connection: local
