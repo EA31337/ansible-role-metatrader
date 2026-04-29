@@ -1,0 +1,43 @@
+# Dockerfile for ea31337.metatrader Ansible role
+FROM {{ docker_image | default('ubuntu:noble') }}
+
+LABEL org.opencontainers.image.source=https://github.com/EA31337/ansible-role-metatrader
+LABEL org.opencontainers.image.description="MetaTrader container based on ea31337.metatrader Ansible role"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Ansible and dependencies
+{% if 'alpine' in (docker_image | default('ubuntu:noble')) %}
+RUN grep -E '^[^#].*/main$' /etc/apk/repositories | sed 's/main$/community/' >> /etc/apk/repositories && \
+    apk update && \
+    apk add --no-cache ansible bash ca-certificates cabextract curl fontconfig gawk p7zip python3 sudo ttf-freefont unzip xauth xvfb-run && \
+    update-ca-certificates
+{% elif 'nixos' in (docker_image | default('ubuntu:noble')) %}
+RUN nix-channel --update && \
+    nix-env -iA nixpkgs.ansible nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.sudo
+{% else %}
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ansible \
+    python3-apt \
+    python3-pip \
+    python3-setuptools \
+    python3-wheel \
+    sudo && \
+    pip3 install --no-cache-dir "ansible-core>=2.14" --break-system-packages || \
+    pip3 install --no-cache-dir "ansible-core>=2.14" && \
+    rm -rf /var/lib/apt/lists/*
+{% endif %}
+
+# Copy the role into the container
+WORKDIR /etc/ansible/roles/ea31337.metatrader
+COPY . .
+
+# Create a local playbook to apply the role
+RUN ansible-galaxy install -r requirements.yml && \
+    printf -- "---\n- hosts: localhost\n  connection: local\n  roles:\n    - role: ea31337.metatrader\n" > /tmp/playbook.yml && \
+    ansible-playbook /tmp/playbook.yml && \
+    rm /tmp/playbook.yml
+
+# Default CMD
+CMD ["wine", "--version"]

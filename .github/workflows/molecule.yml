@@ -11,8 +11,12 @@ on:
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/docker-build.yml
       - .github/workflows/galaxy-publish.yml
       - .github/workflows/platform.yml
+      - .github/workflows/test-docker.yml
+      - .dockerignore
+      - Dockerfile.j2
       - LICENSE
       - Pipfile*
   push:
@@ -23,8 +27,12 @@ on:
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/docker-build.yml
       - .github/workflows/galaxy-publish.yml
       - .github/workflows/platform.yml
+      - .github/workflows/test-docker.yml
+      - .dockerignore
+      - Dockerfile.j2
       - LICENSE
       - Pipfile*
 concurrency:

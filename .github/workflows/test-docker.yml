@@ -5,18 +5,26 @@ name: Test Docker
 on:
   pull_request:
     paths-ignore:
+      - '.github/workflows/check.yml'
       - '.github/workflows/cogni-ai-agent.yml'
       - '.github/workflows/copilot-setup-steps.yml'
+      - '.github/workflows/docker-build.yml'
       - '.github/workflows/galaxy-publish.yml'
+      - '.github/workflows/platform.yml'
+      - LICENSE
       - '**/*.cfg'
       - '**/*.md'
       - '.*'
       - Pipfile*
   push:
     paths-ignore:
+      - '.github/workflows/check.yml'
       - '.github/workflows/cogni-ai-agent.yml'
       - '.github/workflows/copilot-setup-steps.yml'
+      - '.github/workflows/docker-build.yml'
       - '.github/workflows/galaxy-publish.yml'
+      - '.github/workflows/platform.yml'
+      - LICENSE
       - '**/*.cfg'
       - '**/*.md'
       - '.*'
