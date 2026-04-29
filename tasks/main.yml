@@ -49,9 +49,12 @@
         path: ~/.wine/.installed-mt{{ metatrader_version }}
       when:
         - detected_os_family != "Windows"
-    - name: Ensures Curl is present (standard distros)
+    - name: Ensures required packages are present (standard distros)
       ansible.builtin.package:
-        name: curl
+        name: >-
+          {{ ['curl', 'gnutls', 'gnutls-utils', 'libnsl', '7zip', 'xdpyinfo']
+          if ansible_facts.os_family == 'Alpine'
+          else ['curl', 'p7zip-full'] }}
         state: present
       when:
         - detected_os_family not in ["Windows", "NixOS"]
@@ -70,7 +73,7 @@
         name: x11-utils
         state: present
       when:
-        - (detected_os_family | default(ansible_os_family)) not in ["Windows", "NixOS"]
+        - (detected_os_family | default(ansible_os_family)) not in ["Windows", "NixOS", "Alpine"]
         - ansible_facts.pkg_mgr not in ["unknown", ""]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures X11 utilities are present (NixOS)

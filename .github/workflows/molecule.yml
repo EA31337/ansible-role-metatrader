@@ -41,6 +41,7 @@ jobs:
       fail-fast: true
       matrix:
         platform:
+          - alpine-latest
           - ubuntu-noble
           - ubuntu-latest
         scenario:
@@ -165,6 +166,7 @@ jobs:
             // Keep in sync with the strategy.matrix above.
             const scenarios = ['default', 'mt4', 'mt5'];
             const platforms = [
+              'alpine-latest',
               'ubuntu-noble',
               'ubuntu-latest',
             ];

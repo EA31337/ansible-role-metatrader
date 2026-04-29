@@ -5,34 +5,56 @@ w_metadata mt5_install apps \
     year="2021" \
     media="download"
 
-# Override winetricks' built-in w_ahk_do to use 64-bit AutoHotkey.
-# Required on Alpine linux where wine is wow64-only (no 32-bit support)
-# and running AutoHotkeyU32.exe fails with "could not load kernel32.dll".
+# Override winetricks' built-in w_ahk_do to support heredoc and 64-bit AHK on Alpine.
 w_ahk_do()
 {
     local _ahk_ver="1.1.36.01"
     local _ahk_dir="${W_CACHE}/ahk"
     local _ahk_setup="${_ahk_dir}/AutoHotkey_${_ahk_ver}_setup.exe"
+    local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
+    local _script="${_script_dir}/${W_PACKAGE}.ahk"
 
-    if ! command -v 7z >/dev/null 2>&1; then
-        w_die "w_ahk_do: '7z' is required (install p7zip/p7zip-full)"
+    # Detect architecture. Use 64-bit on Alpine or if WINEARCH is win64.
+    local _ahk_exe="AutoHotkeyU32.exe"
+    if [ -f /etc/alpine-release ] || [ "$WINEARCH" = "win64" ]; then
+        _ahk_exe="AutoHotkeyU64.exe"
     fi
 
-    mkdir -p "${_ahk_dir}"
+    local _7z_exe="7z"
+    if ! command -v 7z >/dev/null 2>&1; then
+        if command -v 7zz >/dev/null 2>&1; then
+            _7z_exe="7zz"
+        elif command -v 7za >/dev/null 2>&1; then
+            _7z_exe="7za"
+        else
+            w_die "w_ahk_do: '7z', '7zz' or '7za' is required (install 7zip or p7zip)"
+        fi
+    fi
+
+    mkdir -p "${_ahk_dir}" "${_script_dir}"
     if [ ! -f "${_ahk_setup}" ]; then
         w_try curl -fL "https://github.com/AutoHotkey/AutoHotkey/releases/download/v${_ahk_ver}/AutoHotkey_${_ahk_ver}_setup.exe" \
             -o "${_ahk_setup}"
     fi
 
-    if [ ! -f "${_ahk_dir}/AutoHotkeyU64.exe" ]; then
-        w_try 7z x "${_ahk_setup}" -o"${_ahk_dir}" AutoHotkeyU64.exe -y
+    if [ ! -f "${_ahk_dir}/${_ahk_exe}" ]; then
+        w_try "${_7z_exe}" x "${_ahk_setup}" -o"${_ahk_dir}" "${_ahk_exe}" -y
     fi
 
-    local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
-    mkdir -p "${_script_dir}"
-    cat > "${_script_dir}/${W_PACKAGE}.ahk"
+    rm -f "${_script}"
+    if [ $# -gt 0 ]; then
+        for _line in "$@"; do
+            printf "%s\n" "${_line}" >> "${_script}"
+        done
+    else
+        # Remove leading spaces from heredoc to ensure clean AHK script.
+        # We use a more careful sed to only remove the common 8-space indentation if possible,
+        # but removing all leading whitespace is also fine for AHK.
+        sed 's/^[[:space:]]*//' >> "${_script}"
+    fi
 
-    wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
+    # Use winetricks' ${WINE} if available, otherwise fallback to wine.
+    w_try ${WINE:-wine} "${_ahk_dir}/${_ahk_exe}" "${_script}"
 }
 
 load_mt5_install()
@@ -58,6 +80,9 @@ load_mt5_install()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do <<'EOF'
+        SetTitleMatchMode, RegEx
+        Title := "i)MetaTrader|Setup"
+
         ; Maximum time for setup to complete.
         Timeout := 600000 ; 10 min.
 
@@ -70,29 +95,40 @@ load_mt5_install()
 
         ; Running setup.
         Run, %ExePath%
-        SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        loop 60
+        loop 120
         {
-            if (WinExist("MetaTrader 5"))
+            if (WinExist(Title))
                 break
-            if (WinExist("Proxy Server"))
+            if (WinExist("i)Proxy Server"))
             {
-                WinActivate, Proxy Server
+                WinActivate, i)Proxy Server
                 Send, {Esc}
             }
             Sleep, 1000
-            if (A_Index == 60)
+            if (A_Index == 120)
                 ExitApp, 1
         }
 
-        WinActivate, MetaTrader 5
-        Sleep, 1000
-
-        ; Clicking "Next".
-        Send, !n
-        Sleep, 1000
+        ; Click Next aggressively.
+        loop 10
+        {
+            WinActivate, %Title%
+            WinWaitActive, %Title%,, 2
+            if (!ErrorLevel)
+            {
+                Send, {Enter}
+                Send, !n
+                Sleep, 3000
+                ; Check if we moved to the next screen.
+                ; Usually the "Next" button disappears or the text changes.
+                WinGetText, winText, %Title%
+                if (InStr(winText, "Next") == 0)
+                    break
+            }
+            Sleep, 1000
+        }
 
         StartTime := A_TickCount
 
@@ -105,27 +141,33 @@ load_mt5_install()
             }
 
             ; Close a blocking "Proxy Server" dialog if it appears.
-            if (WinExist("Proxy Server"))
+            if (WinExist("i)Proxy Server"))
             {
-                WinActivate, Proxy Server
+                WinActivate, i)Proxy Server
                 Send, {Esc}
                 Sleep, 1000
             }
 
-            ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
-
-            if (FinishVisible)
-            {
+            ; Check if terminal process is running as a sign of completion.
+            Process, Exist, terminal64.exe
+            if (ErrorLevel)
                 break
-            }
+            Process, Exist, terminal.exe
+            if (ErrorLevel)
+                break
 
-            ; Sleeping for a short while before checking again.
-            Sleep, 1000
+            ; Check for completion text in the window.
+            WinGetText, winText, %Title%
+            if (InStr(winText, "Finish") or InStr(winText, "Готово") or InStr(winText, "Ende") or InStr(winText, "Terminar"))
+                break
+
+            Sleep, 2000
         }
 
         ; Clicking "Finish".
+        WinActivate, %Title%
         Send, {Enter}
+        Send, !f
         Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
@@ -139,7 +181,7 @@ load_mt5_install()
                 break
             Sleep, 1000
         }
-        WinWaitActive, MetaTrader,, 60
+        WinWaitActive, i)MetaTrader,, 60
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}

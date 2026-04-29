@@ -87,6 +87,7 @@ For project overview and install instructions, see [README.md](README.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
+| `alpine-latest` | `alpine:latest` | |
 | `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: jammy` |
 | `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: jammy` |
 
@@ -460,6 +461,15 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 - **Fix**: The custom `Dockerfile.j2` injects host CA certificates directly into `/etc/ssl/cert.pem`
   during the build phase so `apk` can fetch dependencies safely.
 - **Prevention**: Verify `dl-cdn.alpinelinux.org` is reachable from inside the container.
+
+### Alpine MetaTrader installation fails with "Proxy Server" dialog
+
+- **Root cause**: MetaTrader installer (running in Wine) fails to establish secure connections (TLS) to CDN hosts
+  if the CA certificate bundle is not properly trusted or if `gnutls` is missing on Alpine.
+- **Fix**: Use the custom `Dockerfile.j2` for Alpine platforms to ensure CA certs are injected, and install the
+  `gnutls` and `xdpyinfo` packages to provide TLS support for Wine and X11 display verification.
+- **Verification**: Ensure `gnutls` and `xdpyinfo` are installed via `apk add gnutls xdpyinfo` and CA certs are
+  updated via `update-ca-certificates`.
 
 ### Required Hosts
 
