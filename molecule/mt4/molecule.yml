@@ -46,8 +46,6 @@ provisioner:
   inventory:
     group_vars:
       all:
-        metatrader_install_wine: false
-        metatrader_install_xvfb: false
         metatrader_setup_url: |
           https://download.mql5.com/cdn/web/3315/mt4/xm4setup.exe
         metatrader_version: 4

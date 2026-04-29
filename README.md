@@ -51,12 +51,6 @@ check [`defaults/main.yml`][defaults-link].
 - `metatrader_version`
   Platform version to install.
   Default 5.
-- `metatrader_install_wine`
-  Whether to install Wine as a dependency.
-  Default `true`.
-- `metatrader_install_xvfb`
-  Whether to install Xvfb as a dependency.
-  Default `true`.
 
 ## Testing
 

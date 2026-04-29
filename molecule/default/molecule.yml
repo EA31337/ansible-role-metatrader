@@ -46,8 +46,6 @@ provisioner:
   inventory:
     group_vars:
       all:
-        metatrader_install_wine: false
-        metatrader_install_xvfb: false
         wine_install_winetricks: true
         wine_release: stable
         wine_winetricks_winver: win10
