@@ -30,11 +30,7 @@ w_ahk_do()
 
     local _script_dir="${WINEPREFIX:-${HOME}/.wine}/drive_c/windows/temp/_${W_PACKAGE}"
     mkdir -p "${_script_dir}"
-    if [ $# -eq 0 ]; then
-        cat > "${_script_dir}/${W_PACKAGE}.ahk"
-    else
-        printf '%s\n' "$@" > "${_script_dir}/${W_PACKAGE}.ahk"
-    fi
+    cat > "${_script_dir}/${W_PACKAGE}.ahk"
 
     wine "${_ahk_dir}/AutoHotkeyU64.exe" "C:\\windows\\temp\\_${W_PACKAGE}\\${W_PACKAGE}.ahk"
 }
@@ -80,14 +76,26 @@ load_mt5_install()
         SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        WinWait, MetaTrader 5,, 60
-        if (ErrorLevel)
+        loop 60
         {
-            ExitApp, 3
+            if (WinExist("MetaTrader 5"))
+                break
+            if (WinExist("Proxy Server"))
+            {
+                WinActivate, Proxy Server
+                Send, {Esc}
+            }
+            Sleep, 1000
+            if (A_Index == 60)
+                ExitApp, 3
         }
+
+        WinActivate, MetaTrader 5
+        Sleep, 1000
 
         ; Clicking "Next".
         Send, !n
+        Sleep, 1000
 
         StartTime := A_TickCount
 
@@ -121,9 +129,19 @@ load_mt5_install()
 
         ; Clicking "Finish".
         Send, {Enter}
+        Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
-        Process, Wait, terminal64.exe, 30
+        loop 60
+        {
+            Process, Exist, terminal64.exe
+            if (ErrorLevel)
+                break
+            Process, Exist, terminal.exe
+            if (ErrorLevel)
+                break
+            Sleep, 1000
+        }
         WinWaitActive, ahk_class MetaQuotes::MetaTrader::5.00,, 30
         if (ErrorLevel)
         {
@@ -131,12 +149,30 @@ load_mt5_install()
         }
 
         ; Closing dialogs and exiting from the terminal.
-        Send, {Esc}{Esc}!fx!{F4} ; File->Exit, Alt-F4
+        Send, {Esc}
+        Sleep, 1000
+        Send, {Esc}
+        Sleep, 1000
+        Send, !f
+        Sleep, 1000
+        Send, x
+        Sleep, 1000
+        Send, !{F4}
 
-        ; Awaiting terminal window to close for 10s.
-        WinWaitClose, ahk_exe terminal64.exe, 10
+        ; Awaiting terminal window to close for 20s.
+        loop 20
+        {
+            Process, Exist, terminal64.exe
+            if (!ErrorLevel)
+                break
+            Process, Exist, terminal.exe
+            if (!ErrorLevel)
+                break
+            Sleep, 1000
+        }
 
-        ; If terminal didn't close in 10s then we are forcing it to close.
+        ; If terminal didn't close in 20s then we are forcing it to close.
         Process, Close, terminal64.exe
+        Process, Close, terminal.exe
 EOF
 }
