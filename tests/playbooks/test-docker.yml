@@ -19,7 +19,7 @@
   hosts: docker_containers
 
   vars:
-    metatrader_test_image: "ghcr.io/ea31337/ansible-role-metatrader:latest"
+    wine_test_image: "ghcr.io/ea31337/ansible-role-wine:latest"
 
   pre_tasks:
     - name: Manage Docker container lifecycle
@@ -30,7 +30,7 @@
         - name: Ensure container is started
           community.docker.docker_container:
             name: "{{ inventory_hostname }}"
-            image: "{{ metatrader_test_image }}"
+            image: "{{ wine_test_image }}"
             state: started
             command: sleep infinity
             recreate: true
