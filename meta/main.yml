@@ -5,7 +5,8 @@ dependencies:
   - role: ea31337.wine
     vars:
       wine_install_winetricks: true
-      wine_version: "{{ '9' if ansible_facts.os_family == 'Alpine' else '10.0' }}"
+      wine_release_codename: "{{ metatrader_wine_release_codename }}"
+      wine_version: "{{ metatrader_wine_version }}"
     version: v1.0.4  # This should match version in requirements.yml
     when: ansible_facts.os_family != "Windows"
   - name: ea31337.xvfb

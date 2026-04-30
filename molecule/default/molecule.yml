@@ -51,9 +51,9 @@ provisioner:
         wine_winetricks_winver: win10
     host_vars:
       ubuntu-latest:
-        wine_release_codename: '{{ ansible_facts.distribution_release | lower }}'
+        metatrader_wine_release_codename: jammy
       ubuntu-noble:
-        wine_release_codename: noble
+        metatrader_wine_release_codename: jammy
   name: ansible
   options:
     diff: true
