@@ -74,26 +74,66 @@ load_mt4_install()
         SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        loop 60
+        ; Wine <= 10 shows "4 Setup", Wine 11+ shows "xm4setup.exe" as the bootstrapper title.
+        SetupTitle := ""
+        loop 120
         {
             if (WinExist("4 Setup"))
+            {
+                SetupTitle := "4 Setup"
                 break
+            }
+            if (WinExist("xm4setup.exe"))
+            {
+                SetupTitle := "xm4setup.exe"
+                break
+            }
+            if (WinExist("mt4setup.exe"))
+            {
+                SetupTitle := "mt4setup.exe"
+                break
+            }
             if (WinExist("Proxy Server"))
             {
                 WinActivate, Proxy Server
                 Send, {Esc}
             }
             Sleep, 1000
-            if (A_Index == 60)
+            if (A_Index == 120)
                 ExitApp, 1
         }
 
-        WinActivate, 4 Setup
-        Sleep, 1000
+        ; If bootstrapper appeared first, wait for the main installer window.
+        if (SetupTitle == "xm4setup.exe" or SetupTitle == "mt4setup.exe")
+        {
+            loop 120
+            {
+                if (WinExist("4 Setup"))
+                {
+                    SetupTitle := "4 Setup"
+                    break
+                }
+                if (WinExist("Proxy Server"))
+                {
+                    WinActivate, Proxy Server
+                    Send, {Esc}
+                    Sleep, 1000
+                }
+                Sleep, 1000
+                if (A_Index == 120)
+                {
+                    ; Bootstrapper never transitioned; interact with it directly.
+                    break
+                }
+            }
+        }
+
+        WinActivate, %SetupTitle%
+        Sleep, 2000
 
         ; Clicking "Next".
         Send, !n
-        Sleep, 1000
+        Sleep, 2000
 
         StartTime := A_TickCount
 
@@ -121,6 +161,10 @@ load_mt4_install()
                 break
             }
 
+            ; Re-activate setup window in case it lost focus.
+            if (WinExist(SetupTitle))
+                WinActivate, %SetupTitle%
+
             ; Sleeping for a short while before checking again.
             Sleep, 1000
         }
@@ -130,7 +174,7 @@ load_mt4_install()
         Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
-        loop 60
+        loop 90
         {
             Process, Exist, terminal.exe
             if (ErrorLevel)
@@ -150,8 +194,8 @@ load_mt4_install()
         Sleep, 1000
         Send, !{F4}
 
-        ; Awaiting terminal window to close for 20s.
-        loop 20
+        ; Awaiting terminal window to close for 30s.
+        loop 30
         {
             Process, Exist, terminal.exe
             if (!ErrorLevel)
@@ -159,7 +203,7 @@ load_mt4_install()
             Sleep, 1000
         }
 
-        ; If terminal didn't close in 20s then we are forcing it to close.
+        ; If terminal didn't close in 30s then we are forcing it to close.
         Process, Close, terminal.exe
 EOF
 }

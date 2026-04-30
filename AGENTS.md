@@ -346,6 +346,28 @@ How to analyze the output:
   DNS failures for `cdn.mql5.com` or `mt5-trade.metaquotes.net` can leave
   the installer window open indefinitely and cause the AutoHotkey timeout.
 
+### Wine 11+ window title mismatch
+
+> AHK script exits after ~60s with `ExitApp, 1` even though `mt5setup.exe`
+> is still running in the container.
+
+- **Root cause**: Wine 11.0+ displays the `mt5setup.exe` bootstrapper window
+  with title `"mt5setup.exe"` (the executable name), whereas Wine <= 10.0
+  shows `"MetaTrader 5 Setup (64 bit)"`. The AHK script was checking only
+  for `WinExist("MetaTrader 5")`, which never matched the Wine 11 title.
+- **Fix**: The verb templates (`mt5_install.verb.j2`, `mt4_install.verb.j2`)
+  now detect both window titles. They first look for the bootstrapper
+  (`mt5setup.exe` / `xm4setup.exe`) and then wait for it to transition
+  to the main installer window (`MetaTrader 5` / `4 Setup`). If the
+  transition never occurs, they interact with the bootstrapper directly.
+- **Prevention**: Always use `wine_release_codename: jammy` for Ubuntu
+  platforms to install Wine 10.0 (stable) from the WineHQ repo. The
+  `noble` codename installs Wine 11.0, which has different window title
+  behavior. The AHK scripts handle both, but Wine 10.0 is the tested default.
+- **Diagnosis**: Use `xdotool search --onlyvisible --name "."` inside the
+  container to see actual window titles. Compare with the AHK script's
+  expected titles.
+
 ## Test Results Matrix
 
 Results from testing on 2026-04-24 (step-by-step Molecule re-test,
