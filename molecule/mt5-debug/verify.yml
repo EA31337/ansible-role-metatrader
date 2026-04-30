@@ -1,0 +1,51 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Verify MetaTrader 5 directory exists
+      ansible.builtin.stat:
+        path: '{{ ansible_facts.env.HOME }}/.wine/drive_c/Program Files/MetaTrader 5'
+      register: stat_result
+    - name: Verify platform directory exist
+      ansible.builtin.assert:
+        that:
+          - stat_result.stat.exists
+          - stat_result.stat.isdir
+    - name: Check if Meta Terminal exists
+      changed_when: false
+      failed_when: find_mt_res.matched == 0
+      ansible.builtin.find:
+        paths: '{{ ansible_facts.env.HOME }}/.wine/drive_c'
+        patterns: terminal*.exe
+        recurse: true
+      register: find_mt_res
+      when: detected_os_family | default(ansible_facts.os_family) != "Windows"
+    - name: Checks if platform's editor exists
+      changed_when: false
+      failed_when: find_mte_res.matched == 0
+      ansible.builtin.find:
+        paths: '{{ ansible_facts.env.HOME }}/.wine/drive_c'
+        patterns: '[mM]eta[eE]ditor*.exe'
+        recurse: true
+      register: find_mte_res
+      when: detected_os_family | default(ansible_facts.os_family) != "Windows"
+    - name: Stat generated AHK script
+      ansible.builtin.stat:
+        path: '{{ ansible_facts.env.HOME }}/.wine/drive_c/windows/temp/_mt5_install/mt5_install.ahk'
+      register: mt5_ahk
+      when: detected_os_family | default(ansible_facts.os_family) != "Windows"
+    - name: Ensure AHK script contains expected window titles
+      when:
+        - detected_os_family | default(ansible_facts.os_family) != "Windows"
+        - mt5_ahk.stat.exists
+      block:
+        - name: Read AHK script content
+          ansible.builtin.slurp:
+            src: '{{ mt5_ahk.stat.path }}'
+          register: mt5_ahk_content
+        - name: Assert AHK window detection includes setup bootstrapper
+          ansible.builtin.assert:
+            that:
+              - '"WinExist(\"MetaTrader 5\")" in (mt5_ahk_content.content | b64decode)'
+              - '"WinExist(\"mt5setup.exe\")" in (mt5_ahk_content.content | b64decode)'
+              - '"WinActivate, mt5setup.exe" in (mt5_ahk_content.content | b64decode)'

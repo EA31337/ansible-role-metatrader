@@ -47,6 +47,7 @@ jobs:
           - default
           - mt4
           - mt5
+          - mt5-debug
           # - mt5-win
     steps:
       - uses: actions/checkout@v6
@@ -163,7 +164,7 @@ jobs:
                 per_page: 100,
               });
             // Keep in sync with the strategy.matrix above.
-            const scenarios = ['default', 'mt4', 'mt5'];
+            const scenarios = ['default', 'mt4', 'mt5', 'mt5-debug'];
             const platforms = [
               'ubuntu-noble',
               'ubuntu-latest',

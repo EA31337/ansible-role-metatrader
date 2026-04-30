@@ -75,7 +75,7 @@ load_mt5_install()
         ; Awaiting for setup window to appear.
         loop 60
         {
-            if (WinExist("MetaTrader 5"))
+            if (WinExist("MetaTrader 5") || WinExist("mt5setup.exe"))
                 break
             if (WinExist("Proxy Server"))
             {
@@ -87,7 +87,10 @@ load_mt5_install()
                 ExitApp, 1
         }
 
-        WinActivate, MetaTrader 5
+        if (WinExist("mt5setup.exe"))
+            WinActivate, mt5setup.exe
+        else
+            WinActivate, MetaTrader 5
         Sleep, 1000
 
         ; Clicking "Next".
