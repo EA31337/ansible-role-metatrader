@@ -1,0 +1,67 @@
+---
+# Debugging scenario - tests only ubuntu-latest with MT5 for comparison.
+# Use: molecule test -s debug-latest
+dependency:
+  name: galaxy
+  options:
+    requirements-file: requirements.yml
+    role-file: requirements.yml
+driver:
+  name: docker
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+platforms:
+  - name: ubuntu-latest
+    image: ghcr.io/ea31337/ansible-role-wine:ubuntu-latest
+provisioner:
+  config_options:
+    defaults:
+      allow_broken_conditionals: true
+      callbacks_enabled: ansible.posix.profile_tasks
+      collections_path: ${MOLECULE_PROJECT_DIRECTORY}/collections:~/.ansible/collections:/usr/share/ansible/collections
+      deprecation_warnings: false
+      host_key_checking: false
+      remote_tmp: /tmp/.ansible-tmp-$${USER}
+      result_format: yaml
+      stdout_callback: ansible.builtin.default
+      verbosity: 1
+    ssh_connection:
+      pipelining: true
+  env:
+    ANSIBLE_FORCE_COLOR: '1'
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: '1'
+  inventory:
+    group_vars:
+      all:
+        wine_install_winetricks: true
+        wine_release: stable
+        wine_winetricks_winver: win10
+    host_vars:
+      ubuntu-latest:
+        wine_release_codename: '{{ ansible_facts.distribution_release | lower }}'
+  name: ansible
+  options:
+    diff: true
+    force-handlers: true
+  playbooks:
+    converge: ../default/converge.yml
+    create: ../default/create.yml
+    destroy: ../default/destroy.yml
+    prepare: ../default/prepare.yml
+    verify: ../default/verify.yml
+scenario:
+  name: debug-latest
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - destroy
+verifier:
+  name: ansible
