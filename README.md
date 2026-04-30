@@ -51,10 +51,6 @@ check [`defaults/main.yml`][defaults-link].
 - `metatrader_version`
   Platform version to install.
   Default 5.
-- `metatrader_wine_release_codename`
-  The Wine release codename to use (e.g. `jammy`, `noble`).
-- `metatrader_wine_version`
-  The Wine version to install.
 
 ## Testing
 

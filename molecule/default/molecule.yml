@@ -49,11 +49,6 @@ provisioner:
         wine_install_winetricks: true
         wine_release: stable
         wine_winetricks_winver: win10
-    host_vars:
-      ubuntu-latest:
-        metatrader_wine_release_codename: jammy
-      ubuntu-noble:
-        metatrader_wine_release_codename: jammy
   name: ansible
   options:
     diff: true
