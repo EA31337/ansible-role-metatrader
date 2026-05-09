@@ -42,7 +42,6 @@ jobs:
       matrix:
         platform:
           - ubuntu-noble
-          - ubuntu-latest
         scenario:
           - default
           - mt4
@@ -166,7 +165,6 @@ jobs:
             const scenarios = ['default', 'mt4', 'mt5'];
             const platforms = [
               'ubuntu-noble',
-              'ubuntu-latest',
             ];
             const icon = (c) => ({
               success: '✅', failure: '❌', cancelled: '⚪', skipped: '⏭️',
