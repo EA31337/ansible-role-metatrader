@@ -1,11 +1,11 @@
 ---
 - name: Configure Docker container
-  # Note: Since facts are not gathered, we're checking for ansible_facts['user_id'], connection_user or UID instead.
+  # Note: Since facts are not gathered, we're checking for ansible_facts.get('user_id'), connection_user or UID instead.
   become: >-
     {{ (connection_user is defined and connection_user != 'root')
-    or (ansible_facts['user_id'] | default('root') != 'root')
-    or (ansible_facts['user_uid'] | default(0) | int != 0)
-    or (ansible_facts.get('env', {}).get('UID') | default(0) | int != 0)
+    or (ansible_facts.get('user_id', 'root') != 'root')
+    or (ansible_facts.get('user_uid', 0) | int != 0)
+    or (ansible_facts.get('env', {}).get('UID', 0) | int != 0)
     }}
   # Use su as become_method as sudo is not available in all containers.
   become_method: ansible.builtin.su
