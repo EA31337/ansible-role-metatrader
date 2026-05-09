@@ -66,9 +66,8 @@
       metatrader-on-debian-latest: debian:latest
       metatrader-on-nixos-latest: nixos/nix
       metatrader-on-ubuntu-jammy: ubuntu:jammy
-      metatrader-on-ubuntu-latest: ubuntu:latest
       metatrader-on-ubuntu-noble: ubuntu:noble
-    container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:latest') }}"
+    container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:noble') }}"
 - name: Install ea31337.metatrader role on all containers
   # Note: NixOS coverage is handled by Molecule scenarios.
   hosts: docker_containers,!metatrader-on-nixos-latest
