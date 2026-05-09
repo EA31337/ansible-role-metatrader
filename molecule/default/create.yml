@@ -46,6 +46,8 @@
         dest: '{{ molecule_ephemeral_directory }}/{{ item.name }}.Dockerfile'
         mode: '0644'
       loop: "{{ molecule_yml.platforms | selectattr('dockerfile', 'defined') | list }}"
+      loop_control:
+        label: '{{ item.name }}'
     - name: Build custom images
       community.docker.docker_image:
         name: '{{ item.name }}'
@@ -56,6 +58,8 @@
         source: build
         force_source: true
       loop: "{{ molecule_yml.platforms | selectattr('dockerfile', 'defined') | list }}"
+      loop_control:
+        label: '{{ item.name }}'
     - name: Ensure test containers are running
       community.docker.docker_container:
         name: '{{ item.name }}'
@@ -73,6 +77,8 @@
           {{ [molecule_ephemeral_directory ~ '/ca-certificates:/usr/local/share/ca-certificates:ro']
              if host_ca_certs | length > 0 else omit }}
       loop: '{{ molecule_yml.platforms }}'
+      loop_control:
+        label: '{{ item.name }}'
       register: container_results
       # Allow enough time for image pulls/builds in constrained CI environments.
       async: 7200
