@@ -105,7 +105,7 @@ molecule test
 molecule test -s default
 
 # Single platform in a scenario
-molecule test -s default --platform-name ubuntu-latest
+molecule test -s default --platform-name ubuntu-noble
 
 # Step-by-step debugging (useful for troubleshooting)
 molecule destroy -s default              # clean up any leftover state
@@ -128,11 +128,11 @@ For CI or automated environments, use timeouts:
 
 ```bash
 # Test a single platform with timeout (15 minutes)
-timeout 900 molecule test -s default --platform-name ubuntu-latest
+timeout 900 molecule test -s default --platform-name ubuntu-noble
 
 # If converge fails, debug interactively:
-molecule create -s default --platform-name ubuntu-latest
-molecule converge -s default --platform-name ubuntu-latest
+molecule create -s default --platform-name ubuntu-noble
+molecule converge -s default --platform-name ubuntu-noble
 # (inspect container state, then clean up)
 molecule destroy -s default
 ```
@@ -230,7 +230,8 @@ molecule destroy -s default
 > `Failed to update apt cache after 5 retries`
 
 - **Root cause**: Firewall/network policy blocks `dl.winehq.org`, or
-  `debian:latest` codename (e.g. `trixie`) is not in the WineHQ repo.
+  `debian:latest` codename (e.g. `trixie`) or Ubuntu 26.04 (`resolute`)
+  is not in the WineHQ repo.
 - **Fix**: Set `wine_release_codename: bookworm` for debian-latest or `noble` for ubuntu-latest in
   host_vars. Add `dl.winehq.org` to firewall allowlist.
 - **CI context**: Works on standard GitHub Actions runners with internet
@@ -313,7 +314,7 @@ How to analyze the output:
 - If the screenshot shows an AutoHotkey syntax error instead of the MetaTrader
   installer window, inspect the generated `.ahk` file before investigating
   network access.
-- In the 2026-04-24 `metatrader-on-ubuntu-latest` manual debug session, the
+- In the 2026-04-24 `metatrader-on-ubuntu-noble` manual debug session, the
   screenshot matched a broken generated script:
 
   ```text
@@ -353,48 +354,48 @@ all Linux scenarios):
 
 ### `default`
 
-| Step | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: |
-| destroy | ✅ | ✅ |
-| create | ✅ | ✅ |
-| prepare | ✅ | ✅ |
-| converge | ✅ | ✅ |
-| — wine | ✅ | ✅ |
-| — xvfb | ✅ | ✅ |
-| — metatrader | ✅ | ✅ |
-| idempotence | ✅ | ✅ |
-| verify | ✅ | ✅ |
-| destroy (final) | ✅ | ✅ |
+| Step | ubuntu-noble |
+| --- | :---: |
+| destroy | ✅ |
+| create | ✅ |
+| prepare | ✅ |
+| converge | ✅ |
+| — wine | ✅ |
+| — xvfb | ✅ |
+| — metatrader | ✅ |
+| idempotence | ✅ |
+| verify | ✅ |
+| destroy (final) | ✅ |
 
 ### `mt4`
 
-| Step | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: |
-| destroy | ✅ | ✅ |
-| create | ✅ | ✅ |
-| prepare | ✅ | ✅ |
-| converge | ✅ | ✅ |
-| — wine | ✅ | ✅ |
-| — xvfb | ✅ | ✅ |
-| — metatrader | ✅ | ✅ |
-| idempotence | ✅ | ✅ |
-| verify | ✅ | ✅ |
-| destroy (final) | ✅ | ✅ |
+| Step | ubuntu-noble |
+| --- | :---: |
+| destroy | ✅ |
+| create | ✅ |
+| prepare | ✅ |
+| converge | ✅ |
+| — wine | ✅ |
+| — xvfb | ✅ |
+| — metatrader | ✅ |
+| idempotence | ✅ |
+| verify | ✅ |
+| destroy (final) | ✅ |
 
 ### `mt5`
 
-| Step | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: |
-| destroy | ✅ | ✅ |
-| create | ✅ | ✅ |
-| prepare | ✅ | ✅ |
-| converge | ✅ | ✅ |
-| — wine | ✅ | ✅ |
-| — xvfb | ✅ | ✅ |
-| — metatrader | ✅ | ✅ |
-| idempotence | ✅ | ✅ |
-| verify | ✅ | ✅ |
-| destroy (final) | ✅ | ✅ |
+| Step | ubuntu-noble |
+| --- | :---: |
+| destroy | ✅ |
+| create | ✅ |
+| prepare | ✅ |
+| converge | ✅ |
+| — wine | ✅ |
+| — xvfb | ✅ |
+| — metatrader | ✅ |
+| idempotence | ✅ |
+| verify | ✅ |
+| destroy (final) | ✅ |
 
 ### Improvements applied
 
