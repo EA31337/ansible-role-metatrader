@@ -4,7 +4,7 @@
   tasks:
     - name: Retrieve information from path
       ansible.builtin.stat:
-        path: '{{ ansible_facts.env.HOME }}/.wine/drive_c/Program Files'
+        path: "{{ ansible_facts.get('env', {}).get('HOME', '/root') }}/.wine/drive_c/Program Files"
       register: stat_result
     - name: Verify Program Files directory exist
       ansible.builtin.assert:
@@ -15,16 +15,16 @@
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.builtin.find:
-        paths: '{{ ansible_facts.env.HOME }}/.wine/drive_c'
+        paths: "{{ ansible_facts.get('env', {}).get('HOME', '/root') }}/.wine/drive_c"
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
-      when: detected_os_family | default(ansible_facts.os_family) != "Windows"
+      when: detected_os_family | default(ansible_facts.get('os_family', '')) != "Windows"
     - name: Checks if platform's editor exists
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
-        paths: '{{ ansible_facts.env.HOME }}/.wine/drive_c'
+        paths: "{{ ansible_facts.get('env', {}).get('HOME', '/root') }}/.wine/drive_c"
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res
