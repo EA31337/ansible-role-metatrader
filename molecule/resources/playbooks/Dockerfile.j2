@@ -23,8 +23,8 @@ RUN \
     fi && \
     rm -rf /tmp/host-ca && \
     # Install required packages for Ansible to work on NixOS.
-    nix-channel --update > /dev/null 2>&1 && \
-    nix-env -iA nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip > /dev/null 2>&1
+    nix-channel --update > /dev/null && \
+    nix-env -iA nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip > /dev/null
 
 {% elif 'alpine' in base_image %}
 

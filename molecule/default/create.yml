@@ -60,7 +60,6 @@
       loop: "{{ molecule_yml.platforms | selectattr('dockerfile', 'defined') | list }}"
       loop_control:
         label: '{{ item.name }}'
-      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
     - name: Ensure test containers are running
       community.docker.docker_container:
         name: '{{ item.name }}'
@@ -80,7 +79,6 @@
       loop: '{{ molecule_yml.platforms }}'
       loop_control:
         label: '{{ item.name }}'
-      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       register: container_results
       # Allow enough time for image pulls/builds in constrained CI environments.
       async: 7200

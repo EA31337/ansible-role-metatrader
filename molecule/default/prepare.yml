@@ -28,7 +28,7 @@
                 /etc/apt/sources.list.d/ubuntu.sources
             fi
           fi
-          apt-get update -y -qq && \
+          apt-get update -qq && \
             DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-minimal sudo ca-certificates
         elif command -v nix-env >/dev/null 2>&1; then
           mkdir -p /etc/nix
@@ -40,7 +40,7 @@
           fi
           export NIX_CONFIG="sandbox = false"
           nix-env --option sandbox false -iA \
-            nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.procps nixpkgs.sudo nixpkgs.cacert > /dev/null 2>&1
+            nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.procps nixpkgs.sudo nixpkgs.cacert > /dev/null
         elif command -v dnf >/dev/null 2>&1; then
           dnf install -y -q python3 sudo ca-certificates
         elif command -v zypper >/dev/null 2>&1; then
