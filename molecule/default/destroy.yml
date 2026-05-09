@@ -21,6 +21,8 @@
         name: '{{ item.name }}'
         state: absent
       loop: '{{ molecule_yml.platforms }}'
+      loop_control:
+        label: '{{ item.name }}'
       register: container_results
       async: 7200
       poll: 0

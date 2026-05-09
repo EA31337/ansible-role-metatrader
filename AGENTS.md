@@ -88,6 +88,7 @@ For project overview and install instructions, see [README.md](README.md).
 | Container | Image | Notes |
 | --------- | ----- | ----- |
 | `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: noble` |
+| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: noble` |
 
 ### Running Tests
 
@@ -231,8 +232,7 @@ molecule destroy -s default
 - **Root cause**: Firewall/network policy blocks `dl.winehq.org`, or
   `debian:latest` codename (e.g. `trixie`) or Ubuntu 26.04 (`resolute`)
   is not in the WineHQ repo.
-- **Fix**: Set `wine_release_codename: bookworm` for debian-latest or
-  `wine_release_codename: noble` for ubuntu-noble in
+- **Fix**: Set `wine_release_codename: bookworm` for debian-latest or `noble` for ubuntu-latest in
   host_vars. Add `dl.winehq.org` to firewall allowlist.
 - **CI context**: Works on standard GitHub Actions runners with internet
   access.
