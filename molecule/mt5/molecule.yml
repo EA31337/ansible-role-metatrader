@@ -55,10 +55,6 @@ provisioner:
         wine_release_codename: noble
       ubuntu-noble:
         wine_release_codename: noble
-=======
->>>>>>> origin/master
-      ubuntu-noble:
-        wine_release_codename: noble
   name: ansible
   options:
     diff: true
