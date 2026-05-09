@@ -78,6 +78,9 @@
   tags: always
   vars:
     controller_python: '{{ ansible_playbook_python }}'
+    wine_release_codename: >-
+      {{ 'noble' if ansible_facts.distribution_release == 'resolute'
+      else ansible_facts.distribution_release }}
   tasks:
     - name: Installs metatrader role
       ansible.builtin.import_role:
