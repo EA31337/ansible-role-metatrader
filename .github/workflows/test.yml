@@ -25,6 +25,7 @@ on:
       - .github/workflows/platform.yml
       - LICENSE
       - Pipfile*
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
