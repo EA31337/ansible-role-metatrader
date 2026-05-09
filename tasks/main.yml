@@ -53,15 +53,18 @@
       ansible.builtin.package:
         name: curl
         state: present
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - detected_os_family not in ["Windows", "NixOS"]
         - ansible_facts.pkg_mgr not in ["unknown", ""]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures Curl is present (NixOS)
       ansible.builtin.command:
-        cmd: nix-env -iA nixpkgs.curl
+        # Redirect output to /dev/null to reduce logs.
+        cmd: nix-env -iA nixpkgs.curl > /dev/null 2>&1
       register: nix_curl_install
       changed_when: "'installing' in nix_curl_install.stderr or 'copying path' in nix_curl_install.stderr"
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - detected_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists
@@ -69,15 +72,18 @@
       ansible.builtin.package:
         name: x11-utils
         state: present
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - (detected_os_family | default(ansible_os_family)) not in ["Windows", "NixOS"]
         - ansible_facts.pkg_mgr not in ["unknown", ""]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures X11 utilities are present (NixOS)
       ansible.builtin.command:
-        cmd: nix-env -iA nixpkgs.xorg.xdpyinfo
+        # Redirect output to /dev/null to reduce logs.
+        cmd: nix-env -iA nixpkgs.xorg.xdpyinfo > /dev/null 2>&1
       register: nix_xdpyinfo_install
       changed_when: "'installing' in nix_xdpyinfo_install.stderr or 'copying path' in nix_xdpyinfo_install.stderr"
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - detected_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists

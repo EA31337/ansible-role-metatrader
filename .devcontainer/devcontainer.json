@@ -45,5 +45,5 @@
   // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "vscode",
   // Note: Python dependencies can be added in the `requirements.txt` file.
-  "onCreateCommand": "sudo apt-get update && sudo apt-get install -y ansible && ansible-playbook .devcontainer/provision.yml"
+  "onCreateCommand": "sudo apt-get update -y -qq && sudo apt-get install -y -qq ansible && ansible-playbook .devcontainer/provision.yml"
 }

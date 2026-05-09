@@ -23,8 +23,8 @@ RUN \
     fi && \
     rm -rf /tmp/host-ca && \
     # Install required packages for Ansible to work on NixOS.
-    nix-channel --update && \
-    nix-env -iA nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip
+    nix-channel --update > /dev/null 2>&1 && \
+    nix-env -iA nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip > /dev/null 2>&1
 
 {% elif 'alpine' in base_image %}
 
@@ -44,8 +44,8 @@ RUN \
     fi && \
     rm -rf /tmp/host-ca && \
     # Install required packages for Ansible.
-    apk update && \
-    apk add --no-cache python3 sudo bash ca-certificates && \
+    apk update -q && \
+    apk add -q --no-cache python3 sudo bash ca-certificates && \
     # Ensure CA certs are properly registered in the system.
     update-ca-certificates
 

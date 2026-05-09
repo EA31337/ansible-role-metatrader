@@ -97,9 +97,11 @@ jobs:
           ANSIBLE_COLLECTIONS_PATH: >-
             ${{ github.workspace }}/collections
           ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
+          ANSIBLE_DISPLAY_OK_HOSTS: 'no'
+          ANSIBLE_DISPLAY_SKIPPED_HOSTS: 'no'
           ANSIBLE_FORCE_COLOR: '1'
           ANSIBLE_STDOUT_CALLBACK: >-
-            ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
+            ${{ runner.debug == '1' && 'debug' || 'community.general.unixy' }}
           MOLECULE_REPORT: molecule-${{ matrix.scenario }}-report.html
         with:
           molecule_args: >-

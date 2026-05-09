@@ -94,6 +94,9 @@ jobs:
           ansible-playbook -i tests/inventory/docker-containers.yml
           --limit "${TARGET_CONTAINER},localhost"
           tests/playbooks/docker-containers.yml
+        env:
+          ANSIBLE_DISPLAY_OK_HOSTS: 'no'
+          ANSIBLE_DISPLAY_SKIPPED_HOSTS: 'no'
 
       # Debug with tmate on failure when debug logging is enabled.
       - if: ${{ failure() && runner.debug == '1' }}

@@ -20,6 +20,7 @@
         state: started
         command: sleep infinity
       delegate_to: localhost
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       vars:
         # Use system Python with requests installed for controller-side Docker modules.
         ansible_python_interpreter: '{{ controller_python }}'
@@ -33,18 +34,20 @@
       changed_when: false
       delay: 2
       delegate_to: localhost
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       retries: 10
       vars:
         # Use system Python with requests installed for controller-side Docker modules.
         ansible_python_interpreter: '{{ controller_python }}'
     - name: Install Python 3 on Alpine
       ansible.builtin.raw: |
-        test -e "{{ ansible_python_interpreter }}" || (apk update && apk add --no-cache python3 py3-pip)
+        test -e "{{ ansible_python_interpreter }}" || (apk update -q && apk add -q --no-cache python3 py3-pip)
       changed_when: false
       when: container_image is search("alpine")
     - name: Install Python 3 on Ubuntu/Debian
       ansible.builtin.raw: |
-        test -e "{{ ansible_python_interpreter }}" || (apt-get update && apt-get install -y python3 python3-pip)
+        test -e "{{ ansible_python_interpreter }}" || \
+        (apt-get update -y -qq && apt-get install -y -qq python3 python3-pip)
       changed_when: false
       when: container_image is search("ubuntu") or container_image is search("debian")
     - name: Gather facts
@@ -57,6 +60,7 @@
           - python3-setuptools
         state: present
         update_cache: true
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when: container_image is search("ubuntu") or container_image is search("debian")
   tags: always
   vars:
@@ -86,4 +90,5 @@
         name: '{{ inventory_hostname }}'
         state: stopped
       delegate_to: localhost
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       failed_when: false
