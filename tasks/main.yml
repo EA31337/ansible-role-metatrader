@@ -1,11 +1,6 @@
 ---
 - name: Ensures essential facts are gathered
   ansible.builtin.setup:
-    gather_subset:
-      - "!all"
-      - "!any"
-      - distribution
-      - min
   when: >-
     ansible_facts.get('os_family') is none
     or not ansible_facts.get('os_family')
@@ -29,19 +24,20 @@
                  and nix_check.rc | default(1) == 0)) -%}
       NixOS
       {%- else -%}
-      {{ ansible_facts.get('os_family', '')
-      | default(ansible_facts.get('distribution', '')
-      | default('OtherLinux', true), true) }}
+      {{ (ansible_facts.get('os_family')
+          | default(ansible_facts.get('distribution'), true)
+          | default('OtherLinux', true)) | trim }}
       {%- endif -%}
 - name: Updates os_family fact if it differs from effective_os_family
   ansible.builtin.set_fact:
     ansible_facts:
       os_family: "{{ effective_os_family }}"
-      distribution: >-
-        {{ ansible_facts.get('distribution', effective_os_family) }}
+      distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
+    ansible_os_family: "{{ effective_os_family }}"
+    ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
   when: >-
-    ansible_facts.get('os_family', '') != effective_os_family
-    or not ansible_facts.get('distribution', '')
+    ansible_facts.get('os_family') != effective_os_family
+    or not ansible_facts.get('distribution')
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
     effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
@@ -52,9 +48,10 @@
 - name: Ensures the detected OS family is supported by this role
   ansible.builtin.assert:
     that:
+      - effective_os_family | length > 0
       - effective_os_family in metatrader_become_method
     fail_msg: >-
-      Unsupported OS family: {{ effective_os_family | default('undefined', true) }}.
+      Unsupported OS family: {{ effective_os_family | default('empty', true) }}.
       Supported: {{ metatrader_become_method.keys() | sort | join(', ') }}.
 - name: Includes wine role
   ansible.builtin.include_role:
@@ -62,21 +59,21 @@
   vars:
     wine_install_winetricks: true
     wine_version: "{{ '9' if effective_os_family == 'Alpine' else '10.0' }}"
-    wine_detected_os_family: '{{ effective_os_family }}'
-    ansible_os_family: '{{ effective_os_family }}'
-    ansible_distribution: "{{ ansible_facts.get('distribution', effective_os_family) }}"
-    ansible_user_id: "{{ ansible_facts.get('user_id', 'root') }}"
-    ansible_env: "{{ ansible_facts.get('env', {}) }}"
+    wine_detected_os_family: "{{ effective_os_family }}"
+    ansible_os_family: "{{ effective_os_family }}"
+    ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
+    ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
+    ansible_env: "{{ ansible_facts.get('env') | default({}, true) }}"
   when: effective_os_family != "Windows"
 - name: Includes xvfb role
   ansible.builtin.include_role:
     name: ea31337.xvfb
   vars:
-    xvfb_os_family: '{{ effective_os_family }}'
-    ansible_os_family: '{{ effective_os_family }}'
-    ansible_distribution: "{{ ansible_facts.get('distribution', effective_os_family) }}"
-    ansible_user_id: "{{ ansible_facts.get('user_id', 'root') }}"
-    ansible_env: "{{ ansible_facts.get('env', {}) }}"
+    xvfb_os_family: "{{ effective_os_family }}"
+    ansible_os_family: "{{ effective_os_family }}"
+    ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
+    ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
+    ansible_env: "{{ ansible_facts.get('env') | default({}, true) }}"
   when: effective_os_family != "Windows"
 - name: Sets metatrader_local_facts fact
   ansible.builtin.set_fact:
