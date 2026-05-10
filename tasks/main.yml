@@ -21,11 +21,32 @@
     fail_msg: >-
       Unsupported OS family: {{ effective_os_family | default('undefined') }}.
       Supported: {{ metatrader_become_method.keys() | sort | join(', ') }}.
+- name: Includes wine role
+  ansible.builtin.include_role:
+    name: ea31337.wine
+  vars:
+    wine_install_winetricks: true
+    wine_version: "{{ '9' if effective_os_family == 'Alpine' else '10.0' }}"
+    wine_detected_os_family: '{{ effective_os_family }}'
+    ansible_os_family: "{{ ansible_facts.get('os_family', '') }}"
+    ansible_distribution: "{{ ansible_facts.get('distribution', '') }}"
+  when: effective_os_family != "Windows"
+- name: Includes xvfb role
+  ansible.builtin.include_role:
+    name: ea31337.xvfb
+  vars:
+    xvfb_os_family: '{{ effective_os_family }}'
+    ansible_os_family: "{{ ansible_facts.get('os_family', '') }}"
+    ansible_distribution: "{{ ansible_facts.get('distribution', '') }}"
+  when: effective_os_family != "Windows"
 - name: Sets os_family fact to NixOS if detected
   ansible.builtin.set_fact:
     ansible_facts:
       os_family: NixOS
   when: effective_os_family == 'NixOS'
+- name: Sets metatrader_local_facts fact
+  ansible.builtin.set_fact:
+    metatrader_local_facts: "{{ ansible_facts.get('ansible_local', {}).get('metatrader', {}) }}"
 - name: Collects local facts
   ansible.builtin.setup:
     filter:
@@ -33,27 +54,19 @@
   when: false
 - name: Checks if platform is already exist
   ansible.builtin.stat:
-    path: >-
-      {{ ansible_facts.get('ansible_local', {})
-      .get('metatrader', {})
-      .get(metatrader_version | string, {})
-      .get('path', '') }}
+    path: "{{ metatrader_local_facts.get(metatrader_version | string, {}).get('path', '') }}"
   register: stat_mt
   when:
-    - ansible_facts.get('ansible_local', {}).get('metatrader') is defined
-    - >-
-      ansible_facts.get('ansible_local', {}).get('metatrader', {})
-      .get(metatrader_version | string) is defined
-    - >-
-      ansible_facts.get('ansible_local', {}).get('metatrader', {})
-      .get(metatrader_version | string, {}).get('path') is defined
+    - metatrader_local_facts is defined
+    - metatrader_local_facts.get(metatrader_version | string) is defined
+    - metatrader_local_facts.get(metatrader_version | string, {}).get('path') is defined
 - name: Ensures platform is installed
   when:
     - effective_os_family != "Windows" # gather_facts is required.
     - >-
-      (ansible_facts.get('ansible_local', {}).get('metatrader') is not defined) or
-      (ansible_facts.get('ansible_local', {}).get('metatrader', {}).get(metatrader_version | string) is not defined) or
-      (not stat_mt.stat.exists)
+      (metatrader_local_facts is not defined) or
+      (metatrader_local_facts.get(metatrader_version | string) is not defined) or
+      (not stat_mt.stat.exists | default(false))
   block:
     - name: Validates variables
       ansible.builtin.assert:
@@ -170,10 +183,10 @@
   become_method: "{{ metatrader_become_method.get(effective_os_family, 'ansible.builtin.su') }}"
   when:
     - >-
-      ansible_facts.ansible_local['metatrader'] is not defined
-      or ansible_facts.ansible_local['metatrader'][metatrader_version | string] is not defined
-      or (find_mt_path_folder)
-      != ansible_facts.ansible_local['metatrader'][metatrader_version | string].path
+      metatrader_local_facts is not defined
+      or metatrader_local_facts[metatrader_version | string] is not defined
+      or (find_mt_path_folder | default(''))
+      != metatrader_local_facts[metatrader_version | string].path | default('')
   block:
     - name: Sets fact
       ansible.builtin.set_fact:
