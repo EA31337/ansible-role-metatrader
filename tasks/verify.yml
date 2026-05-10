@@ -10,7 +10,7 @@
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.builtin.find:
-        paths: "{{ ansible_facts.env.HOME | default(ansible_env.HOME | default('/root')) }}/.wine/drive_c"
+        paths: "{{ ansible_env.HOME | default(ansible_facts.env.HOME | default('/root')) }}/.wine/drive_c"
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
@@ -42,7 +42,7 @@
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
-        paths: "{{ ansible_facts.env.HOME | default(ansible_env.HOME | default('/root')) }}/.wine/drive_c"
+        paths: "{{ ansible_env.HOME | default(ansible_facts.env.HOME | default('/root')) }}/.wine/drive_c"
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res

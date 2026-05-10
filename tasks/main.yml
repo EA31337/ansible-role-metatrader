@@ -11,11 +11,11 @@
 - name: Sets detected_os_family fact
   ansible.builtin.set_fact:
     detected_os_family: >-
-      {{ 'NixOS' if ((ansible_facts.distribution | default(ansible_distribution | default('unknown'))) == 'NixOS'
-      or (ansible_facts.os_family | default(ansible_os_family | default('unknown'))) == 'NixOS'
-      or ((ansible_facts.os_family | default(ansible_os_family | default('unknown'))) == 'OtherLinux'
+      {{ 'NixOS' if (ansible_facts.distribution | default(ansible_distribution | default('unknown')) == 'NixOS'
+      or ansible_facts.os_family | default(ansible_os_family | default('unknown')) == 'NixOS'
+      or (ansible_facts.os_family | default(ansible_os_family | default('unknown')) == 'OtherLinux'
       and nix_check.rc | default(1) == 0))
-      else (ansible_facts.os_family | default(ansible_os_family | default('unknown'))) }}
+      else ansible_facts.os_family | default(ansible_os_family | default('unknown')) }}
 - name: Sets ansible_os_family to NixOS if detected
   ansible.builtin.set_fact:
     ansible_os_family: NixOS
@@ -30,6 +30,7 @@
     path: "{{ ansible_local['metatrader'][metatrader_version | string].path | default('') }}"
   register: stat_mt
   when:
+    - ansible_local is defined
     - ansible_local['metatrader'] is defined
     - ansible_local['metatrader'][metatrader_version | string] is defined
     - ansible_local['metatrader'][metatrader_version | string].path is defined
@@ -37,6 +38,7 @@
   when:
     - detected_os_family != "Windows" # gather_facts is required.
     - >-
+      (ansible_local is not defined) or
       (ansible_local['metatrader'] is not defined) or
       (ansible_local['metatrader'][metatrader_version | string] is not defined) or
       (not stat_mt.stat.exists)
@@ -55,6 +57,11 @@
       ansible.builtin.package:
         name: curl
         state: present
+      become: "{{ ansible_facts.user_id | default(ansible_user_id | default('root')) != 'root' }}"
+      register: curl_install
+      until: curl_install is success
+      retries: 3
+      delay: 5
       when:
         - detected_os_family not in ["Windows", "NixOS"]
         - (ansible_facts.pkg_mgr | default(ansible_pkg_mgr | default('unknown'))) not in ["unknown", ""]
@@ -66,6 +73,7 @@
       register: nix_curl_install
       changed_when: "'installing' in nix_curl_install.stderr or 'copying path' in nix_curl_install.stderr"
       failed_when: false
+      become: "{{ ansible_facts.user_id | default(ansible_user_id | default('root')) != 'root' }}"
       when:
         - detected_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists
@@ -73,6 +81,11 @@
       ansible.builtin.package:
         name: "{{ 'xdpyinfo' if (detected_os_family | default(ansible_os_family)) == 'Alpine' else 'x11-utils' }}"
         state: present
+      become: "{{ ansible_facts.user_id | default(ansible_user_id | default('root')) != 'root' }}"
+      register: x11_utils_install
+      until: x11_utils_install is success
+      retries: 3
+      delay: 5
       when:
         - (detected_os_family | default(ansible_os_family)) not in ["Windows", "NixOS"]
         - (ansible_facts.pkg_mgr | default(ansible_pkg_mgr | default('unknown'))) not in ["unknown", ""]
@@ -84,6 +97,7 @@
       register: nix_xdpyinfo_install
       changed_when: "'installing' in nix_xdpyinfo_install.stderr or 'copying path' in nix_xdpyinfo_install.stderr"
       failed_when: false
+      become: "{{ ansible_facts.user_id | default(ansible_user_id | default('root')) != 'root' }}"
       when:
         - detected_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists
@@ -99,6 +113,7 @@
       register: xdpyinfo_check
       failed_when: false
       changed_when: false
+      no_log: "{{ ansible_verbosity | default(0) < 1 }}"
       until: xdpyinfo_check.rc == 0
       retries: 20
       delay: 5

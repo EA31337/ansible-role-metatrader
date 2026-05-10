@@ -16,7 +16,7 @@ RUN grep -E '^[^#].*/main$' /etc/apk/repositories | sed 's/main$/community/' >> 
     update-ca-certificates
 {% elif 'nixos' in (docker_image | default('ubuntu:noble')) %}
 RUN nix-channel --update && \
-    nix-env -iA nixpkgs.ansible nixpkgs.curl nixpkgs.git nixpkgs.p7zip nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.sudo nixpkgs.unzip nixpkgs.xorg.xdpyinfo
+    nix-env -iA nixpkgs.ansible nixpkgs.curl nixpkgs.git nixpkgs.p7zip nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.sudo nixpkgs.unzip nixpkgs.xorg.xdpyinfo nixpkgs.xvfb-run
 {% else %}
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -26,7 +26,9 @@ RUN apt-get update && \
     python3-pip \
     python3-setuptools \
     python3-wheel \
-    sudo && \
+    sudo \
+    x11-utils \
+    xvfb && \
     pip3 install --no-cache-dir "ansible-core>=2.14" --break-system-packages || \
     pip3 install --no-cache-dir "ansible-core>=2.14" && \
     rm -rf /var/lib/apt/lists/*
@@ -39,7 +41,7 @@ COPY . .
 # Create a local playbook to apply the role
 RUN ansible-galaxy install -r requirements.yml && \
     printf -- "---\n- hosts: localhost\n  connection: local\n  roles:\n    - role: ea31337.metatrader\n" > /tmp/playbook.yml && \
-    ansible-playbook /tmp/playbook.yml && \
+    xvfb-run -a ansible-playbook /tmp/playbook.yml && \
     rm /tmp/playbook.yml
 
 # Default CMD
