@@ -1,7 +1,6 @@
 ---
 # See: <https://opencode.ai/docs>
 name: Cogni AI Agent (Sudo)
-
 # yamllint disable-line rule:truthy
 on:
   workflow_dispatch:
@@ -18,7 +17,6 @@ on:
         description: Prompt for the agent
         required: true
         type: string
-
 jobs:
   cogni-ai-agent-sudo:
     name: Run Cogni AI agent (Sudo)

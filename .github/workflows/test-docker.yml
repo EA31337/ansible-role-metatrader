@@ -1,36 +1,34 @@
 ---
 name: Test Docker
-
 # yamllint disable-line rule:truthy
 on:
   pull_request:
     paths-ignore:
-      - '.github/workflows/check.yml'
-      - '.github/workflows/cogni-ai-agent.yml'
-      - '.github/workflows/copilot-setup-steps.yml'
-      - '.github/workflows/docker-build.yml'
-      - '.github/workflows/galaxy-publish.yml'
-      - '.github/workflows/platform.yml'
+      - .github/workflows/check.yml
+      - .github/workflows/cogni-ai-agent.yml
+      - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/docker-build.yml
+      - .github/workflows/galaxy-publish.yml
+      - .github/workflows/platform.yml
       - LICENSE
       - '**/*.cfg'
       - '**/*.md'
-      - '.*'
+      - .*
       - Pipfile*
   push:
     paths-ignore:
-      - '.github/workflows/check.yml'
-      - '.github/workflows/cogni-ai-agent.yml'
-      - '.github/workflows/copilot-setup-steps.yml'
-      - '.github/workflows/docker-build.yml'
-      - '.github/workflows/galaxy-publish.yml'
-      - '.github/workflows/platform.yml'
+      - .github/workflows/check.yml
+      - .github/workflows/cogni-ai-agent.yml
+      - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/docker-build.yml
+      - .github/workflows/galaxy-publish.yml
+      - .github/workflows/platform.yml
       - LICENSE
       - '**/*.cfg'
       - '**/*.md'
-      - '.*'
+      - .*
       - Pipfile*
   workflow_dispatch:
-
 jobs:
   test-docker:
     name: Test Docker Image
@@ -43,26 +41,21 @@ jobs:
         with:
           path: ${{ github.repository }}
           persist-credentials: false
-
       - name: Set up Python
         uses: actions/setup-python@v6.1.0
         with:
           python-version: '3.11'
-
       - name: Install Python's requirements
         run: pip install -r .devcontainer/requirements.txt
         working-directory: ${{ github.repository }}
-
       - name: Install Ansible Galaxy requirements
         run: ansible-galaxy install -r requirements.yml
         working-directory: ${{ github.repository }}
-
       - name: Install Ansible Galaxy local requirements
         run: |
           jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
           ansible-galaxy install -r requirements-local.yml && rm requirements-local.yml
         working-directory: ${{ github.repository }}
-
       - name: Run Ansible playbook on Docker container
         run: |
           ansible-playbook -i tests/inventory/test-docker.yml tests/playbooks/test-docker.yml

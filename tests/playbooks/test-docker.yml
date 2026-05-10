@@ -17,28 +17,25 @@
   become_method: ansible.builtin.su
   gather_facts: false
   hosts: docker_containers
-
   vars:
-    wine_image: "ghcr.io/ea31337/ansible-role-wine:latest"
-
+    wine_image: ghcr.io/ea31337/ansible-role-wine:latest
   pre_tasks:
     - name: Manage Docker container lifecycle
       delegate_to: localhost
       vars:
-        ansible_python_interpreter: "{{ ansible_playbook_python }}"
+        ansible_python_interpreter: '{{ ansible_playbook_python }}'
       block:
         - name: Ensure container is started
           community.docker.docker_container:
-            name: "{{ inventory_hostname }}"
-            image: "{{ wine_image }}"
+            name: '{{ inventory_hostname }}'
+            image: '{{ wine_image }}'
             state: started
             command: sleep infinity
             recreate: true
             pull: true
-
         - name: Wait for container to be ready
           community.docker.docker_container_info:
-            name: "{{ inventory_hostname }}"
+            name: '{{ inventory_hostname }}'
           register: container_info
           until:
             - container_info is defined
@@ -46,7 +43,6 @@
           changed_when: false
           delay: 2
           retries: 10
-
 - name: Install ea31337.metatrader role on the container
   hosts: docker_containers
   gather_facts: true
@@ -54,13 +50,12 @@
     - name: Installs ea31337.metatrader role
       ansible.builtin.import_role:
         name: ea31337.metatrader
-
   post_tasks:
     - name: Stop Docker containers
       community.docker.docker_container:
-        name: "{{ inventory_hostname }}"
+        name: '{{ inventory_hostname }}'
         state: absent
       delegate_to: localhost
       failed_when: false
       vars:
-        ansible_python_interpreter: "{{ ansible_playbook_python }}"
+        ansible_python_interpreter: '{{ ansible_playbook_python }}'
