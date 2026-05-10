@@ -5,15 +5,17 @@ dependencies:
   - role: ea31337.wine
     vars:
       wine_install_winetricks: true
-      wine_version: "{{ '9' if ansible_facts.os_family == 'Alpine' else '10.0' }}"
+      wine_version: >-
+        {{ '9' if (ansible_facts.os_family | default(ansible_os_family | default('unknown'))) == 'Alpine'
+           else '10.0' }}
     version: v1.0.4  # This should match version in requirements.yml
-    when: ansible_facts.os_family != "Windows"
+    when: (ansible_facts.os_family | default(ansible_os_family | default('unknown'))) != "Windows"
   - name: ea31337.xvfb
     role: ea31337.xvfb
     scm: git
     src: https://github.com/EA31337/ansible-role-xvfb.git
     version: v1.0.4  # This should match version in requirements.yml
-    when: ansible_facts.os_family != "Windows"
+    when: (ansible_facts.os_family | default(ansible_os_family | default('unknown'))) != "Windows"
 galaxy_info:
   author: kenorb
   company: EA31337 Ltd
@@ -31,6 +33,7 @@ galaxy_info:
     - trading
     - ubuntu
     - windows
+    - wine
     - wine
   license: GPL-3.0-or-later
   min_ansible_version: '2.7'

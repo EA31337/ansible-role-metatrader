@@ -43,21 +43,24 @@
           changed_when: false
           delay: 2
           retries: 10
-        - name: Bootstrap Python and Sudo
-          ansible.builtin.raw: |
-            if command -v python3 >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
-              exit 0
-            fi
-            if command -v apk >/dev/null 2>&1; then
-              apk add -q --no-cache python3 sudo
-            elif command -v apt-get >/dev/null 2>&1; then
-              apt-get update -qq && \
-              DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-minimal sudo
-            fi
-          changed_when: false
 - name: Install ea31337.metatrader role on the container
   hosts: docker_containers
-  gather_facts: true
+  gather_facts: false
+  pre_tasks:
+    - name: Bootstrap Python and Sudo
+      ansible.builtin.raw: |
+        if command -v python3 >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
+          exit 0
+        fi
+        if command -v apk >/dev/null 2>&1; then
+          apk add -q --no-cache python3 sudo
+        elif command -v apt-get >/dev/null 2>&1; then
+          apt-get update -qq && \
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-minimal sudo
+        fi
+      changed_when: false
+    - name: Gather facts
+      ansible.builtin.setup:
   tasks:
     - name: Installs ea31337.metatrader role
       ansible.builtin.import_role:

@@ -5,15 +5,17 @@
   changed_when: false
   failed_when: false
   check_mode: false
-  when: ansible_facts.os_family == 'OtherLinux' or ansible_facts.distribution == 'NixOS'
+  when: >-
+    (ansible_facts.os_family | default(ansible_os_family | default('unknown'))) == 'OtherLinux'
+    or (ansible_facts.distribution | default(ansible_distribution | default('unknown'))) == 'NixOS'
 - name: Sets detected_os_family fact
   ansible.builtin.set_fact:
     detected_os_family: >-
-      {{ 'NixOS' if (ansible_facts.distribution == 'NixOS'
-      or ansible_facts.os_family == 'NixOS'
-      or (ansible_facts.os_family == 'OtherLinux'
+      {{ 'NixOS' if ((ansible_facts.distribution | default(ansible_distribution | default('unknown'))) == 'NixOS'
+      or (ansible_facts.os_family | default(ansible_os_family | default('unknown'))) == 'NixOS'
+      or ((ansible_facts.os_family | default(ansible_os_family | default('unknown'))) == 'OtherLinux'
       and nix_check.rc | default(1) == 0))
-      else ansible_facts.os_family }}
+      else (ansible_facts.os_family | default(ansible_os_family | default('unknown'))) }}
 - name: Sets ansible_os_family to NixOS if detected
   ansible.builtin.set_fact:
     ansible_os_family: NixOS
@@ -56,7 +58,7 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - detected_os_family not in ["Windows", "NixOS"]
-        - ansible_facts.pkg_mgr not in ["unknown", ""]
+        - (ansible_facts.pkg_mgr | default(ansible_pkg_mgr | default('unknown'))) not in ["unknown", ""]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures Curl is present (NixOS)
       ansible.builtin.command:
@@ -75,7 +77,7 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - (detected_os_family | default(ansible_os_family)) not in ["Windows", "NixOS"]
-        - ansible_facts.pkg_mgr not in ["unknown", ""]
+        - (ansible_facts.pkg_mgr | default(ansible_pkg_mgr | default('unknown'))) not in ["unknown", ""]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures X11 utilities are present (NixOS)
       ansible.builtin.command:
@@ -105,13 +107,14 @@
       environment:
         DISPLAY: "{{ ansible_env.DISPLAY | default(':0') }}"
         XDG_RUNTIME_DIR: "{{ ansible_env.XDG_RUNTIME_DIR | default('/tmp/runtime-root') }}"
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - not file_mt_installed_exists.stat.exists
     - name: Asserts X display is available
       ansible.builtin.assert:
         # Fail if xdpyinfo is missing (rc=127) or if it fails to connect to X (rc!=0).
         that: xdpyinfo_check.rc | default(0) == 0
-        fail_msg: >-
+        msg: >-
           X display check failed (rc={{ xdpyinfo_check.rc | default('undefined') }}).
           {% if xdpyinfo_check.rc | default(0) == 127 %}
           The 'xdpyinfo' command is missing. Ensure 'x11-utils', 'xdpyinfo' or equivalent is installed.
@@ -148,7 +151,7 @@
     - metatrader_verify
 - name: Saves platform facts
   become: >-
-    {{ (ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
+    {{ (ansible_facts.user_id | default(ansible_user_id | default('root')) != 'root')
     or (detected_os_family == 'Windows') }}
   become_method: '{{ metatrader_become_method[detected_os_family] }}'
   when:
@@ -180,7 +183,7 @@
         state: directory
       become: true
       become_method: '{{ metatrader_become_method[detected_os_family] }}'
-      become_user: '{{ ansible_facts.env.USERNAME }}'
+      become_user: "{{ ansible_facts.env.USERNAME | default(ansible_env.USERNAME | default('Administrator')) }}"
       when: detected_os_family == "Windows"
     - name: Saves role's facts (Unix)
       ansible.builtin.copy:
@@ -197,7 +200,7 @@
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
       become_method: '{{ metatrader_become_method[detected_os_family] }}'
-      become_user: '{{ ansible_facts.env.USERNAME }}'
+      become_user: "{{ ansible_facts.env.USERNAME | default(ansible_env.USERNAME | default('Administrator')) }}"
       when:
         - detected_os_family == "Windows"
         - metatrader is defined
