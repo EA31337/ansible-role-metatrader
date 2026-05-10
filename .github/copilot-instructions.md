@@ -195,7 +195,6 @@ pre-commit run -a
 | `nixos-latest` | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
 | `ubuntu-jammy` | `ubuntu:jammy` | WineHQ repo; codename: `jammy` |
 | `ubuntu-noble` | `ubuntu:noble` | WineHQ repo; codename: `jammy` |
-| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo; codename: `jammy` |
 
 ## Troubleshooting
 

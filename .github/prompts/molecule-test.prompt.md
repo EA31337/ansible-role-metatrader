@@ -49,7 +49,6 @@ and troubleshooting guidance.
 | Container       | Image              | Notes                              |
 | --------------- | ------------------ | ---------------------------------- |
 | `ubuntu-noble`  | `ubuntu:noble`     | WineHQ repo; codename: `jammy`     |
-| `ubuntu-latest` | `ubuntu:latest`    | WineHQ repo; codename: `jammy`     |
 
 ## Results Template
 
@@ -63,7 +62,6 @@ For each scenario, report per-platform step results:
 | Platform        | create | prepare | converge | idempotence | verify |
 | --------------- | :----: | :-----: | :------: | :---------: | :----: |
 | `ubuntu-noble`  |        |         |          |             |        |
-| `ubuntu-latest` |        |         |          |             |        |
 
 ### Converge Sub-Step Results
 
@@ -72,14 +70,12 @@ For converge failures, break down by sub-step:
 | Platform        | wine | xvfb | metatrader |
 | --------------- | :--: | :--: | :--------: |
 | `ubuntu-noble`  |      |      |            |
-| `ubuntu-latest` |      |      |            |
 
 ### Summary (all scenarios)
 
 | Platform        | default | mt4 | mt5 |
 | --------------- | :-----: | :-: | :-: |
 | `ubuntu-noble`  |         |     |     |
-| `ubuntu-latest` |         |     |     |
 
 ### Failure Details
 
