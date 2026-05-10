@@ -25,6 +25,7 @@ on:
       - .github/workflows/platform.yml
       - LICENSE
       - Pipfile*
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -42,7 +43,6 @@ jobs:
           - metatrader-on-alpine-latest
           - metatrader-on-debian-latest
           - metatrader-on-ubuntu-jammy
-          - metatrader-on-ubuntu-latest
           - metatrader-on-ubuntu-noble
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
@@ -54,16 +54,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6.1.0
         with:
+          cache: pip
+          cache-dependency-path: |
+            **/Pipfile*
+            **/.devcontainer/requirements.txt
           python-version: '3.11'
-      - name: Cache pip
-        uses: actions/cache@v5.0.1
-        with:
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/Pipfile*', '**/.devcontainer/requirements.txt') }}
-          path: ~/.cache/pip
-          restore-keys: |
-            ${{ runner.os }}-pip-
       - name: Cache Ansible Galaxy
-        uses: actions/cache@v5.0.1
+        uses: actions/cache@v5
         with:
           key: ${{ runner.os }}-galaxy-${{ hashFiles('**/requirements.yml') }}
           path: |
@@ -95,6 +92,9 @@ jobs:
           ansible-playbook -i tests/inventory/docker-containers.yml
           --limit "${TARGET_CONTAINER},localhost"
           tests/playbooks/docker-containers.yml
+        env:
+          ANSIBLE_DISPLAY_OK_HOSTS: 'no'
+          ANSIBLE_DISPLAY_SKIPPED_HOSTS: 'no'
 
       # Debug with tmate on failure when debug logging is enabled.
       - if: ${{ failure() && runner.debug == '1' }}
