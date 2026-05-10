@@ -14,6 +14,13 @@
       or (ansible_facts.get('os_family', '') == 'OtherLinux'
       and nix_check.rc | default(1) == 0))
       else ansible_facts.get('os_family', '') }}
+- name: Ensures the detected OS family is supported by this role
+  ansible.builtin.assert:
+    that:
+      - effective_os_family in metatrader_become_method
+    fail_msg: >-
+      Unsupported OS family: {{ effective_os_family | default('undefined') }}.
+      Supported: {{ metatrader_become_method.keys() | sort | join(', ') }}.
 - name: Sets os_family fact to NixOS if detected
   ansible.builtin.set_fact:
     ansible_facts:
@@ -26,18 +33,26 @@
   when: false
 - name: Checks if platform is already exist
   ansible.builtin.stat:
-    path: "{{ ansible_facts.ansible_local['metatrader'][metatrader_version | string].path | default('') }}"
+    path: >-
+      {{ ansible_facts.get('ansible_local', {})
+      .get('metatrader', {})
+      .get(metatrader_version | string, {})
+      .get('path', '') }}
   register: stat_mt
   when:
-    - ansible_facts.ansible_local['metatrader'] is defined
-    - ansible_facts.ansible_local['metatrader'][metatrader_version | string] is defined
-    - ansible_facts.ansible_local['metatrader'][metatrader_version | string].path is defined
+    - ansible_facts.get('ansible_local', {}).get('metatrader') is defined
+    - >-
+      ansible_facts.get('ansible_local', {}).get('metatrader', {})
+      .get(metatrader_version | string) is defined
+    - >-
+      ansible_facts.get('ansible_local', {}).get('metatrader', {})
+      .get(metatrader_version | string, {}).get('path') is defined
 - name: Ensures platform is installed
   when:
     - effective_os_family != "Windows" # gather_facts is required.
     - >-
-      (ansible_facts.ansible_local['metatrader'] is not defined) or
-      (ansible_facts.ansible_local['metatrader'][metatrader_version | string] is not defined) or
+      (ansible_facts.get('ansible_local', {}).get('metatrader') is not defined) or
+      (ansible_facts.get('ansible_local', {}).get('metatrader', {}).get(metatrader_version | string) is not defined) or
       (not stat_mt.stat.exists)
   block:
     - name: Validates variables
@@ -152,7 +167,7 @@
   become: >-
     {{ (ansible_facts.get('user_id', 'root') != 'root')
     or (effective_os_family == 'Windows') }}
-  become_method: '{{ metatrader_become_method[effective_os_family] }}'
+  become_method: "{{ metatrader_become_method.get(effective_os_family, 'ansible.builtin.su') }}"
   when:
     - >-
       ansible_facts.ansible_local['metatrader'] is not defined
@@ -181,7 +196,7 @@
         path: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts
         state: directory
       become: true
-      become_method: '{{ metatrader_become_method[effective_os_family] }}'
+      become_method: "{{ metatrader_become_method.get(effective_os_family, 'ansible.builtin.su') }}"
       become_user: "{{ ansible_facts.get('env', {}).get('USERNAME', 'Administrator') }}"
       when: effective_os_family == "Windows"
     - name: Saves role's facts (Unix)
@@ -198,7 +213,7 @@
         # yamllint disable-line rule:line-length
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
-      become_method: '{{ metatrader_become_method[effective_os_family] }}'
+      become_method: "{{ metatrader_become_method.get(effective_os_family, 'ansible.builtin.su') }}"
       become_user: "{{ ansible_facts.get('env', {}).get('USERNAME', 'Administrator') }}"
       when:
         - effective_os_family == "Windows"

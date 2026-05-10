@@ -6,10 +6,24 @@ dependencies:
     vars:
       wine_install_winetricks: true
       wine_version: "{{ '9' if ansible_facts.get('os_family', '') == 'Alpine' else '10.0' }}"
+      wine_detected_os_family: >-
+        {{ 'NixOS' if (ansible_facts.get('os_family', '') == 'NixOS'
+        or ansible_facts.get('distribution', '') == 'NixOS')
+        else (ansible_facts.get('distribution', '') if ansible_facts.get('distribution', '') == 'Ubuntu'
+        else ansible_facts.get('os_family', '')) }}
+      ansible_os_family: "{{ ansible_facts.get('os_family', '') }}"
+      ansible_distribution: "{{ ansible_facts.get('distribution', '') }}"
     version: v1.0.4  # This should match version in requirements.yml
     when: ansible_facts.get('os_family', '') != "Windows"
   - name: ea31337.xvfb
     role: ea31337.xvfb
+    vars:
+      xvfb_os_family: >-
+        {{ 'NixOS' if (ansible_facts.get('os_family', '') == 'NixOS'
+        or ansible_facts.get('distribution', '') == 'NixOS')
+        else ansible_facts.get('os_family', '') }}
+      ansible_os_family: "{{ ansible_facts.get('os_family', '') }}"
+      ansible_distribution: "{{ ansible_facts.get('distribution', '') }}"
     scm: git
     src: https://github.com/EA31337/ansible-role-xvfb.git
     version: v1.0.4  # This should match version in requirements.yml
