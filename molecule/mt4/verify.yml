@@ -1,10 +1,12 @@
 ---
 - name: Verify
   hosts: all
+  vars:
+    effective_home: "{{ ansible_facts.get('env', {}).get('HOME') | default('/root', true) }}"
   tasks:
     - name: Retrieve information from path
       ansible.builtin.stat:
-        path: "{{ ansible_facts.get('env', {}).get('HOME', '/root') }}/.wine/drive_c/Program Files"
+        path: '{{ effective_home }}/.wine/drive_c/Program Files'
       register: stat_result
     - name: Verify Program Files directory exist
       ansible.builtin.assert:
@@ -15,7 +17,7 @@
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.builtin.find:
-        paths: "{{ ansible_facts.get('env', {}).get('HOME', '/root') }}/.wine/drive_c"
+        paths: '{{ effective_home }}/.wine/drive_c'
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
@@ -24,7 +26,7 @@
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
-        paths: "{{ ansible_facts.get('env', {}).get('HOME', '/root') }}/.wine/drive_c"
+        paths: '{{ effective_home }}/.wine/drive_c'
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res

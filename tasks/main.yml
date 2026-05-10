@@ -14,6 +14,13 @@
       or (ansible_facts.get('os_family', '') == 'OtherLinux'
       and nix_check.rc | default(1) == 0))
       else ansible_facts.get('os_family', '') }}
+- name: Sets effective environment facts
+  ansible.builtin.set_fact:
+    effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
+    effective_home: "{{ ansible_facts.get('env', {}).get('HOME') | default('/root', true) }}"
+    effective_xdg_runtime_dir: >-
+      {{ ansible_facts.get('env', {}).get('XDG_RUNTIME_DIR')
+      | default('/tmp/runtime-root', true) }}
 - name: Ensures the detected OS family is supported by this role
   ansible.builtin.assert:
     that:
@@ -30,6 +37,8 @@
     wine_detected_os_family: '{{ effective_os_family }}'
     ansible_os_family: "{{ ansible_facts.get('os_family', '') }}"
     ansible_distribution: "{{ ansible_facts.get('distribution', '') }}"
+    ansible_user_id: "{{ ansible_facts.get('user_id', 'root') }}"
+    ansible_env: "{{ ansible_facts.get('env', {}) }}"
   when: effective_os_family != "Windows"
 - name: Includes xvfb role
   ansible.builtin.include_role:
@@ -38,6 +47,8 @@
     xvfb_os_family: '{{ effective_os_family }}'
     ansible_os_family: "{{ ansible_facts.get('os_family', '') }}"
     ansible_distribution: "{{ ansible_facts.get('distribution', '') }}"
+    ansible_user_id: "{{ ansible_facts.get('user_id', 'root') }}"
+    ansible_env: "{{ ansible_facts.get('env', {}) }}"
   when: effective_os_family != "Windows"
 - name: Sets os_family fact to NixOS if detected
   ansible.builtin.set_fact:
@@ -132,8 +143,8 @@
       retries: 10
       delay: 3
       environment:
-        DISPLAY: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0') }}"
-        XDG_RUNTIME_DIR: "{{ ansible_facts.get('env', {}).get('XDG_RUNTIME_DIR') | default('/tmp/runtime-root') }}"
+        DISPLAY: '{{ effective_display }}'
+        XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
       when:
         - not file_mt_installed_exists.stat.exists
     - name: Asserts X display is available
@@ -145,7 +156,7 @@
           {% if xdpyinfo_check.rc | default(0) == 127 %}
           The 'xdpyinfo' command is missing. Ensure 'x11-utils' or equivalent is installed.
           {% else %}
-          X display is not available (DISPLAY={{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0') }}).
+          X display is not available (DISPLAY={{ effective_display }}).
           Ensure Xvfb or another X server is running.
           {% endif %}
       when:
@@ -161,15 +172,15 @@
       async: 1200
       poll: 10
       environment:
-        DISPLAY: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0') }}"
+        DISPLAY: '{{ effective_display }}'
         WINEDEBUG: -all
         WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
         WINETRICKS_DOWNLOADER: curl
-        XDG_RUNTIME_DIR: "{{ ansible_facts.get('env', {}).get('XDG_RUNTIME_DIR') | default('/tmp/runtime-root') }}"
+        XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
         FONTCONFIG_FILE: >-
           {% if effective_os_family != 'NixOS' %}/etc/fonts/fonts.conf
           {% else %}{{ ansible_facts.get('env', {}).get('FONTCONFIG_FILE')
-          | default('/run/current-system/sw/etc/fonts/fonts.conf') }}{% endif %}
+          | default('/run/current-system/sw/etc/fonts/fonts.conf', true) }}{% endif %}
       when:
         - not file_mt_installed_exists.stat.exists
 - name: Verifies
@@ -210,7 +221,7 @@
         state: directory
       become: true
       become_method: "{{ metatrader_become_method.get(effective_os_family, 'ansible.builtin.su') }}"
-      become_user: "{{ ansible_facts.get('env', {}).get('USERNAME', 'Administrator') }}"
+      become_user: "{{ ansible_facts.get('env', {}).get('USERNAME') | default('Administrator', true) }}"
       when: effective_os_family == "Windows"
     - name: Saves role's facts (Unix)
       ansible.builtin.copy:
@@ -227,7 +238,7 @@
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
       become_method: "{{ metatrader_become_method.get(effective_os_family, 'ansible.builtin.su') }}"
-      become_user: "{{ ansible_facts.get('env', {}).get('USERNAME', 'Administrator') }}"
+      become_user: "{{ ansible_facts.get('env', {}).get('USERNAME') | default('Administrator', true) }}"
       when:
         - effective_os_family == "Windows"
         - metatrader is defined
