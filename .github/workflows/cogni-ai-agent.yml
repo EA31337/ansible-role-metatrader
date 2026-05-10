@@ -6,19 +6,63 @@ on:
   issues:
     types:
       - opened
+      - edited
       - reopened
   issue_comment:
     types:
       - created
+      - edited
+  discussion:
+    types:
+      - created
+      - edited
+      - answered
+  discussion_comment:
+    types:
+      - created
+      - edited
   pull_request:
     types:
       - opened
+      - edited
       - reopened
+      - synchronize
   pull_request_review_comment:
     types:
       - created
+      - edited
+  workflow_call:
+    inputs:
+      agent:
+        default: cogni-ai-architect
+        description: Agent to use.
+        required: false
+        type: string
+      model:
+        default: opencode/gemini-3-flash
+        description: Model to use for OpenCode
+        required: false
+        type: string
+      prompt:
+        default: ""
+        description: Prompt for the agent
+        required: false
+        type: string
   workflow_dispatch:
     inputs:
+      agent:
+        default: cogni-ai-architect
+        description: Agent to use.
+        options:
+          - cogni-ai-architect
+          - cogni-ai-brain-ops
+          - cogni-ai-code-reviewer
+          - cogni-ai-devops
+          - cogni-ai-manager
+          - cogni-ai-plan-reviewer
+          - default
+        required: false
+        type: choice
       model:
         default: opencode/gemini-3-flash
         description: Model to use for OpenCode
@@ -57,12 +101,42 @@ on:
 jobs:
   cogni-ai-agent:
     name: Run Cogni AI agent
+    # Note: These are pre-run conditions, actual trigger conditions are defined within the action it-self.
+    if: |
+      (
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'workflow_call' ||
+        github.event.sender.type != 'Bot'
+      ) &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        github.event_name == 'workflow_call' ||
+        github.event_name == 'pull_request' ||
+        contains(
+          github.event.comment.body ||
+          github.event.issue.body ||
+          github.event.pull_request.body ||
+          github.event.discussion.body ||
+          '',
+          '/'
+        ) ||
+        contains(
+          github.event.comment.body ||
+          github.event.issue.body ||
+          github.event.pull_request.body ||
+          github.event.discussion.body ||
+          '',
+          '@'
+        )
+      )
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: write
+      discussions: write
       id-token: write
       issues: write
+      models: read
       packages: read
       pull-requests: write
     steps:
@@ -87,6 +161,7 @@ jobs:
       - name: Run Cogni AI Agent
         uses: Cogni-AI-OU/cogni-ai-agent-action@main
         with:
+          agent: ${{ inputs.agent }}
           model: ${{ inputs.model }}
           opencode-api-key: ${{ secrets.OPENCODE_API_KEY }}  # <https://opencode.ai/auth>
           permissions: |-
@@ -124,6 +199,7 @@ jobs:
             ${{ github.event.comment.body
             || github.event.issue.body
             || github.event.pull_request.body
+            || github.event.discussion.body
             || inputs.prompt }}
     timeout-minutes: 60
   summary:
@@ -135,6 +211,7 @@ jobs:
       actions: read
       contents: read
       id-token: write
+      models: read
     steps:
       - uses: actions/checkout@v6
         with:
