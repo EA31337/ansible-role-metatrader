@@ -57,7 +57,7 @@ provisioner:
       nixos-latest:
         wine_winetricks_url: ''
       ubuntu-latest:
-        wine_release_codename: '{{ ansible_facts.distribution_release | lower }}'
+        wine_release_codename: noble
       ubuntu-noble:
         wine_release_codename: noble
   name: ansible

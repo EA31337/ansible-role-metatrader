@@ -1,0 +1,70 @@
+---
+# Ansible playbook file.
+# Usage: ansible-playbook .devcontainer/provision.yml
+# Note: Keep keys and lists in alphabetical order.
+- name: Provision dev container
+  hosts: localhost
+  connection: local
+  become: true
+  vars:
+    apt_packages:
+      - coreutils
+      - direnv
+      - figlet
+      - findutils
+      - gh
+      - git
+      - links
+      - mawk
+      - sed
+      - time
+      - vim
+    ansible_python_requirements:
+      - docker>=7.1
+      - requests==2.32.5
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+    - name: Install apt packages
+      ansible.builtin.apt:
+        name: '{{ apt_packages }}'
+        state: present
+    - name: Install python requirements
+      ansible.builtin.pip:
+        requirements: '{{ playbook_dir }}/requirements.txt'
+        state: present
+    - name: Install ansible via pipx
+      ansible.builtin.command: pipx install --include-deps --force ansible
+      become: false
+      register: pipx_install
+      changed_when: "'already installed' not in pipx_install.stderr"
+      failed_when: pipx_install.rc != 0 and 'already installed' not in pipx_install.stderr
+    - name: Check ansible python requirements already injected
+      ansible.builtin.command: pipx runpip ansible show {{ item }}
+      loop: '{{ ansible_python_requirements }}'
+      register: pipx_injected
+      become: false
+      failed_when: false
+      changed_when: false
+    - name: Inject ansible python requirements
+      ansible.builtin.command: pipx inject ansible {{ item }}
+      loop: '{{ ansible_python_requirements }}'
+      loop_control:
+        index_var: req_index
+      when: pipx_injected.results[req_index].rc != 0
+      become: false
+      changed_when: true
+    - name: Install ansible collections
+      ansible.builtin.command: ansible-galaxy collection install -r requirements.yml
+      args:
+        chdir: '{{ playbook_dir }}/..'
+      become: false
+      register: galaxy_result
+      changed_when: "'Nothing to do' not in galaxy_result.stdout"
+    - name: Install pre-commit hooks
+      ansible.builtin.command: pre-commit install
+      args:
+        chdir: '{{ playbook_dir }}/..'
+        creates: .git/hooks/pre-commit
+      become: false

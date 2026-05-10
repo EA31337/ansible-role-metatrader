@@ -59,9 +59,11 @@ jobs:
     name: Run Cogni AI agent
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: write
       id-token: write
       issues: write
+      packages: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v6
@@ -72,7 +74,7 @@ jobs:
           python-version: '3.12'
       - name: Restore Python user site
         id: python-user-site
-        uses: actions/cache@v5.0.1
+        uses: actions/cache@v5
         with:
           path: ~/.local
           key: ${{ runner.os }}-pip-${{ hashFiles('.devcontainer/requirements.txt') }}
@@ -123,3 +125,22 @@ jobs:
             || github.event.issue.body
             || github.event.pull_request.body
             || inputs.prompt }}
+    timeout-minutes: 60
+  summary:
+    name: Generate Summary (post-run)
+    needs: cogni-ai-agent
+    if: always() && needs.cogni-ai-agent.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Generate Summary
+        uses: Cogni-AI-OU/cogni-ai-agent-action/ai-inference/summary@main
+        with:
+          agent_job_id: cogni-ai-agent
+          github_token: ${{ secrets.GITHUB_TOKEN }}
