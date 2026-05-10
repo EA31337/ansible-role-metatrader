@@ -59,7 +59,7 @@ load_mt5_install()
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do <<'EOF'
         ; Maximum time for setup to complete.
-        Timeout := 1200000 ; 20 min.
+        Timeout := 1800000 ; 30 min.
 
         ; Searching for a setup EXE file.
         loop, Files, *.exe
@@ -75,9 +75,9 @@ load_mt5_install()
         SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        loop 600
+        loop 900
         {
-            if (WinExist("MetaTrader 5"))
+            if (WinExist("MetaTrader") || WinExist("Setup"))
                 break
             if (WinExist("Proxy Server"))
             {
@@ -85,11 +85,12 @@ load_mt5_install()
                 Send, {Esc}
             }
             Sleep, 1000
-            if (A_Index == 600)
+            if (A_Index == 900)
                 ExitApp, 1
         }
 
-        WinActivate, MetaTrader 5
+        WinActivate, MetaTrader
+        WinActivate, Setup
         Sleep, 1000
 
         ; Clicking "Next".
