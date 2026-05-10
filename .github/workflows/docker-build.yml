@@ -78,10 +78,6 @@ jobs:
       matrix:
         include:
           - arch: linux/amd64
-            image: ubuntu:latest
-            is_default: true
-            platform: ubuntu-latest
-          - arch: linux/amd64
             image: ubuntu:noble
-            is_default: false
+            is_default: true
             platform: ubuntu-noble

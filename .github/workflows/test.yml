@@ -52,7 +52,6 @@ jobs:
         container:
           - metatrader-on-debian-latest
           - metatrader-on-ubuntu-jammy
-          - metatrader-on-ubuntu-latest
           - metatrader-on-ubuntu-noble
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'

@@ -7,9 +7,8 @@ tests
 Pipfile
 Pipfile.lock
 requirements-local.yml.j2
-README.md
+*.md
 LICENSE
-AGENTS.md
 .ansible-lint
 .markdownlint.yaml
 .pre-commit-config.yaml
