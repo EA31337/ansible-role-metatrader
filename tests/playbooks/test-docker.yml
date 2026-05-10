@@ -57,6 +57,8 @@
         elif command -v apt-get >/dev/null 2>&1; then
           apt-get update -qq && \
           DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-minimal sudo
+        elif command -v nix-env >/dev/null 2>&1; then
+          nix-channel --update && nix-env -iA nixpkgs.python3 nixpkgs.sudo
         fi
       changed_when: false
     - name: Gather facts

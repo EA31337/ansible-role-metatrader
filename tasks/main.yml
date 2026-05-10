@@ -55,7 +55,6 @@
       ansible.builtin.package:
         name: curl
         state: present
-      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - detected_os_family not in ["Windows", "NixOS"]
         - (ansible_facts.pkg_mgr | default(ansible_pkg_mgr | default('unknown'))) not in ["unknown", ""]
@@ -66,7 +65,7 @@
         cmd: nix-env -iA nixpkgs.curl > /dev/null
       register: nix_curl_install
       changed_when: "'installing' in nix_curl_install.stderr or 'copying path' in nix_curl_install.stderr"
-      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
+      failed_when: false
       when:
         - detected_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists
@@ -74,7 +73,6 @@
       ansible.builtin.package:
         name: "{{ 'xdpyinfo' if (detected_os_family | default(ansible_os_family)) == 'Alpine' else 'x11-utils' }}"
         state: present
-      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - (detected_os_family | default(ansible_os_family)) not in ["Windows", "NixOS"]
         - (ansible_facts.pkg_mgr | default(ansible_pkg_mgr | default('unknown'))) not in ["unknown", ""]
@@ -85,7 +83,7 @@
         cmd: nix-env -iA nixpkgs.xorg.xdpyinfo > /dev/null
       register: nix_xdpyinfo_install
       changed_when: "'installing' in nix_xdpyinfo_install.stderr or 'copying path' in nix_xdpyinfo_install.stderr"
-      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
+      failed_when: false
       when:
         - detected_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists
@@ -102,12 +100,11 @@
       failed_when: false
       changed_when: false
       until: xdpyinfo_check.rc == 0
-      retries: 10
-      delay: 3
+      retries: 20
+      delay: 5
       environment:
         DISPLAY: "{{ ansible_env.DISPLAY | default(':0') }}"
         XDG_RUNTIME_DIR: "{{ ansible_env.XDG_RUNTIME_DIR | default('/tmp/runtime-root') }}"
-      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - not file_mt_installed_exists.stat.exists
     - name: Asserts X display is available

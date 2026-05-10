@@ -4,6 +4,8 @@ FROM {{ docker_image | default('ubuntu:noble') }}
 LABEL org.opencontainers.image.source=https://github.com/EA31337/ansible-role-metatrader
 LABEL org.opencontainers.image.description="MetaTrader container based on ea31337.metatrader Ansible role"
 
+ENV DISPLAY=:0
+ENV XDG_RUNTIME_DIR=/tmp/runtime-root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Ansible and dependencies
@@ -14,7 +16,7 @@ RUN grep -E '^[^#].*/main$' /etc/apk/repositories | sed 's/main$/community/' >> 
     update-ca-certificates
 {% elif 'nixos' in (docker_image | default('ubuntu:noble')) %}
 RUN nix-channel --update && \
-    nix-env -iA nixpkgs.ansible nixpkgs.git nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.sudo
+    nix-env -iA nixpkgs.ansible nixpkgs.curl nixpkgs.git nixpkgs.p7zip nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.sudo nixpkgs.unzip nixpkgs.xorg.xdpyinfo
 {% else %}
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

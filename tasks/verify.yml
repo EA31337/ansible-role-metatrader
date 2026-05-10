@@ -12,6 +12,7 @@
       ansible.builtin.find:
         paths: "{{ ansible_facts.env.HOME | default(ansible_env.HOME | default('/root')) }}/.wine/drive_c"
         patterns: terminal*.exe
+        recurse: true
       register: find_mt_res
       when: detected_os_family_safe != "Windows"
     - name: Store platform's path (Unix)
@@ -43,6 +44,7 @@
       ansible.builtin.find:
         paths: "{{ ansible_facts.env.HOME | default(ansible_env.HOME | default('/root')) }}/.wine/drive_c"
         patterns: '[mM]eta[eE]ditor*.exe'
+        recurse: true
       register: find_mte_res
       when: detected_os_family_safe != "Windows"
     - name: Store platform's editor path (Unix)
