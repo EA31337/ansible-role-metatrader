@@ -1,4 +1,10 @@
 ---
+- name: Ensures essential facts are gathered
+  ansible.builtin.setup:
+    gather_subset:
+      - min
+      - distribution
+  when: ansible_facts.get('os_family') is none or not ansible_facts.get('os_family')
 - name: Detects NixOS
   ansible.builtin.command: nix-env --version
   register: nix_check
@@ -13,7 +19,7 @@
       or ansible_facts.get('os_family', '') == 'NixOS'
       or (ansible_facts.get('os_family', '') == 'OtherLinux'
       and nix_check.rc | default(1) == 0))
-      else ansible_facts.get('os_family', '') }}
+      else ansible_facts.get('os_family', ansible_facts.get('distribution', 'OtherLinux')) }}
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
     effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
@@ -26,7 +32,7 @@
     that:
       - effective_os_family in metatrader_become_method
     fail_msg: >-
-      Unsupported OS family: {{ effective_os_family | default('undefined') }}.
+      Unsupported OS family: {{ effective_os_family | default('undefined', true) }}.
       Supported: {{ metatrader_become_method.keys() | sort | join(', ') }}.
 - name: Includes wine role
   ansible.builtin.include_role:
@@ -35,8 +41,8 @@
     wine_install_winetricks: true
     wine_version: "{{ '9' if effective_os_family == 'Alpine' else '10.0' }}"
     wine_detected_os_family: '{{ effective_os_family }}'
-    ansible_os_family: "{{ ansible_facts.get('os_family', '') }}"
-    ansible_distribution: "{{ ansible_facts.get('distribution', '') }}"
+    ansible_os_family: '{{ effective_os_family }}'
+    ansible_distribution: "{{ ansible_facts.get('distribution', effective_os_family) }}"
     ansible_user_id: "{{ ansible_facts.get('user_id', 'root') }}"
     ansible_env: "{{ ansible_facts.get('env', {}) }}"
   when: effective_os_family != "Windows"
@@ -45,8 +51,8 @@
     name: ea31337.xvfb
   vars:
     xvfb_os_family: '{{ effective_os_family }}'
-    ansible_os_family: "{{ ansible_facts.get('os_family', '') }}"
-    ansible_distribution: "{{ ansible_facts.get('distribution', '') }}"
+    ansible_os_family: '{{ effective_os_family }}'
+    ansible_distribution: "{{ ansible_facts.get('distribution', effective_os_family) }}"
     ansible_user_id: "{{ ansible_facts.get('user_id', 'root') }}"
     ansible_env: "{{ ansible_facts.get('env', {}) }}"
   when: effective_os_family != "Windows"
