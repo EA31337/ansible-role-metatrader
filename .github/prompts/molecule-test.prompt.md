@@ -48,7 +48,7 @@ and troubleshooting guidance.
 
 | Container       | Image              | Notes                              |
 | --------------- | ------------------ | ---------------------------------- |
-| `ubuntu-noble`  | `ubuntu:noble`     | WineHQ repo; codename: `jammy`     |
+| `ubuntu-noble`  | `ghcr.io/ea31337/ansible-role-wine:ubuntu-noble` | Wine already pre-provisioned |
 
 ## Results Template
 

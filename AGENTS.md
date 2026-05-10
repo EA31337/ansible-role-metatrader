@@ -87,7 +87,7 @@ For project overview and install instructions, see [README.md](README.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: jammy` |
+| `ubuntu-noble` | `ghcr.io/ea31337/ansible-role-wine:ubuntu-noble` | Wine already pre-provisioned |
 
 ### Running Tests
 
@@ -229,7 +229,8 @@ molecule destroy -s default
 > `Failed to update apt cache after 5 retries`
 
 - **Root cause**: Firewall/network policy blocks `dl.winehq.org`, or
-  `debian:latest` codename (e.g. `trixie`) is not in the WineHQ repo.
+  `debian:latest` codename (e.g. `trixie`) or Ubuntu 26.04 (`resolute`)
+  is not in the WineHQ repo.
 - **Fix**: Set `wine_release_codename: bookworm` for debian-latest in
   host_vars. Add `dl.winehq.org` to firewall allowlist.
 - **CI context**: Works on standard GitHub Actions runners with internet
@@ -312,7 +313,7 @@ How to analyze the output:
 - If the screenshot shows an AutoHotkey syntax error instead of the MetaTrader
   installer window, inspect the generated `.ahk` file before investigating
   network access.
-- In the 2026-04-24 `metatrader-on-ubuntu-latest` manual debug session, the
+- In the 2026-04-24 `metatrader-on-ubuntu-noble` manual debug session, the
   screenshot matched a broken generated script:
 
   ```text
