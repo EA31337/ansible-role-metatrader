@@ -70,7 +70,7 @@
         - not file_mt_installed_exists.stat.exists
     - name: Ensures X11 utilities are present (standard distros)
       ansible.builtin.package:
-        name: x11-utils
+        name: "{{ 'xdpyinfo' if (detected_os_family | default(ansible_os_family)) == 'Alpine' else 'x11-utils' }}"
         state: present
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
@@ -114,7 +114,7 @@
         fail_msg: >-
           X display check failed (rc={{ xdpyinfo_check.rc | default('undefined') }}).
           {% if xdpyinfo_check.rc | default(0) == 127 %}
-          The 'xdpyinfo' command is missing. Ensure 'x11-utils' or equivalent is installed.
+          The 'xdpyinfo' command is missing. Ensure 'x11-utils', 'xdpyinfo' or equivalent is installed.
           {% else %}
           X display is not available (DISPLAY={{ ansible_env.DISPLAY | default(':0') }}).
           Ensure Xvfb or another X server is running.

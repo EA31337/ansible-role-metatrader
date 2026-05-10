@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 {% if 'alpine' in (docker_image | default('ubuntu:noble')) %}
 RUN grep -E '^[^#].*/main$' /etc/apk/repositories | sed 's/main$/community/' >> /etc/apk/repositories && \
     apk update && \
-    apk add --no-cache ansible bash ca-certificates cabextract curl fontconfig gawk git p7zip python3 sudo ttf-freefont unzip xauth xvfb-run && \
+    apk add --no-cache ansible bash ca-certificates cabextract curl fontconfig gawk git p7zip python3 sudo ttf-freefont unzip xauth xdpyinfo xvfb-run && \
     update-ca-certificates
 {% elif 'nixos' in (docker_image | default('ubuntu:noble')) %}
 RUN nix-channel --update && \
