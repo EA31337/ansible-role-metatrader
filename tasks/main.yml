@@ -16,8 +16,12 @@
     effective_os_family: "{{ ansible_facts.os_family | default(ansible_facts.distribution | default('OtherLinux', true), true) | default('OtherLinux', true) | trim }}"
 - name: Debug OS facts
   ansible.builtin.debug:
-    msg: "effective_os_family is '{{ effective_os_family }}'"
+    msg:
+      effective_os_family: "{{ effective_os_family }}"
+      ansible_facts_os_family: "{{ ansible_facts.get('os_family') }}"
+      ansible_facts_distribution: "{{ ansible_facts.get('distribution') }}"
 - name: Sets effective environment facts
+
   ansible.builtin.set_fact:
     effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
     effective_home: >-
