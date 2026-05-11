@@ -2,7 +2,6 @@
 - name: Verify
   hosts: all
   vars:
-  vars:
     effective_home: >-
       {%- set u_dir = ansible_facts.get('user_dir') | default('', true) | string | trim -%}
       {%- set e_home = ansible_facts.get('env', {}).get('HOME') | default('', true) | string | trim -%}
