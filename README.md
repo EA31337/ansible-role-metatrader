@@ -9,6 +9,9 @@
 
 Ansible role to install MetaTrader platform.
 
+For project facts and architecture mindmap, see [FACTS.mmd](FACTS.mmd).
+For execution flows and logic diagrams, see [FLOWS.mmd](FLOWS.mmd).
+
 ## Requirements
 
 This role requires:

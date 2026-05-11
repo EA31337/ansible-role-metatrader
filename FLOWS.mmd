@@ -1,36 +1,66 @@
 flowchart TD
-    %% Role execution flow
-    A([Start Role Execution]) --> B{"Detect OS Family"}
-    
-    B -->|NixOS| C["Set OS to NixOS"]
-    B -->|Debian/Alpine/Ubuntu| D{"Is MetaTrader Installed?"}
-    B -->|Windows| H["Proceed to Verification"]
-    
-    C --> D
-    
-    D -->|Yes| H
-    D -->|No| E["Install System Dependencies (curl, x11-utils)"]
-    E --> F{"Verify X11 Display (xdpyinfo)"}
-    
-    F -->|Failed| F_ERR["Fail: Display not available"]
-    F -->|Success| G["Run Winetricks Installer"]
-    
-    G --> H["Verify Installation (tasks/verify.yml)"]
-    
-    H --> I{"Check terminal*.exe exists"}
-    I --> J{"Check metaeditor*.exe exists"}
-    
-    J --> K["Save Ansible Local Facts"]
-    K --> L([Finish Role Execution])
+    subgraph Ansible_Role_Execution [Ansible Role Execution Flow]
+        direction TB
+        A([Start Role Execution]) --> B{"Detect OS Family"}
+        
+        B -->|NixOS| C["Set OS to NixOS"]
+        B -->|Debian/Alpine/Ubuntu| D{"Is MetaTrader Installed?"}
+        B -->|Windows| H["Verify Installation (tasks/verify.yml)"]
+        
+        C --> D
+        
+        D -->|Yes| H
+        D -->|No| E["Ensures system dependencies (curl, x11-utils)"]
+        E --> F{"Verify X11 Display (xdpyinfo)"}
+        
+        F -->|Failed| F_ERR["Fail: Display not available"]
+        F -->|Success| G["Run Winetricks Installer"]
+        
+        G --> H["Verify Installation (tasks/verify.yml)"]
+        
+        H --> I{"Does terminal*.exe exist?"}
+        I -->|Yes| J{"Does metaeditor*.exe exist?"}
+        I -->|No| I_ERR["Fail: terminal.exe missing"]
+        
+        J -->|Yes| K["Save Ansible Local Facts"]
+        J -->|No| J_ERR["Fail: metaeditor.exe missing"]
+        
+        K --> L([Finish Role Execution])
+    end
+
+    subgraph CI_Pipeline [CI Pipeline Matrix]
+        direction TB
+        CI1["Trigger (push/PR)"] --> CI2["Run Linters (pre-commit)"]
+        CI2 --> CI3["Run Molecule Matrix"]
+        subgraph Molecule_Matrix [Molecule Matrix]
+            direction LR
+            CI4["ubuntu-noble"]
+        end
+        CI3 --> Molecule_Matrix
+    end
+
+    subgraph Molecule_Testing_Flow [Molecule Testing Sequence]
+        direction TB
+        M1["dependency"] --> M2["destroy"]
+        M2 --> M3["syntax"]
+        M3 --> M4["create"]
+        M4 --> M5["prepare"]
+        M5 --> M6["converge"]
+        M6 --> M7["idempotence"]
+        M7 --> M8["verify"]
+        M8 --> M9["destroy"]
+    end
 
     %% References to markdown files
-    R_AGENTS@{ shape: docs, label: "AGENTS.md" }
-    R_FIREWALL@{ shape: docs, label: "FIREWALL.md" }
-    R_README@{ shape: docs, label: "README.md" }
+    R_AGENTS[AGENTS.md]
+    R_FIREWALL[.github/FIREWALL.md]
+    R_README[README.md]
 
     A -.-> R_README
     A -.-> R_AGENTS
     F_ERR -.-> R_FIREWALL
+    I_ERR -.-> R_README
+    J_ERR -.-> R_README
 
     click R_AGENTS "AGENTS.md"
     click R_FIREWALL ".github/FIREWALL.md"
