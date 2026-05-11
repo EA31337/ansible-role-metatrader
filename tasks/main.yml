@@ -47,16 +47,6 @@
       | default('/tmp/runtime-root', true) }}
 - name: Ensures facts are populated for dependencies
   ansible.builtin.set_fact:
-    ansible_facts: >-
-      {{ ansible_facts | combine({
-        'os_family': effective_os_family,
-        'distribution': (ansible_facts.get('distribution') or effective_os_family),
-        'user_id': (ansible_facts.get('user_id') or 'root'),
-        'user_dir': effective_home,
-        'env': (ansible_facts.get('env') or {}) | combine({'HOME': effective_home})
-      }) }}
-- name: Ensures facts are populated for legacy roles
-  ansible.builtin.set_fact:
     ansible_os_family: '{{ effective_os_family }}'
     ansible_distribution: >-
       {{ ansible_facts.get('distribution') | default(effective_os_family, true) }}
@@ -65,6 +55,9 @@
     os_family: '{{ effective_os_family }}'
     distribution: >-
       {{ ansible_facts.get('distribution') | default(effective_os_family, true) }}
+- name: Ensures facts are populated for legacy roles
+  ansible.builtin.set_fact:
+    ansible_env: "{{ (ansible_facts.get('env') or {}) | combine({'HOME': effective_home}) }}"
 - name: Ensures the detected OS family is supported by this role
   ansible.builtin.assert:
     that:
@@ -178,57 +171,69 @@
         mode: '0640'
       when:
         - not file_mt_installed_exists.stat.exists
-    - name: Verifies X display is available for Wine
-      ansible.builtin.shell: xdpyinfo >/dev/null 2>&1
-      register: xdpyinfo_check
-      failed_when: false
-      changed_when: false
-      until: xdpyinfo_check.rc == 0
-      retries: 10
-      delay: 3
-      environment:
-        DISPLAY: '{{ effective_display }}'
-        HOME: '{{ effective_home }}'
-        XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
-      when:
-        - not file_mt_installed_exists.stat.exists
-    - name: Asserts X display is available
-      ansible.builtin.assert:
-        # Fail if xdpyinfo is missing (rc=127) or if it fails to connect to X (rc!=0).
-        that: xdpyinfo_check.rc | default(0) == 0
-        fail_msg: >-
-          X display check failed (rc={{ xdpyinfo_check.rc | default('undefined') }}).
-          {% if xdpyinfo_check.rc | default(0) == 127 %}
-          The 'xdpyinfo' command is missing. Ensure 'x11-utils' or equivalent is installed.
-          {% else %}
-          X display is not available (DISPLAY={{ effective_display }}).
-          Ensure Xvfb or another X server is running.
-          {% endif %}
-      when:
-        - not file_mt_installed_exists.stat.exists
-    - name: Ensures MetaTrader is installed (via verb file)
-      ansible.builtin.shell:
-        # @todo: The winetricks command is executed directly without specifying the executable.
-        # noqa command-instead-of-shell
-        cmd: >
-          winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
-          && touch {{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}
-        creates: '{{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}'
-      async: 1200
-      poll: 10
-      environment:
-        DISPLAY: '{{ effective_display }}'
-        HOME: '{{ effective_home }}'
-        WINEDEBUG: -all
-        WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
-        WINETRICKS_DOWNLOADER: curl
-        XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
-        FONTCONFIG_FILE: >-
-          {% if effective_os_family != 'NixOS' %}/etc/fonts/fonts.conf
-          {% else %}{{ ansible_facts.get('env', {}).get('FONTCONFIG_FILE')
-          | default('/run/current-system/sw/etc/fonts/fonts.conf', true) }}{% endif %}
-      when:
-        - not file_mt_installed_exists.stat.exists
+- name: Checks if Xvfb process is running
+  ansible.builtin.command: pgrep -x Xvfb
+  register: xvfb_pgrep
+  changed_when: false
+  failed_when: false
+  when: effective_os_family != "Windows"
+- name: Debug Xvfb status
+  ansible.builtin.debug:
+    msg: "Xvfb pgrep rc: {{ xvfb_pgrep.rc | default('N/A') }}"
+  when:
+    - effective_os_family != "Windows"
+    - ansible_verbosity | default(0) >= 1
+- name: Verifies X display is available for Wine
+  ansible.builtin.shell: xdpyinfo >/dev/null 2>&1
+  register: xdpyinfo_check
+  failed_when: false
+  changed_when: false
+  until: xdpyinfo_check.rc == 0
+  retries: 20
+  delay: 5
+  environment:
+    DISPLAY: '{{ effective_display }}'
+    HOME: '{{ effective_home }}'
+    XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
+  when:
+    - not file_mt_installed_exists.stat.exists
+- name: Asserts X display is available
+  ansible.builtin.assert:
+    # Fail if xdpyinfo is missing (rc=127) or if it fails to connect to X (rc!=0).
+    that: xdpyinfo_check.rc | default(0) == 0
+    fail_msg: >-
+      X display check failed (rc={{ xdpyinfo_check.rc | default('undefined') }}).
+      {% if xdpyinfo_check.rc | default(0) == 127 %}
+      The 'xdpyinfo' command is missing. Ensure 'x11-utils' or equivalent is installed.
+      {% else %}
+      X display is not available (DISPLAY={{ effective_display }}).
+      Ensure Xvfb or another X server is running.
+      {% endif %}
+  when:
+    - not file_mt_installed_exists.stat.exists
+- name: Ensures MetaTrader is installed (via verb file)
+  ansible.builtin.shell:
+    # @todo: The winetricks command is executed directly without specifying the executable.
+    # noqa command-instead-of-shell
+    cmd: >
+      winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
+      && touch {{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}
+    creates: '{{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}'
+  async: 1200
+  poll: 10
+  environment:
+    DISPLAY: '{{ effective_display }}'
+    HOME: '{{ effective_home }}'
+    WINEDEBUG: -all
+    WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
+    WINETRICKS_DOWNLOADER: curl
+    XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
+    FONTCONFIG_FILE: >-
+      {% if effective_os_family != 'NixOS' %}/etc/fonts/fonts.conf
+      {% else %}{{ ansible_facts.get('env', {}).get('FONTCONFIG_FILE')
+      | default('/run/current-system/sw/etc/fonts/fonts.conf', true) }}{% endif %}
+  when:
+    - not file_mt_installed_exists.stat.exists
 - name: Verifies
   ansible.builtin.include_tasks: verify.yml
   tags:
