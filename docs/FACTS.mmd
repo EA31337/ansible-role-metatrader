@@ -5,6 +5,11 @@ mindmap
     Architecture
       "Driver: Docker Molecule"
       "Installer: winetricks"
+      Files
+        "Configuration: defaults/main.yml, vars/main.yml, ansible.cfg"
+        "Logic: tasks/main.yml, tasks/verify.yml"
+        "Testing: molecule/"
+        "Workflows: .github/workflows/"
     Context
       "Documentation: README.md"
       "Instructions: .github/copilot-instructions.md"
@@ -16,6 +21,14 @@ mindmap
       Roles
         "ea31337.wine: v1.0.4"
         "ea31337.xvfb: v1.0.4"
+    Directives
+      "Always use FQCN for modules"
+      "End files with a newline"
+      "Ensure idempotency in tasks"
+      "Keep YAML keys sorted alphabetically"
+      "Run yamllint and ansible-lint before commit"
+      "Use true/false for truthy values"
+      "Wrap lines at 120 characters"
     Ecosystem
       Agent
         "Action: Cogni-AI-OU/cogni-ai-agent-action"
@@ -27,6 +40,16 @@ mindmap
       Requirements
         Ansible
         Python 3.10+
+    Network
+      "Firewall: docs/FIREWALL.md"
+      Hosts
+        ansible.com
+        cache.nixos.org
+        cdn.mql5.com
+        download.mql5.com
+        galaxy.ansible.com
+        github.com
+        mql5.com
     Platforms
       Alpine
       Debian

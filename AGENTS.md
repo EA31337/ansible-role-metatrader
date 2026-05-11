@@ -3,17 +3,18 @@
 Persistent context for autonomous agents working on this Ansible role.
 
 For project overview and install instructions, see [README.md](README.md).
-For project facts and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
+For project facts, key files and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
 For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
+For firewall configuration, see [FIREWALL.md](docs/FIREWALL.md).
 
 ## Setup & Environment Invariants
 
 - Ansible role: `ea31337.metatrader`
-- Supported OS: Debian/Ubuntu, NixOS (Nix), Windows
+- Supported OS: See [FACTS.mmd](docs/FACTS.mmd)
 - Driver: Docker (Molecule)
 - Python 3.10+ required; install via `pip install -r .devcontainer/requirements.txt`
-- Collections: `community.docker`, `community.general`, `ansible.windows`
-- Role dependencies: `ea31337.wine`, `ea31337.xvfb` (see `meta/main.yml`)
+- Collections: See [FACTS.mmd](docs/FACTS.mmd)
+- Role dependencies: See [FACTS.mmd](docs/FACTS.mmd)
 - `community.docker` MUST be installed before Molecule can create/destroy
   containers.
 - Install dependencies: `ansible-galaxy role install -r requirements.yml --force` and
@@ -21,48 +22,11 @@ For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
 
 ## Key Files & Context Injection
 
-| Path | Purpose |
-| ---- | ------- |
-| `defaults/main.yml` | Role defaults (`metatrader_setup_url`, `metatrader_version`) |
-| `vars/main.yml` | Internal variables (`metatrader_become_method` per OS) |
-| `tasks/main.yml` | Role entry point; installs MetaTrader via winetricks verb |
-| `tasks/verify.yml` | Post-install verification (terminal.exe, metaeditor.exe) |
-| `templates/mt4_install.verb.j2` | MT4 winetricks verb template |
-| `templates/mt5_install.verb.j2` | MT5 winetricks verb template |
-| `meta/main.yml` | Galaxy metadata + role dependencies (wine, xvfb) |
-| `molecule/default/molecule.yml` | Default Molecule scenario config |
-| `molecule/default/converge.yml` | Converge playbook (all scenarios) |
-| `molecule/default/create.yml` | Custom Docker create (proxy CA injection) |
-| `molecule/default/destroy.yml` | Custom Docker destroy playbook |
-| `molecule/default/prepare.yml` | Container preparation (sudo, Python, certs) |
-| `molecule/default/verify.yml` | Verification playbook |
-| `molecule/mt4/molecule.yml` | MT4 scenario config |
-| `molecule/mt5/molecule.yml` | MT5 scenario config |
-| `molecule/mt5-win/molecule.yml` | MT5 Windows scenario config |
-| `molecule/resources/playbooks/Dockerfile.j2` | NixOS container Dockerfile template |
-| `requirements.yml` | Ansible Galaxy collection + role dependencies |
-| `ansible.cfg` | Ansible configuration (collections_path, callbacks) |
-| `.github/workflows/molecule.yml` | CI: Molecule test matrix |
-| `.github/workflows/check.yml` | CI: pre-commit / linting |
-| `.github/workflows/test.yml` | CI: Docker container test |
-| `.pre-commit-config.yaml` | Pre-commit hooks (yamllint, ansible-lint, etc.) |
-| `.ansible-lint` | Ansible-lint configuration |
-| `.yamllint` | YAML lint rules (max line length 120) |
-| `.markdownlint.yaml` | Markdown lint rules (max line length 120) |
+See [FACTS.mmd](docs/FACTS.mmd) for the list of key files and their purposes.
 
 ## Agent Directives
 
-- MUST use FQCN for all modules (`ansible.builtin.*`, `community.general.*`).
-- MUST keep YAML keys sorted alphabetically in config files when possible.
-- MUST ensure idempotency in all Ansible tasks.
-- MUST wrap lines at 120 characters (YAML and Markdown).
-- MUST end files with a newline character.
-- MUST use `true`/`false` for truthy values (not `yes`/`no`).
-- MUST run `yamllint .` and `ansible-lint` before committing YAML changes.
-- NEVER hardcode sensitive information; use variables.
-- NEVER remove or modify unrelated tests.
-- NEVER use `git add .` without verifying staged files.
-- On variable changes, update both `defaults/main.yml` and `README.md`.
+See [FACTS.mmd](docs/FACTS.mmd) for the list of agent directives and coding standards.
 
 ## Agent Directives (Contract Style)
 
@@ -78,19 +42,7 @@ For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
 
 ## Molecule Scenarios
 
-| Scenario | `metatrader_version` | Notes |
-| -------- | -------------------- | ----- |
-| `default` | `5` (from defaults) | Default MT5 install |
-| `mt4` | `4` | MT4 install with custom setup URL |
-| `mt5` | `5` | Explicit MT5 install |
-| `mt5-win` | `5` | Windows container (disabled in CI) |
-
-### Platforms (Linux scenarios)
-
-| Container | Image | Notes |
-| --------- | ----- | ----- |
-| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: noble` |
-| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: noble` |
+See [FACTS.mmd](docs/FACTS.mmd) for the list of scenarios and platforms.
 
 ### Running Tests
 
@@ -466,24 +418,7 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 
 ### Required Hosts
 
-| Host | Purpose |
-| ---- | ------- |
-| `cache.nixos.org` | Nix binary cache (pre-built packages) |
-| `cdn.mql5.com` | CDN (MT5 platform files) |
-| `channels.nixos.org` | Nix channel metadata (redirects to releases) |
-| `codeload.github.com` | GitHub archive download (dependency) |
-| `dl-cdn.alpinelinux.org` | Alpine Linux package repository |
-| `dl.winehq.org` | WineHQ APT repository and GPG key |
-| `download.mql5.com` | MetaTrader setup executable download |
-| `galaxy.ansible.com` | Ansible Galaxy collections |
-| `github.com` | AutoHotkey download (used by winetricks verb) |
-| `mt5-trade.metaquotes.net` | Trade server (installer backend) |
-| `raw.githubusercontent.com` | OpenSymbol font download (winetricks verb) |
-
-| `releases.nixos.org` | Nix channel tarballs (redirect target) |
-| `trade.mql5.com` | Trade server (installer registration) |
-| `web.archive.org` | Winetricks fallback download mirror |
-| `www.mql5.com` | Main website (installer backend) |
+See [FACTS.mmd](docs/FACTS.mmd) for the list of required hosts and their purposes.
 
 ## References
 

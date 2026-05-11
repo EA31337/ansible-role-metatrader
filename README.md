@@ -9,8 +9,9 @@
 
 Ansible role to install MetaTrader platform.
 
-For project facts and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
+For project facts, key files and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
 For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
+For firewall configuration, see [FIREWALL.md](docs/FIREWALL.md).
 
 ## Requirements
 
@@ -19,10 +20,7 @@ This role requires:
 - Ansible
 - Python
 - Administrative/root access on target hosts
-- One of the following operating systems:
-  - Alpine Linux
-  - Debian/Ubuntu
-  - NixOS or systems with Nix package manager
+- Supported operating systems: Alpine, Debian/Ubuntu, NixOS (see [FACTS.mmd](docs/FACTS.mmd))
 
 ## Install
 
