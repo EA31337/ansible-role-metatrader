@@ -3,24 +3,24 @@
 mindmap
   root((ansible-role-metatrader))
     Architecture
-      "Driver: Docker Molecule"
-      "Installer: winetricks"
+      "Driver Docker Molecule"
+      "Installer winetricks"
       Files
-        "Configuration: defaults/main.yml, vars/main.yml, ansible.cfg"
-        "Logic: tasks/main.yml, tasks/verify.yml"
-        "Testing: molecule/"
-        "Workflows: .github/workflows/"
+        "Configuration defaults/main.yml, vars/main.yml, ansible.cfg"
+        "Logic tasks/main.yml, tasks/verify.yml"
+        "Testing molecule/"
+        "Workflows .github/workflows/"
     Context
-      "Documentation: README.md"
-      "Instructions: .github/copilot-instructions.md"
-      "License: GPL-3.0-or-later"
-      "Purpose: Installs MetaTrader platform"
-      "Status: Builds passing on Linux"
-      "Workflow: Updated to PR 221 standards"
+      "Documentation README.md"
+      "Instructions .github/copilot-instructions.md"
+      "License GPL-3.0-or-later"
+      "Purpose Installs MetaTrader platform"
+      "Status Builds passing on Linux"
+      "Workflow Updated to PR 221 standards"
     Dependencies
       Roles
-        "ea31337.wine: v1.0.4"
-        "ea31337.xvfb: v1.0.4"
+        "ea31337.wine v1.0.4"
+        "ea31337.xvfb v1.0.4"
     Directives
       "Always use FQCN for modules"
       "End files with a newline"
@@ -31,8 +31,8 @@ mindmap
       "Wrap lines at 120 characters"
     Ecosystem
       Agent
-        "Action: Cogni-AI-OU/cogni-ai-agent-action"
-        "Default: cogni-ai-architect"
+        "Action Cogni-AI-OU/cogni-ai-agent-action"
+        "Default cogni-ai-architect"
       Collections
         ansible.windows
         community.docker
@@ -41,7 +41,7 @@ mindmap
         Ansible
         Python 3.10+
     Network
-      "Firewall: docs/FIREWALL.md"
+      "Firewall .github/FIREWALL.md"
       Hosts
         ansible.com
         cache.nixos.org
@@ -57,11 +57,11 @@ mindmap
       Ubuntu
       Windows
     Scenarios
-      "default: MT5 (default)"
-      "mt4: MT4"
-      "mt5: MT5 (Explicit)"
-      "mt5-win: MT5 Windows"
+      "default MT5 (default)"
+      "mt4 MT4"
+      "mt5 MT5 (Explicit)"
+      "mt5-win MT5 Windows"
     Variables
-      "metatrader_become_method: Internal"
-      "metatrader_setup_url: Default Main"
-      "metatrader_version: Default Main"
+      "metatrader_become_method Internal"
+      "metatrader_setup_url Default Main"
+      "metatrader_version Default Main"

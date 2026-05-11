@@ -5,7 +5,7 @@ Persistent context for autonomous agents working on this Ansible role.
 For project overview and install instructions, see [README.md](README.md).
 For project facts, key files and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
 For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
-For firewall configuration, see [FIREWALL.md](docs/FIREWALL.md).
+For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 ## Setup & Environment Invariants
 

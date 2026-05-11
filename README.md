@@ -11,7 +11,7 @@ Ansible role to install MetaTrader platform.
 
 For project facts, key files and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
 For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
-For firewall configuration, see [FIREWALL.md](docs/FIREWALL.md).
+For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 ## Requirements
 
