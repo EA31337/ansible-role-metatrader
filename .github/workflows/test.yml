@@ -7,24 +7,22 @@ on:
     paths-ignore:
       - '**.cfg'
       - '**.md'
-      - .*
+      - '**.mmd'
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
       - .github/workflows/platform.yml
       - LICENSE
-      - Pipfile*
   push:
     paths-ignore:
       - '**.cfg'
       - '**.md'
-      - .*
+      - '**.mmd'
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
       - .github/workflows/platform.yml
       - LICENSE
-      - Pipfile*
   workflow_dispatch:
 permissions:
   contents: read
