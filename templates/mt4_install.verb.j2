@@ -74,7 +74,7 @@ load_mt4_install()
         SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        loop 60
+        loop 120
         {
             if (WinExist("4 Setup"))
                 break
@@ -82,13 +82,17 @@ load_mt4_install()
             {
                 WinActivate, Proxy Server
                 Send, {Esc}
+                Sleep, 1000
             }
             Sleep, 1000
-            if (A_Index == 60)
+            if (A_Index == 120)
                 ExitApp, 1
         }
 
         WinActivate, 4 Setup
+        WinWaitActive, 4 Setup, , 10
+        if (ErrorLevel)
+            ExitApp, 1
         Sleep, 1000
 
         ; Clicking "Next".
@@ -126,32 +130,34 @@ load_mt4_install()
         }
 
         ; Clicking "Finish".
+        WinActivate, 4 Setup
         Send, {Enter}
-        Sleep, 5000
+        Sleep, 10000
 
         ; Awaiting for terminal process and window to appear.
-        loop 60
+        loop 120
         {
             Process, Exist, terminal.exe
             if (ErrorLevel)
                 break
             Sleep, 1000
         }
-        WinWaitActive, MetaTrader,, 60
+        WinWaitActive, MetaTrader,, 120
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}
-        Sleep, 1000
+        Sleep, 2000
         Send, {Esc}
-        Sleep, 1000
+        Sleep, 2000
         Send, !f
-        Sleep, 1000
+        Sleep, 2000
         Send, x
-        Sleep, 1000
+        Sleep, 2000
         Send, !{F4}
+        Sleep, 2000
 
-        ; Awaiting terminal window to close for 20s.
-        loop 20
+        ; Awaiting terminal window to close for 30s.
+        loop 30
         {
             Process, Exist, terminal.exe
             if (!ErrorLevel)
@@ -159,7 +165,8 @@ load_mt4_install()
             Sleep, 1000
         }
 
-        ; If terminal didn't close in 20s then we are forcing it to close.
+        ; If terminal didn't close in 30s then we are forcing it to close.
         Process, Close, terminal.exe
+        Sleep, 5000
 EOF
 }

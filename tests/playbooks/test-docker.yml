@@ -53,7 +53,7 @@
           exit 0
         fi
         if command -v apk >/dev/null 2>&1; then
-          apk add -q --no-cache python3 sudo
+          apk update && apk add -q --no-cache python3 sudo
         elif command -v apt-get >/dev/null 2>&1; then
           apt-get update -qq && \
           DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-minimal sudo
@@ -63,6 +63,23 @@
       changed_when: false
     - name: Gather facts
       ansible.builtin.setup:
+    - name: Ensure connection user is root if needed
+      ansible.builtin.set_fact:
+        ansible_user: root
+      when: not (ansible_user_id | default(''))
+    - name: Check if xdpyinfo is available
+      ansible.builtin.command: xdpyinfo -version
+      register: xdpyinfo_installed
+      failed_when: false
+      changed_when: false
+    - name: Install x11-utils if xdpyinfo is missing
+      ansible.builtin.package:
+        name: "{{ 'xdpyinfo' if ansible_os_family == 'Alpine' else 'x11-utils' }}"
+        state: present
+      become: true
+      when:
+        - xdpyinfo_installed.rc != 0
+        - ansible_os_family in ['Debian', 'Alpine']
   tasks:
     - name: Installs ea31337.metatrader role
       ansible.builtin.import_role:
