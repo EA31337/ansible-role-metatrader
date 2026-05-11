@@ -64,12 +64,14 @@
     distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
 - name: Updates ansible_facts for dependencies
   ansible.builtin.set_fact:
-    ansible_facts:
-      os_family: '{{ effective_os_family }}'
-      distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
-      user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
-      user_dir: '{{ effective_home }}'
-      env: "{{ (ansible_facts.get('env') or {}) | combine({'HOME': effective_home}) }}"
+    ansible_facts: >-
+      {{ ansible_facts | combine({
+        'os_family': effective_os_family,
+        'distribution': ansible_facts.get('distribution') | default(effective_os_family, true),
+        'user_id': ansible_facts.get('user_id') | default('root', true),
+        'user_dir': effective_home,
+        'env': (ansible_facts.get('env') or {}) | combine({'HOME': effective_home})
+      }, recursive=True) }}
 - name: Updates environment facts for dependencies
   ansible.builtin.set_fact:
     ansible_env: '{{ ansible_facts.env }}'
@@ -151,7 +153,7 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - effective_os_family not in ["Windows"]
-        - ansible_facts.pkg_mgr not in ["unknown", ""]
+        - ansible_facts.get('pkg_mgr') not in ["unknown", "", None]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures X11 utilities are present (standard distros)
       ansible.builtin.package:
@@ -160,7 +162,7 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - effective_os_family not in ["Windows"]
-        - ansible_facts.pkg_mgr not in ["unknown", ""]
+        - ansible_facts.get('pkg_mgr') not in ["unknown", "", None]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
