@@ -17,16 +17,16 @@
   register: os_release_id
   changed_when: false
   failed_when: false
-  when: not ansible_facts.get('os_family')
+  when: not (ansible_facts | default({})).get('os_family')
   tags:
     - always
     - metatrader_verify
 - name: Sets effective OS facts
   ansible.builtin.set_fact:
     effective_os_family: >-
-      {%- set f_os = (ansible_facts.get('os_family')
+      {%- set f_os = ((ansible_facts | default({})).get('os_family')
       or (ansible_os_family | default('')) or '') | string | trim -%}
-      {%- set f_dist = (ansible_facts.get('distribution')
+      {%- set f_dist = ((ansible_facts | default({})).get('distribution')
       or (ansible_distribution | default('')) or '') | string | trim -%}
       {%- set f_rel = (os_release_id.stdout | default('')) | string | trim -%}
       {%- if f_os != '' and f_os != 'None' -%}
@@ -35,7 +35,7 @@
         {{ f_dist }}
       {%- elif f_rel != '' -%}
         {{ f_rel }}
-      {%- elif ansible_facts.get('pkg_mgr') == 'apt' -%}
+      {%- elif (ansible_facts | default({})).get('pkg_mgr') == 'apt' -%}
         Debian
       {%- else -%}
         OtherLinux
@@ -56,10 +56,11 @@
 - name: Updates facts for dependency compatibility
   ansible.builtin.set_fact:
     ansible_os_family: '{{ effective_os_family }}'
-    ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
-    ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
+    ansible_distribution: "{{ (ansible_facts | default({})).get('distribution') | default(effective_os_family, true) }}"
+    ansible_user_id: "{{ (ansible_facts | default({})).get('user_id') | default('root', true) }}"
     ansible_user_dir: >-
-      {{ (ansible_facts.get('user_dir') or ansible_facts.get('env', {}).get('HOME') or '/root') | string | trim }}
+      {{ ((ansible_facts | default({})).get('user_dir') or (ansible_facts | default({})).get('env', {}).get('HOME')
+      or '/root') | string | trim }}
   tags:
     - always
     - metatrader_verify
@@ -73,15 +74,15 @@
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
     effective_display: >-
-      {{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}
+      {{ (ansible_facts | default({})).get('env', {}).get('DISPLAY') | default(':0', true) }}
     effective_home: >-
-      {%- set u_dir = (ansible_facts.get('user_dir') or '') | string | trim -%}
-      {%- set e_home = (ansible_facts.get('env', {}).get('HOME') or '') | string | trim -%}
+      {%- set u_dir = ((ansible_facts | default({})).get('user_dir') or '') | string | trim -%}
+      {%- set e_home = ((ansible_facts | default({})).get('env', {}).get('HOME') or '') | string | trim -%}
       {%- if u_dir != '' -%}{{ u_dir -}}
       {%- elif e_home != '' -%}{{ e_home -}}
       {%- else -%}/root{%- endif -%}
     effective_xdg_runtime_dir: >-
-      {{ (ansible_facts.get('env') or {}).get('XDG_RUNTIME_DIR')
+      {{ ((ansible_facts | default({})).get('env') or {}).get('XDG_RUNTIME_DIR')
       | default('/tmp/runtime-root', true) }}
   tags:
     - always
@@ -103,7 +104,7 @@
       Supported: {{ metatrader_become_method.keys() | sort | join(', ') }}.
 - name: Sets metatrader_local_facts fact
   ansible.builtin.set_fact:
-    metatrader_local_facts: "{{ ansible_facts.get('ansible_local', {}).get('metatrader', {}) }}"
+    metatrader_local_facts: "{{ (ansible_facts | default({})).get('ansible_local', {}).get('metatrader', {}) }}"
 - name: Checks if platform is already exist
   ansible.builtin.stat:
     path: >-
@@ -139,7 +140,7 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - effective_os_family not in ["Windows"]
-        - ansible_facts.get('pkg_mgr') not in ["unknown", "", None]
+        - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures X11 utilities are present (standard distros)
       ansible.builtin.package:
@@ -148,7 +149,7 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - effective_os_family not in ["Windows"]
-        - ansible_facts.get('pkg_mgr') not in ["unknown", "", None]
+        - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
@@ -162,12 +163,15 @@
       register: xvfb_pgrep
       changed_when: false
       failed_when: false
-      when: effective_os_family != "Windows"
+      when:
+        - effective_os_family != "Windows"
+        - not file_mt_installed_exists.stat.exists
     - name: Debug Xvfb status
       ansible.builtin.debug:
         msg: "Xvfb pgrep rc: {{ xvfb_pgrep.rc | default('N/A') }}"
       when:
         - effective_os_family != "Windows"
+        - not file_mt_installed_exists.stat.exists
         - ansible_verbosity | default(0) >= 1
     - name: Verifies X display is available for Wine
       ansible.builtin.shell: xdpyinfo >/dev/null 2>&1
@@ -183,7 +187,7 @@
         XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
       when:
         - effective_os_family != "Windows"
-        - not file_mt_installed_exists.stat.exists | default(false)
+        - not file_mt_installed_exists.stat.exists
     - name: Asserts X display is available
       ansible.builtin.assert:
         # Fail if xdpyinfo is missing (rc=127) or if it fails to connect to X (rc!=0).
@@ -198,7 +202,7 @@
           {% endif %}
       when:
         - effective_os_family != "Windows"
-        - not file_mt_installed_exists.stat.exists | default(false)
+        - not file_mt_installed_exists.stat.exists
     - name: Ensures MetaTrader is installed (via verb file)
       ansible.builtin.shell:
         # @todo: The winetricks command is executed directly without specifying the executable.
@@ -219,7 +223,7 @@
         FONTCONFIG_FILE: /etc/fonts/fonts.conf
       when:
         - effective_os_family != "Windows"
-        - not file_mt_installed_exists.stat.exists | default(false)
+        - not file_mt_installed_exists.stat.exists
 - name: Refreshes local facts
   ansible.builtin.setup:
     filter:
@@ -231,7 +235,7 @@
     - metatrader_verify
 - name: Saves platform facts
   become: >-
-    {{ (ansible_facts.get('user_id', 'root') | default('root', true) != 'root')
+    {{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true) != 'root')
     or (effective_os_family == 'Windows') }}
   become_method: "{{ metatrader_become_method.get(effective_os_family, 'ansible.builtin.su') }}"
   when:
@@ -263,7 +267,7 @@
         state: directory
       become: true
       become_method: "{{ metatrader_become_method.get(effective_os_family, 'ansible.builtin.su') }}"
-      become_user: "{{ ansible_facts.get('env', {}).get('USERNAME') | default('Administrator', true) }}"
+      become_user: "{{ (ansible_facts | default({})).get('env', {}).get('USERNAME') | default('Administrator', true) }}"
       when: effective_os_family == "Windows"
     - name: Saves role's facts (Unix)
       ansible.builtin.copy:

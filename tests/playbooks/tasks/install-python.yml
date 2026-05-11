@@ -1,0 +1,37 @@
+---
+- name: Install Python 3 on Ubuntu/Debian
+  ansible.builtin.raw: |
+    command -v python3 >/dev/null 2>&1 || \
+      (export DEBIAN_FRONTEND=noninteractive && \
+      apt-get update -qq && \
+      apt-get install -y -qq --no-install-recommends python3 python3-pip sudo ca-certificates procps)
+  changed_when: false
+  when: container_image | default('') is search("ubuntu") or container_image | default('') is search("debian")
+  no_log: '{{ metatrader_no_log | default(false) }}'
+- name: Bootstrap Python 3 (generic)
+  ansible.builtin.raw: |
+    if command -v python3 >/dev/null 2>&1; then
+      exit 0
+    fi
+    if command -v apt-get >/dev/null 2>&1; then
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update -qq && \
+        apt-get install -y -qq --no-install-recommends python3 python3-pip sudo ca-certificates procps
+    fi
+  changed_when: false
+  when: (container_image | default('') | length) == 0
+  no_log: '{{ metatrader_no_log | default(false) }}'
+- name: Discover Python interpreter
+  ansible.builtin.raw: |
+    if [ -x /usr/bin/python3 ]; then
+      echo "/usr/bin/python3"
+    else
+      command -v python3
+    fi
+  register: discovered_python
+  changed_when: false
+  no_log: '{{ metatrader_no_log | default(false) }}'
+- name: Set ansible_python_interpreter
+  ansible.builtin.set_fact:
+    ansible_python_interpreter: '{{ discovered_python.stdout | trim }}'
+  when: (discovered_python.stdout | trim | length) > 0
