@@ -11,9 +11,33 @@
   when: >-
     ansible_facts.get('os_family', '') == 'OtherLinux'
     or ansible_facts.get('distribution', '') == 'NixOS'
+- name: Detect OS family from /etc/os-release
+  ansible.builtin.shell: grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"' | sed 's/./\u&/'
+  register: os_release_id
+  changed_when: false
+  failed_when: false
+  when: ansible_facts.get('os_family', '') == ''
 - name: Sets effective OS facts
   ansible.builtin.set_fact:
-    effective_os_family: "Ubuntu"
+    effective_os_family: >-
+      {%- set f_os = (ansible_facts.get('os_family') or '') | string | trim -%}
+      {%- set f_dist = (ansible_facts.get('distribution') or '') | string | trim -%}
+      {%- set f_rel = (os_release_id.stdout or '') | string | trim -%}
+      {%- if f_dist == 'NixOS' or f_os == 'NixOS'
+          or (f_os == 'OtherLinux' and nix_check is defined and nix_check.rc | default(1) == 0) -%}
+        NixOS
+      {%- elif f_os != '' and f_os != 'None' -%}
+        {{ f_os }}
+      {%- elif f_dist != '' and f_dist != 'None' -%}
+        {{ f_dist }}
+      {%- elif f_rel != '' -%}
+        {{ f_rel }}
+      {%- elif ansible_facts.get('pkg_mgr') == 'apt' -%}
+        Debian
+      {%- else -%}
+        OtherLinux
+      {%- endif -%}
+
 - name: Debug OS facts
   ansible.builtin.debug:
     msg:
