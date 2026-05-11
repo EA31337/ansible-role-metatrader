@@ -8,25 +8,21 @@ on:
       - '**.cfg'
       - '**.md'
       - '**.mmd'
-      - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
       - .github/workflows/platform.yml
       - LICENSE
-      - Pipfile*
   push:
     paths-ignore:
       - '**.cfg'
       - '**.md'
       - '**.mmd'
-      - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
       - .github/workflows/platform.yml
       - LICENSE
-      - Pipfile*
   workflow_dispatch:
 permissions:
   contents: read
@@ -44,7 +40,6 @@ jobs:
         container:
           - metatrader-on-debian-latest
           - metatrader-on-ubuntu-jammy
-          - metatrader-on-ubuntu-latest
           - metatrader-on-ubuntu-noble
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
