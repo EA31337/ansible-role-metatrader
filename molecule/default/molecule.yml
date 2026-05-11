@@ -18,7 +18,7 @@ lint: |
   molecule syntax
 platforms:
   - name: ubuntu-noble
-    image: ghcr.io/ea31337/ansible-role-wine:ubuntu-noble
+    image: ghcr.io/ea31337/ansible-role-wine:1.0.4-ubuntu-noble
 provisioner:
   config_options:
     defaults:

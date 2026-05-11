@@ -193,8 +193,8 @@ pre-commit run -a
 | --------- | ----- | ----- |
 | `debian-latest` | `debian:latest` | WineHQ apt repo; codename: `bookworm` |
 | `nixos-latest` | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
-| `ubuntu-jammy` | `ubuntu:jammy` | WineHQ repo; codename: `jammy` |
-| `ubuntu-noble` | `ghcr.io/ea31337/ansible-role-wine:ubuntu-noble` | Wine already pre-provisioned |
+| `ubuntu-jammy` | `ghcr.io/ea31337/ansible-role-wine:1.0.4-ubuntu-jammy` | Wine already pre-provisioned |
+| `ubuntu-noble` | `ghcr.io/ea31337/ansible-role-wine:1.0.4-ubuntu-noble` | Wine already pre-provisioned |
 
 ## Troubleshooting
 

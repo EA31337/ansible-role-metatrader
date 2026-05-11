@@ -90,7 +90,7 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `ubuntu-noble` | `ghcr.io/ea31337/ansible-role-wine:ubuntu-noble` | Wine already pre-provisioned |
+| `ubuntu-noble` | `ghcr.io/ea31337/ansible-role-wine:1.0.4-ubuntu-noble` | Wine already pre-provisioned |
 
 ### Running Tests
 
