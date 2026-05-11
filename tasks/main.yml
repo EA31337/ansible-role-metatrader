@@ -15,29 +15,27 @@
   when: >-
     ansible_facts.get('os_family', '') == 'OtherLinux'
     or ansible_facts.get('distribution', '') == 'NixOS'
-- name: Sets effective_os_family fact
+- name: Sets effective OS facts
   ansible.builtin.set_fact:
     effective_os_family: >-
       {%- if (ansible_facts.get('distribution', '') == 'NixOS'
              or ansible_facts.get('os_family', '') == 'NixOS'
              or (ansible_facts.get('os_family', '') == 'OtherLinux'
+                 and nix_check is defined
                  and nix_check.rc | default(1) == 0)) -%}
       NixOS
       {%- else -%}
-      {{ (ansible_facts.get('os_family')
+      {%- set detected = (ansible_facts.get('os_family')
           | default(ansible_facts.get('distribution'), true)
-          | default('OtherLinux', true)) | trim }}
+          | default('OtherLinux', true)) | trim -%}
+      {{ detected if detected | length > 0 else 'OtherLinux' }}
       {%- endif -%}
-- name: Updates os_family fact if it differs from effective_os_family
+- name: Ensures facts are populated for dependencies
   ansible.builtin.set_fact:
-    ansible_facts:
-      os_family: "{{ effective_os_family }}"
-      distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
     ansible_os_family: "{{ effective_os_family }}"
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
-  when: >-
-    ansible_facts.get('os_family') != effective_os_family
-    or not ansible_facts.get('distribution')
+    os_family: "{{ effective_os_family }}"
+    distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
     effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
