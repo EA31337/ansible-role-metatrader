@@ -109,10 +109,6 @@ GNU GPL v3
 
 See: [LICENSE](./LICENSE)
 
-## Author Information
-
-This role was created in 2025 by [kenorb](https://github.com/kenorb).
-
 <!-- Named links -->
 
 [license-badge]: https://img.shields.io/badge/license-GPLv3-brightgreen.svg
