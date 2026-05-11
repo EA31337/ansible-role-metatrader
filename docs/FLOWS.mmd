@@ -4,11 +4,8 @@ flowchart TD
         direction TB
         A([Start Role Execution]) --> B{"Detect OS Family"}
 
-        B -->|NixOS| C["Set OS to NixOS"]
-        B -->|Debian/Alpine/Ubuntu| D{"Is MetaTrader Installed?"}
+        B -->|Debian/Ubuntu| D{"Is MetaTrader Installed?"}
         B -->|Windows| H["Verify Installation (tasks/verify.yml)"]
-
-        C --> D
 
         D -->|Yes| H
         D -->|No| E["Ensure system dependencies (curl, x11-utils)"]

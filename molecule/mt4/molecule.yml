@@ -29,8 +29,10 @@ provisioner:
       callbacks_enabled: ansible.posix.profile_tasks
       # Ensure collections installed to ./collections are found by ansible-playbook.
       collections_path: ${MOLECULE_PROJECT_DIRECTORY}/collections:~/.ansible/collections:/usr/share/ansible/collections
-      deprecation_warnings: false
+      deprecation_warnings: true
       host_key_checking: false
+      # Disable fact injection into the global variable space.
+      inject_facts_as_vars: false
       # Use the built-in default callback with result_format instead of community.general.yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
       result_format: yaml

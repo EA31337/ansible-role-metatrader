@@ -1,10 +1,11 @@
 ---
 - name: Configure Docker container
-  # Note: Since facts are not gathered, we're checking for ansible_user_id, connection_user or UID instead.
+  # Note: Since facts are not gathered, we're checking for ansible_facts.get('user_id'), connection_user or UID instead.
   become: >-
     {{ (connection_user is defined and connection_user != 'root')
-    or (ansible_user_id is defined and ansible_user_id != 'root')
-    or (lookup('env', 'UID') | int != 0)
+    or ((ansible_facts | default({})).get('user_id', 'root') != 'root')
+    or ((ansible_facts | default({})).get('user_uid', 0) | int != 0)
+    or ((ansible_facts | default({})).get('env', {}).get('UID', 0) | int != 0)
     }}
   # Use su as become_method as sudo is not available in all containers.
   become_method: ansible.builtin.su
@@ -37,16 +38,21 @@
       vars:
         # Use system Python with requests installed for controller-side Docker modules.
         ansible_python_interpreter: '{{ controller_python }}'
-    - name: Install Python 3 for Ansible
+    - name: Bootstrap Python 3
       ansible.builtin.include_tasks: tasks/install-python.yml
     - name: Gather facts
       ansible.builtin.setup:
-    - name: Install Python packages for Ubuntu/Debian
+        gather_subset:
+          - all
+    - name: Install additional Python packages for Ubuntu/Debian
       ansible.builtin.apt:
         name:
           - python3
           - python3-pip
           - python3-setuptools
+          - python3-apt
+          - python3-debian
+          - lsb-release
         state: present
         update_cache: true
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
@@ -70,12 +76,14 @@
   tags: always
   vars:
     controller_python: '{{ ansible_playbook_python }}'
-    wine_release_codename: >-
-      {{ 'noble' if ansible_facts.distribution_release == 'resolute'
-      else ansible_facts.distribution_release }}
   tasks:
+    - name: Set facts for dependency roles
+      ansible.builtin.set_fact:
+        wine_release_codename: >-
+          {{ 'noble' if ansible_facts.get('distribution_release', '') == 'resolute'
+          else ansible_facts.get('distribution_release', '') }}
     - name: Installs metatrader role
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: ea31337.metatrader
   post_tasks:
     - name: Stop Docker containers

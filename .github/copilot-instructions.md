@@ -128,7 +128,7 @@ To verify locally, run `pre-commit run markdownlint -a`.
 │   └── main.yml              # Internal variables (become methods per OS)
 ├── AGENTS.md                 # AI agent guidance and troubleshooting
 ├── README.md                 # Project documentation
-└── requirements.yml          # Galaxy collection + role requirements
+├── requirements.yml          # Galaxy collection + role requirements
 ```
 
 ### Key Variables
