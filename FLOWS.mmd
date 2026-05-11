@@ -50,3 +50,18 @@ flowchart TD
         M7 --> M8["verify"]
         M8 --> M9["destroy"]
     end
+
+    %% References to documentation
+    R_README[README.md]
+    R_AGENTS[AGENTS.md]
+    R_FIREWALL[.github/FIREWALL.md]
+
+    %% Wiring flow to documentation
+    A -.-> R_README
+    A -.-> R_AGENTS
+    F_ERR -.-> R_FIREWALL
+
+    %% Click actions for interactive navigation
+    click R_README "README.md"
+    click R_AGENTS "AGENTS.md"
+    click R_FIREWALL ".github/FIREWALL.md"
