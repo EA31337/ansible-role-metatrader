@@ -25,13 +25,18 @@
                  and nix_check.rc | default(1) == 0)) -%}
       NixOS
       {%- else -%}
-      {%- set detected = (ansible_facts.get('os_family')
-          | default(ansible_facts.get('distribution'), true)
-          | default('OtherLinux', true)) | trim -%}
-      {{ detected if detected | length > 0 else 'OtherLinux' }}
+      {%- set f_os = ansible_facts.get('os_family') | default('', true) | string | trim -%}
+      {%- set f_dist = ansible_facts.get('distribution') | default('', true) | string | trim -%}
+      {%- set detected = f_os if (f_os | length > 0 and f_os != 'None')
+          else (f_dist if (f_dist | length > 0 and f_dist != 'None') else 'OtherLinux') -%}
+      {{ detected }}
       {%- endif -%}
 - name: Ensures facts are populated for dependencies
   ansible.builtin.set_fact:
+    ansible_facts:
+      os_family: "{{ effective_os_family }}"
+      distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
+    # Legacy compatibility and explicit variables
     ansible_os_family: "{{ effective_os_family }}"
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
     os_family: "{{ effective_os_family }}"
