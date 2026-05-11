@@ -1,0 +1,47 @@
+# Project Facts Mindmap
+
+```mermaid
+%%{init: {'theme': 'default'}}%%
+mindmap
+  root((ansible-role-metatrader))
+    Architecture
+      "Driver::Docker_Molecule"
+      "Installer::winetricks"
+    Context
+      "Documentation::README.md"
+      "Instructions::.github/copilot-instructions.md"
+      "License::GPL-3.0-or-later"
+      "Purpose::Installs_MetaTrader_platform"
+      "Status::Builds_passing_on_Linux"
+      "Workflow::Updated_to_PR_221_standards"
+    Dependencies
+      Roles
+        "ea31337.wine::v1.0.4"
+        "ea31337.xvfb::v1.0.4"
+    Ecosystem
+      Agent
+        "Action::Cogni-AI-OU/cogni-ai-agent-action"
+        "Default::cogni-ai-architect"
+      Collections
+        ansible.windows
+        community.docker
+        community.general
+      Requirements
+        Ansible
+        Python_3.10+
+    Platforms
+      Alpine
+      Debian
+      NixOS
+      Ubuntu
+      Windows
+    Scenarios
+      "default::MT5_(default)::Passing"
+      "mt4::MT4::Passing"
+      "mt5::MT5::Passing"
+      "mt5-win::MT5_Windows::Expected_Fail_on_Linux"
+    Variables
+      "metatrader_become_method::Internal"
+      "metatrader_setup_url::Default_Main"
+      "metatrader_version::Default_Main"
+```

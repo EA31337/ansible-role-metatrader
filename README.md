@@ -9,8 +9,8 @@
 
 Ansible role to install MetaTrader platform.
 
-For project facts and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
-For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
+For project facts and architecture mindmap, see [FACTS.md](docs/FACTS.md).
+For execution flows and logic diagrams, see [FLOWS.md](docs/FLOWS.md).
 
 ## Requirements
 

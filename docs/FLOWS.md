@@ -1,3 +1,6 @@
+# Project Execution Flows
+
+```mermaid
 flowchart TD
     subgraph Ansible_Role_Execution [Ansible Role Execution Flow]
         direction TB
@@ -50,3 +53,4 @@ flowchart TD
         M7 --> M8["verify"]
         M8 --> M9["destroy"]
     end
+```
