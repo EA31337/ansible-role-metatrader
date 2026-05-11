@@ -50,18 +50,3 @@ flowchart TD
         M7 --> M8["verify"]
         M8 --> M9["destroy"]
     end
-
-    %% References to markdown files
-    R_AGENTS[AGENTS.md]
-    R_FIREWALL[.github/FIREWALL.md]
-    R_README[README.md]
-
-    A -.-> R_README
-    A -.-> R_AGENTS
-    F_ERR -.-> R_FIREWALL
-    I_ERR -.-> R_README
-    J_ERR -.-> R_README
-
-    click R_AGENTS "AGENTS.md"
-    click R_FIREWALL ".github/FIREWALL.md"
-    click R_README "README.md"
