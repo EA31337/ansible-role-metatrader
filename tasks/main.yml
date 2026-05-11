@@ -20,8 +20,8 @@
 - name: Sets effective OS facts
   ansible.builtin.set_fact:
     effective_os_family: >-
-      {%- set f_os = (ansible_facts.get('os_family') or '') | string | trim -%}
-      {%- set f_dist = (ansible_facts.get('distribution') or '') | string | trim -%}
+      {%- set f_os = (ansible_facts.get('os_family') or ansible_os_family or '') | string | trim -%}
+      {%- set f_dist = (ansible_facts.get('distribution') or ansible_distribution or '') | string | trim -%}
       {%- set f_rel = (os_release_id.stdout or '') | string | trim -%}
       {%- if f_dist == 'NixOS' or f_os == 'NixOS'
           or (f_os == 'OtherLinux' and nix_check is defined and nix_check.rc | default(1) == 0) -%}
@@ -37,15 +37,14 @@
       {%- else -%}
         OtherLinux
       {%- endif -%}
-
 - name: Ensure effective OS family is not empty
   ansible.builtin.set_fact:
-    effective_os_family: "Ubuntu"
+    effective_os_family: "OtherLinux"
   when: effective_os_family is not defined or effective_os_family | trim == "" or effective_os_family == "None"
 - name: Debug OS facts
   ansible.builtin.debug:
-    msg:
-      effective_os_family: "{{ effective_os_family }}"
+    msg: "effective_os_family is '{{ effective_os_family }}'"
+
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
     effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
