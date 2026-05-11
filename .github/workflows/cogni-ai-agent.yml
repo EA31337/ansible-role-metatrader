@@ -44,7 +44,7 @@ on:
         required: false
         type: string
       prompt:
-        default: ""
+        default: ''
         description: Prompt for the agent
         required: false
         type: string
