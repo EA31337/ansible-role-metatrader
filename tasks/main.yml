@@ -29,7 +29,7 @@
             and nix_check is defined and nix_check.rc | default(1) == 0)
     - name: Sets effective OS family fact (Default)
       ansible.builtin.set_fact:
-        effective_os_family: "{{ detected_os_family | trim | default('OtherLinux', true) }}"
+        effective_os_family: "{{ (detected_os_family | trim | default('OtherLinux', true)) or 'OtherLinux' }}"
       when: effective_os_family is not defined or not effective_os_family
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
@@ -37,12 +37,21 @@
     effective_home: >-
       {%- set u_dir = (ansible_facts.get('user_dir') or '') | string | trim -%}
       {%- set e_home = (ansible_facts.get('env', {}).get('HOME') or '') | string | trim -%}
-      {%- if u_dir and u_dir != '/github/home' -%}{{ u_dir -}}
-      {%- elif e_home and e_home != '/github/home' -%}{{ e_home -}}
+      {%- if u_dir and u_dir != '/github/home' and u_dir != '' -%}{{ u_dir -}}
+      {%- elif e_home and e_home != '/github/home' and e_home != '' -%}{{ e_home -}}
       {%- else -%}/root{%- endif -%}
     effective_xdg_runtime_dir: >-
       {{ (ansible_facts.get('env') or {}).get('XDG_RUNTIME_DIR')
       | default('/tmp/runtime-root', true) }}
+- name: Updates ansible_facts dictionary
+  ansible.builtin.set_fact:
+    ansible_facts: >-
+      {{ ansible_facts | combine({
+        'os_family': effective_os_family,
+        'distribution': ansible_facts.get('distribution') | default(effective_os_family, true),
+        'user_dir': effective_home,
+        'env': (ansible_facts.get('env') or {}) | combine({'HOME': effective_home})
+      }, recursive=True) }}
 - name: Ensures facts are populated for dependencies
   ansible.builtin.set_fact:
     ansible_os_family: '{{ effective_os_family }}'
@@ -53,7 +62,7 @@
     distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
 - name: Ensures facts are populated for legacy roles
   ansible.builtin.set_fact:
-    ansible_env: "{{ (ansible_facts.get('env') or {}) | combine({'HOME': effective_home}) }}"
+    ansible_env: "{{ ansible_facts.env }}"
 - name: Ensures home directory exists
   ansible.builtin.file:
     path: '{{ effective_home }}'

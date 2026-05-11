@@ -3,10 +3,10 @@
   hosts: all
   vars:
     effective_home: >-
-      {%- set u_dir = ansible_facts.get('user_dir') | default('', true) | string | trim -%}
-      {%- set e_home = ansible_facts.get('env', {}).get('HOME') | default('', true) | string | trim -%}
-      {%- if u_dir | length > 0 and u_dir != '/github/home' -%}{{ u_dir -}}
-      {%- elif e_home | length > 0 and e_home != '/github/home' -%}{{ e_home -}}
+      {%- set u_dir = (ansible_facts.get('user_dir') or '') | string | trim -%}
+      {%- set e_home = (ansible_facts.get('env', {}).get('HOME') or '') | string | trim -%}
+      {%- if u_dir and u_dir != '/github/home' and u_dir != '' -%}{{ u_dir -}}
+      {%- elif e_home and e_home != '/github/home' and e_home != '' -%}{{ e_home -}}
       {%- else -%}/root{%- endif -%}
   tasks:
     - name: Retrieve information from path

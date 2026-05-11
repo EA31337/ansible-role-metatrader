@@ -53,10 +53,7 @@
     - name: Gather facts
       ansible.builtin.setup:
         gather_subset:
-          - min
-          - distribution
-          - env
-          - user
+          - all
     - name: Install Python packages for Ubuntu/Debian
       ansible.builtin.apt:
         name:
