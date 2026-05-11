@@ -3,15 +3,18 @@
 Persistent context for autonomous agents working on this Ansible role.
 
 For project overview and install instructions, see [README.md](README.md).
+For project facts, key files and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
+For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
+For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 ## Setup & Environment Invariants
 
 - Ansible role: `ea31337.metatrader`
-- Supported OS: Debian/Ubuntu, NixOS (Nix), Windows
+- Supported OS: See [FACTS.mmd](docs/FACTS.mmd)
 - Driver: Docker (Molecule)
 - Python 3.10+ required; install via `pip install -r .devcontainer/requirements.txt`
-- Collections: `community.docker`, `community.general`, `ansible.windows`
-- Role dependencies: `ea31337.wine`, `ea31337.xvfb` (see `meta/main.yml`)
+- Collections: See [FACTS.mmd](docs/FACTS.mmd)
+- Role dependencies: See [FACTS.mmd](docs/FACTS.mmd)
 - `community.docker` MUST be installed before Molecule can create/destroy
   containers.
 - Install dependencies: `ansible-galaxy role install -r requirements.yml --force` and
@@ -477,7 +480,6 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 | `github.com` | AutoHotkey download (used by winetricks verb) |
 | `mt5-trade.metaquotes.net` | Trade server (installer backend) |
 | `raw.githubusercontent.com` | OpenSymbol font download (winetricks verb) |
-
 | `releases.nixos.org` | Nix channel tarballs (redirect target) |
 | `trade.mql5.com` | Trade server (installer registration) |
 | `web.archive.org` | Winetricks fallback download mirror |
