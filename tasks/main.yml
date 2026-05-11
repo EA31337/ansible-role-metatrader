@@ -1,6 +1,7 @@
 ---
 - name: Ensures essential facts are gathered
   ansible.builtin.setup:
+    gather_subset: all
 - name: Detects NixOS
   ansible.builtin.command: nix-env --version
   register: nix_check
@@ -96,11 +97,6 @@
 - name: Sets metatrader_local_facts fact
   ansible.builtin.set_fact:
     metatrader_local_facts: "{{ ansible_facts.get('ansible_local', {}).get('metatrader', {}) }}"
-- name: Collects local facts
-  ansible.builtin.setup:
-    filter:
-      - ansible_local
-  when: false
 - name: Checks if platform is already exist
   ansible.builtin.stat:
     path: >-
@@ -235,8 +231,13 @@
       {% if effective_os_family != 'NixOS' %}/etc/fonts/fonts.conf
       {% else %}{{ ansible_facts.get('env', {}).get('FONTCONFIG_FILE')
       | default('/run/current-system/sw/etc/fonts/fonts.conf', true) }}{% endif %}
-  when:
-    - not file_mt_installed_exists.stat.exists
+      when:
+        - not file_mt_installed_exists.stat.exists
+- name: Refreshes local facts
+  ansible.builtin.setup:
+    filter:
+      - ansible_local
+  when: effective_os_family != "Windows"
 - name: Verifies
   ansible.builtin.include_tasks: verify.yml
   tags:

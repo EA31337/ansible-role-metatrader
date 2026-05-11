@@ -76,7 +76,7 @@ load_mt4_install()
         ; Awaiting for setup window to appear.
         loop 60
         {
-            if (WinExist("4 Setup"))
+            if (WinExist("Setup"))
                 break
             if (WinExist("Proxy Server"))
             {
@@ -88,7 +88,7 @@ load_mt4_install()
                 ExitApp, 1
         }
 
-        WinActivate, 4 Setup
+        WinActivate, Setup
         Sleep, 1000
 
         ; Clicking "Next".
