@@ -69,22 +69,18 @@
     container_image: "{{ container_image_map[inventory_hostname] | default('ubuntu:noble') }}"
 - name: Install ea31337.metatrader role on all containers
   hosts: docker_containers
-  gather_facts: false
+  gather_facts: true
   tags: always
   vars:
     controller_python: '{{ ansible_playbook_python }}'
   tasks:
-    - name: Gather facts explicitly
-      ansible.builtin.setup:
-        gather_subset:
-          - all
     - name: Set facts for dependency roles
       ansible.builtin.set_fact:
         wine_release_codename: >-
           {{ 'noble' if ansible_facts.get('distribution_release', '') == 'resolute'
           else ansible_facts.get('distribution_release', '') }}
     - name: Installs metatrader role
-      ansible.builtin.import_role:
+      ansible.builtin.include_role:
         name: ea31337.metatrader
   post_tasks:
     - name: Stop Docker containers

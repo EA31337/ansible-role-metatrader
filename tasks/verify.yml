@@ -7,7 +7,7 @@
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.builtin.find:
-        paths: '{{ effective_home }}/.wine/drive_c'
+        paths: '{{ effective_home | default(ansible_facts.get("user_dir", "/root"), true) }}/.wine/drive_c'
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
@@ -23,7 +23,8 @@
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.windows.win_find:
-        paths: C:/Program Files/MetaTrader 5
+        # Search in Program Files as folder name can vary.
+        paths: C:/Program Files
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
@@ -39,7 +40,7 @@
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
-        paths: '{{ effective_home }}/.wine/drive_c'
+        paths: '{{ effective_home | default(ansible_facts.get("user_dir", "/root"), true) }}/.wine/drive_c'
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res
@@ -55,7 +56,8 @@
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.windows.win_find:
-        paths: C:/Program Files/MetaTrader 5
+        # Search in Program Files as folder name can vary.
+        paths: C:/Program Files
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res
