@@ -8,18 +8,22 @@
     mt_runner_mt_path_cygwin: /cygdrive/c/Program Files (x86)/MetaTrader 4
     mt_runner_mt_path_unix: '{{ wine_prefix }}/drive_c/Program Files (x86)/MetaTrader 4'
     mt_runner_mt_path_windows: C:\Program Files (x86)\MetaTrader 4
+    mt_runner_mt_path_wine: C:\Program Files (x86)\MetaTrader 4
     mt_runner_mt_terminal_path_cygwin: /cygdrive/c/Program Files (x86)/MetaTrader 4/terminal.exe
     mt_runner_mt_terminal_path_unix: '{{ wine_prefix }}/drive_c/Program Files (x86)/MetaTrader 4/terminal.exe'
     mt_runner_mt_terminal_path_windows: C:\Program Files (x86)\MetaTrader 4\terminal.exe
+    mt_runner_mt_terminal_path_wine: C:\Program Files (x86)\MetaTrader 4\terminal.exe
   when: (metatrader_version | int) == 4
 - name: Set MetaTrader 5 path variables
   ansible.builtin.set_fact:
     mt_runner_mt_path_cygwin: /cygdrive/c/Program Files/MetaTrader 5
     mt_runner_mt_path_unix: '{{ wine_prefix }}/drive_c/Program Files/MetaTrader 5'
     mt_runner_mt_path_windows: C:\Program Files\MetaTrader 5
+    mt_runner_mt_path_wine: C:\Program Files\MetaTrader 5
     mt_runner_mt_terminal_path_cygwin: /cygdrive/c/Program Files/MetaTrader 5/terminal64.exe
     mt_runner_mt_terminal_path_unix: '{{ wine_prefix }}/drive_c/Program Files/MetaTrader 5/terminal64.exe'
     mt_runner_mt_terminal_path_windows: C:\Program Files\MetaTrader 5\terminal64.exe
+    mt_runner_mt_terminal_path_wine: C:\Program Files\MetaTrader 5\terminal64.exe
   when: (metatrader_version | int) == 5
 - name: Pick the right path for the current platform
   vars:

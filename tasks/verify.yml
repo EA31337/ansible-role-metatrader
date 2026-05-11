@@ -86,27 +86,29 @@
           else find_mte_res.files[0].path | dirname }}
       when: find_mte_res.files | length > 0
     - name: Check WSL's default distribution name (Windows)
-      changed_when: false
-      failed_when: not wsl_distribution_name_result
       ansible.windows.win_powershell:
         script: >
           wsl -l -v | Select-String -Pattern '\*'
           | ForEach-Object { ($_ -split '\s+')[1] }
       register: wsl_distribution_name_result
+      changed_when: false
       when: platform_name == 'Windows'
     - name: Store WSL's default distribution name (Windows)
       ansible.builtin.set_fact:
         wsl_distribution_name: >-
           {{ wsl_distribution_name_result.output[0]
           | regex_replace("\u0000", "") }}
-      when: platform_name == 'Windows'
+      when:
+        - platform_name == 'Windows'
+        - wsl_distribution_name_result.output | length > 0
     - name: Check WSL's default user name (Windows)
-      changed_when: false
-      failed_when: not wsl_user_name_result
       ansible.windows.win_command: ubuntu -c "whoami"
       register: wsl_user_name_result
+      changed_when: false
       when: platform_name == 'Windows'
     - name: Store WSL's default user name (Windows)
       ansible.builtin.set_fact:
         wsl_user_name: '{{ wsl_user_name_result.stdout_lines[0] }}'
-      when: platform_name == 'Windows'
+      when:
+        - platform_name == 'Windows'
+        - wsl_user_name_result.stdout_lines | length > 0
