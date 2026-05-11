@@ -2,17 +2,18 @@
 title: Project Facts
 ---
 graph TD
-    Project[Ansible Role: MetaTrader] --> RoleName[ea31337.metatrader]
+    Project[Ansible Role: MetaTrader] --> Agent[Cogni AI Agent]
     Project --> CI[GitHub Actions]
+    Project --> RoleName[ea31337.metatrader]
     Project --> Test[Molecule + Docker]
-    Project --> Agent[Cogni AI Agent]
 
     subgraph AgentConfig
-        Agent --> DefaultAgent[cogni-ai-architect]
         Agent --> Action[Cogni-AI-OU/cogni-ai-agent-action]
+        Agent --> DefaultAgent[cogni-ai-architect]
     end
 
     subgraph Status
         BuildStatus[Builds: Molecule tests passing on Linux (default, mt4, mt5)]
+        WindowsStatus[Windows: mt5-win fails on Linux runners (expected)]
         WorkflowStatus[Workflows: Updated to match PR 221 standards]
     end
