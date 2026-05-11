@@ -90,6 +90,7 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
+| `nixos-latest` | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
 | `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: noble` |
 | `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: noble` |
 
