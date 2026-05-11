@@ -5,10 +5,17 @@ name: Molecule
 on:
   pull_request:
     paths-ignore:
-      - '**.cfg'
       - '**.md'
       - '**.mmd'
-      - .*
+      - .ansible-lint
+      - .coderabbit.yaml
+      - .devcontainer/**
+      - .gitignore
+      - .markdown-link-check.json
+      - .markdownlint.yaml
+      - .yamlfix.toml
+      - .yamllint
+      - .vscode/**
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
@@ -17,10 +24,17 @@ on:
       - Pipfile*
   push:
     paths-ignore:
-      - '**.cfg'
       - '**.md'
       - '**.mmd'
-      - .*
+      - .ansible-lint
+      - .coderabbit.yaml
+      - .devcontainer/**
+      - .gitignore
+      - .markdown-link-check.json
+      - .markdownlint.yaml
+      - .yamlfix.toml
+      - .yamllint
+      - .vscode/**
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml

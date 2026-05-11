@@ -1,7 +1,11 @@
 ---
 # noqa: schema[meta]
 # Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
-dependencies: []
+dependencies:
+  - role: ea31337.wine
+    when: false
+  - role: ea31337.xvfb
+    when: false
 galaxy_info:
   author: kenorb
   company: EA31337 Ltd
