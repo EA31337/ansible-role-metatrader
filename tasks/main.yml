@@ -38,6 +38,10 @@
         OtherLinux
       {%- endif -%}
 
+- name: Ensure effective OS family is not empty
+  ansible.builtin.set_fact:
+    effective_os_family: "Ubuntu"
+  when: effective_os_family is not defined or effective_os_family | trim == "" or effective_os_family == "None"
 - name: Debug OS facts
   ansible.builtin.debug:
     msg:
