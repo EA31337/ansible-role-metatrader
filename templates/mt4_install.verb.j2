@@ -128,6 +128,9 @@ load_mt4_install()
             }
         }
 
+        if (SetupTitle == "")
+            ExitApp, 1
+
         WinActivate, %SetupTitle%
         Sleep, 2000
 

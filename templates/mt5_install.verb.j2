@@ -123,6 +123,9 @@ load_mt5_install()
             }
         }
 
+        if (SetupTitle == "")
+            ExitApp, 1
+
         WinActivate, %SetupTitle%
         Sleep, 2000
 
