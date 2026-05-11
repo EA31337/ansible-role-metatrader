@@ -3,30 +3,30 @@
 mindmap
   root((ansible-role-metatrader))
     Architecture
-      "Driver::Docker_Molecule"
-      "Installer::winetricks"
+      "Driver: Docker Molecule"
+      "Installer: winetricks"
     Context
-      "Documentation::README.md"
-      "Instructions::.github/copilot-instructions.md"
-      "License::GPL-3.0-or-later"
-      "Purpose::Installs_MetaTrader_platform"
-      "Status::Builds_passing_on_Linux"
-      "Workflow::Updated_to_PR_221_standards"
+      "Documentation: README.md"
+      "Instructions: .github/copilot-instructions.md"
+      "License: GPL-3.0-or-later"
+      "Purpose: Installs MetaTrader platform"
+      "Status: Builds passing on Linux"
+      "Workflow: Updated to PR 221 standards"
     Dependencies
       Roles
-        "ea31337.wine::v1.0.4"
-        "ea31337.xvfb::v1.0.4"
+        "ea31337.wine: v1.0.4"
+        "ea31337.xvfb: v1.0.4"
     Ecosystem
       Agent
-        "Action::Cogni-AI-OU/cogni-ai-agent-action"
-        "Default::cogni-ai-architect"
+        "Action: Cogni-AI-OU/cogni-ai-agent-action"
+        "Default: cogni-ai-architect"
       Collections
         ansible.windows
         community.docker
         community.general
       Requirements
         Ansible
-        Python_3.10+
+        Python 3.10+
     Platforms
       Alpine
       Debian
@@ -34,11 +34,11 @@ mindmap
       Ubuntu
       Windows
     Scenarios
-      "default::MT5_(default)::Passing"
-      "mt4::MT4::Passing"
-      "mt5::MT5::Passing"
-      "mt5-win::MT5_Windows::Expected_Fail_on_Linux"
+      "default: MT5 (default)"
+      "mt4: MT4"
+      "mt5: MT5 (Explicit)"
+      "mt5-win: MT5 Windows"
     Variables
-      "metatrader_become_method::Internal"
-      "metatrader_setup_url::Default_Main"
-      "metatrader_version::Default_Main"
+      "metatrader_become_method: Internal"
+      "metatrader_setup_url: Default Main"
+      "metatrader_version: Default Main"
