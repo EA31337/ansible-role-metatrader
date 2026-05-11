@@ -5,7 +5,7 @@
       (apk update -q && apk add -q --no-cache python3 py3-pip sudo bash ca-certificates procps)
   changed_when: false
   when: container_image | default('') is search("alpine")
-  no_log: "{{ metatrader_no_log | default(false) }}"
+  no_log: '{{ metatrader_no_log | default(false) }}'
 
 - name: Install Python 3 on Ubuntu/Debian
   ansible.builtin.raw: |
@@ -15,7 +15,7 @@
       apt-get install -y -qq --no-install-recommends python3 python3-pip sudo ca-certificates procps)
   changed_when: false
   when: container_image | default('') is search("ubuntu") or container_image | default('') is search("debian")
-  no_log: "{{ metatrader_no_log | default(false) }}"
+  no_log: '{{ metatrader_no_log | default(false) }}'
 
 - name: Install or verify Python on NixOS
   ansible.builtin.raw: |
@@ -26,7 +26,7 @@
     fi
   changed_when: false
   when: container_image | default('') is search("nixos")
-  no_log: "{{ metatrader_no_log | default(false) }}"
+  no_log: '{{ metatrader_no_log | default(false) }}'
 
 - name: Bootstrap Python 3 (generic)
   ansible.builtin.raw: |
@@ -45,7 +45,7 @@
     fi
   changed_when: false
   when: (container_image | default('') | length) == 0
-  no_log: "{{ metatrader_no_log | default(false) }}"
+  no_log: '{{ metatrader_no_log | default(false) }}'
 
 - name: Discover Python interpreter
   ansible.builtin.raw: |
@@ -58,9 +58,9 @@
     fi
   register: discovered_python
   changed_when: false
-  no_log: "{{ metatrader_no_log | default(false) }}"
+  no_log: '{{ metatrader_no_log | default(false) }}'
 
 - name: Set ansible_python_interpreter
   ansible.builtin.set_fact:
-    ansible_python_interpreter: "{{ discovered_python.stdout | trim }}"
+    ansible_python_interpreter: '{{ discovered_python.stdout | trim }}'
   when: (discovered_python.stdout | trim | length) > 0

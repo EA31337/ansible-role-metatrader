@@ -6,16 +6,15 @@ all:
         metatrader-on-ubuntu-noble:
           ansible_connection: docker
           ansible_host: metatrader-on-ubuntu-noble
+          ansible_os_family: Debian
+          ansible_python_interpreter: /usr/bin/python3
         metatrader-on-ubuntu-jammy:
           ansible_connection: docker
           ansible_host: metatrader-on-ubuntu-jammy
+          ansible_os_family: Debian
+          ansible_python_interpreter: /usr/bin/python3
         metatrader-on-debian-latest:
           ansible_connection: docker
           ansible_host: metatrader-on-debian-latest
-        metatrader-on-alpine-latest:
-          ansible_connection: docker
-          ansible_host: metatrader-on-alpine-latest
-        metatrader-on-nixos-latest:
-          ansible_connection: docker
-          ansible_distribution: NixOS
-          ansible_host: metatrader-on-nixos-latest
+          ansible_os_family: Debian
+          ansible_python_interpreter: /usr/bin/python3
