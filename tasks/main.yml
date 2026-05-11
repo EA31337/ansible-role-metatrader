@@ -29,13 +29,15 @@
       {%- set f_dist = ansible_facts.get('distribution') | default('', true) | string | trim -%}
       {%- set detected = f_os if (f_os | length > 0 and f_os != 'None')
           else (f_dist if (f_dist | length > 0 and f_dist != 'None') else 'OtherLinux') -%}
-      {{ detected }}
+      {{ detected | trim }}
       {%- endif -%}
 - name: Ensures facts are populated for dependencies
   ansible.builtin.set_fact:
-    ansible_facts:
-      os_family: "{{ effective_os_family }}"
-      distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
+    ansible_facts: >-
+      {{ ansible_facts | default({}) | combine({
+        'os_family': effective_os_family,
+        'distribution': ansible_facts.get('distribution') | default(effective_os_family, true)
+      }) }}
     # Legacy compatibility and explicit variables
     ansible_os_family: "{{ effective_os_family }}"
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
@@ -44,7 +46,10 @@
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
     effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
-    effective_home: "{{ ansible_facts.get('env', {}).get('HOME') | default('/root', true) }}"
+    effective_home: >-
+      {{ ansible_facts.get('user_dir')
+      | default(ansible_facts.get('env', {}).get('HOME'), true)
+      | default('/root', true) }}
     effective_xdg_runtime_dir: >-
       {{ ansible_facts.get('env', {}).get('XDG_RUNTIME_DIR')
       | default('/tmp/runtime-root', true) }}
@@ -63,6 +68,7 @@
     wine_install_winetricks: true
     wine_version: "{{ '9' if effective_os_family == 'Alpine' else '10.0' }}"
     wine_detected_os_family: "{{ effective_os_family }}"
+    detected_os_family: "{{ effective_os_family }}"
     ansible_os_family: "{{ effective_os_family }}"
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
     ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
@@ -73,6 +79,7 @@
     name: ea31337.xvfb
   vars:
     xvfb_os_family: "{{ effective_os_family }}"
+    detected_os_family: "{{ effective_os_family }}"
     ansible_os_family: "{{ effective_os_family }}"
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
     ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
@@ -167,6 +174,7 @@
       delay: 3
       environment:
         DISPLAY: '{{ effective_display }}'
+        HOME: '{{ effective_home }}'
         XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
       when:
         - not file_mt_installed_exists.stat.exists
@@ -196,6 +204,7 @@
       poll: 10
       environment:
         DISPLAY: '{{ effective_display }}'
+        HOME: '{{ effective_home }}'
         WINEDEBUG: -all
         WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
         WINETRICKS_DOWNLOADER: curl

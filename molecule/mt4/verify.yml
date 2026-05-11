@@ -2,7 +2,10 @@
 - name: Verify
   hosts: all
   vars:
-    effective_home: "{{ ansible_facts.get('env', {}).get('HOME') | default('/root', true) }}"
+    effective_home: >-
+      {{ ansible_facts.get('user_dir')
+      | default(ansible_facts.get('env', {}).get('HOME'), true)
+      | default('/root', true) }}
   tasks:
     - name: Retrieve information from path
       ansible.builtin.stat:
