@@ -7,38 +7,26 @@ on:
     paths-ignore:
       - '**.cfg'
       - '**.md'
-<<<<<<< HEAD
-      - .*
-=======
       - '**.mmd'
->>>>>>> origin/master
+      - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
       - .github/workflows/platform.yml
       - LICENSE
-<<<<<<< HEAD
       - Pipfile*
-=======
->>>>>>> origin/master
   push:
     paths-ignore:
       - '**.cfg'
       - '**.md'
-<<<<<<< HEAD
-      - .*
-=======
       - '**.mmd'
->>>>>>> origin/master
+      - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
       - .github/workflows/platform.yml
       - LICENSE
-<<<<<<< HEAD
       - Pipfile*
-=======
->>>>>>> origin/master
   workflow_dispatch:
 concurrency:
   cancel-in-progress: true
@@ -133,11 +121,8 @@ jobs:
                 awk '/PLAY RECAP/ {p=1} p; /^[[:space:]]*$/ && p {p=0}' | \
                 grep -v "^$" | head -n 20
               echo '```'
-<<<<<<< HEAD
 
               # Extract Errors and Warnings
-=======
->>>>>>> origin/master
               echo "<details><summary>Errors and Warnings (click to expand)</summary>"
               echo ""
               echo '```'

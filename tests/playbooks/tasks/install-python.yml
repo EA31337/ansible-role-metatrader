@@ -1,12 +1,4 @@
 ---
-- name: Install Python 3 on Alpine
-  ansible.builtin.raw: |
-    command -v python3 >/dev/null 2>&1 || \
-      (apk update -q && apk add -q --no-cache python3 py3-pip sudo bash ca-certificates procps)
-  changed_when: false
-  when: container_image | default('') is search("alpine")
-  no_log: "{{ metatrader_no_log | default(false) }}"
-
 - name: Install Python 3 on Ubuntu/Debian
   ansible.builtin.raw: |
     command -v python3 >/dev/null 2>&1 || \
@@ -15,52 +7,31 @@
       apt-get install -y -qq --no-install-recommends python3 python3-pip sudo ca-certificates procps)
   changed_when: false
   when: container_image | default('') is search("ubuntu") or container_image | default('') is search("debian")
-  no_log: "{{ metatrader_no_log | default(false) }}"
-
-- name: Install or verify Python on NixOS
-  ansible.builtin.raw: |
-    PATH=/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:$PATH
-    if ! command -v python3 >/dev/null 2>&1; then
-      nix-channel --update > /dev/null
-      nix-env -iA nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.sudo nixpkgs.procps > /dev/null
-    fi
-  changed_when: false
-  when: container_image | default('') is search("nixos")
-  no_log: "{{ metatrader_no_log | default(false) }}"
-
+  no_log: '{{ metatrader_no_log | default(false) }}'
 - name: Bootstrap Python 3 (generic)
   ansible.builtin.raw: |
     if command -v python3 >/dev/null 2>&1; then
       exit 0
     fi
-    if command -v apk >/dev/null 2>&1; then
-      apk update -q && apk add -q --no-cache python3 py3-pip sudo bash ca-certificates procps
-    elif command -v apt-get >/dev/null 2>&1; then
+    if command -v apt-get >/dev/null 2>&1; then
       export DEBIAN_FRONTEND=noninteractive
       apt-get update -qq && \
         apt-get install -y -qq --no-install-recommends python3 python3-pip sudo ca-certificates procps
-    elif command -v nix-env >/dev/null 2>&1; then
-      nix-channel --update > /dev/null
-      nix-env -iA nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.sudo nixpkgs.procps > /dev/null
     fi
   changed_when: false
   when: (container_image | default('') | length) == 0
-  no_log: "{{ metatrader_no_log | default(false) }}"
-
+  no_log: '{{ metatrader_no_log | default(false) }}'
 - name: Discover Python interpreter
   ansible.builtin.raw: |
-    if [ -x /root/.nix-profile/bin/python3 ]; then
-      echo "/root/.nix-profile/bin/python3"
-    elif [ -x /usr/bin/python3 ]; then
+    if [ -x /usr/bin/python3 ]; then
       echo "/usr/bin/python3"
     else
       command -v python3
     fi
   register: discovered_python
   changed_when: false
-  no_log: "{{ metatrader_no_log | default(false) }}"
-
+  no_log: '{{ metatrader_no_log | default(false) }}'
 - name: Set ansible_python_interpreter
   ansible.builtin.set_fact:
-    ansible_python_interpreter: "{{ discovered_python.stdout | trim }}"
+    ansible_python_interpreter: '{{ discovered_python.stdout | trim }}'
   when: (discovered_python.stdout | trim | length) > 0
