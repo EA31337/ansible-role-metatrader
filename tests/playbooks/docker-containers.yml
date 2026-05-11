@@ -52,6 +52,11 @@
       when: container_image is search("ubuntu") or container_image is search("debian")
     - name: Gather facts
       ansible.builtin.setup:
+        gather_subset:
+          - min
+          - distribution
+          - env
+          - user
     - name: Install Python packages for Ubuntu/Debian
       ansible.builtin.apt:
         name:

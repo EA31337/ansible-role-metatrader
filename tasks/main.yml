@@ -16,18 +16,23 @@
     ansible_facts.get('os_family', '') == 'OtherLinux'
     or ansible_facts.get('distribution', '') == 'NixOS'
 - name: Sets effective OS facts
-  ansible.builtin.set_fact:
-    effective_os_family: >-
-      {%- set f_os = (ansible_facts.get('os_family') or '') | string | trim -%}
-      {%- set f_dist = (ansible_facts.get('distribution') or '') | string | trim -%}
-      {%- if (f_dist == 'NixOS' or f_os == 'NixOS'
-              or (f_os == 'OtherLinux' and nix_check is defined and nix_check.rc | default(1) == 0)) -%}
-      NixOS
-      {%- else -%}
-      {%- set detected = f_os if (f_os and f_os != 'None' and f_os != 'unknown')
-          else (f_dist if (f_dist and f_dist != 'None' and f_dist != 'unknown') else 'OtherLinux') -%}
-      {{ detected | string | trim | default('OtherLinux', true) }}
-      {%- endif -%}
+  block:
+    - name: Sets detected OS family fact
+      ansible.builtin.set_fact:
+        detected_os_family: >-
+          {{ (ansible_facts.get('os_family') or ansible_facts.get('distribution') or 'OtherLinux') | string | trim }}
+    - name: Sets effective OS family fact (NixOS override)
+      ansible.builtin.set_fact:
+        effective_os_family: NixOS
+      when: >-
+        ansible_facts.get('distribution', '') == 'NixOS'
+        or ansible_facts.get('os_family', '') == 'NixOS'
+        or (ansible_facts.get('os_family', '') == 'OtherLinux'
+            and nix_check is defined and nix_check.rc | default(1) == 0)
+    - name: Sets effective OS family fact (Default)
+      ansible.builtin.set_fact:
+        effective_os_family: "{{ detected_os_family | default('OtherLinux', true) }}"
+      when: effective_os_family is not defined or not effective_os_family
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
     effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
@@ -38,17 +43,17 @@
       {%- elif e_home and e_home != '/github/home' -%}{{ e_home -}}
       {%- else -%}/root{%- endif -%}
     effective_xdg_runtime_dir: >-
-      {{ ansible_facts.get('env', {}).get('XDG_RUNTIME_DIR')
+      {{ (ansible_facts.get('env') or {}).get('XDG_RUNTIME_DIR')
       | default('/tmp/runtime-root', true) }}
 - name: Ensures facts are populated for dependencies
   ansible.builtin.set_fact:
     ansible_facts: >-
       {{ ansible_facts | combine({
         'os_family': effective_os_family,
-        'distribution': ansible_facts.get('distribution') | default(effective_os_family, true),
-        'user_id': ansible_facts.get('user_id') | default('root', true),
+        'distribution': (ansible_facts.get('distribution') or effective_os_family),
+        'user_id': (ansible_facts.get('user_id') or 'root'),
         'user_dir': effective_home,
-        'env': ansible_facts.get('env', {}) | combine({'HOME': effective_home})
+        'env': (ansible_facts.get('env') or {}) | combine({'HOME': effective_home})
       }) }}
 - name: Ensures facts are populated for legacy roles
   ansible.builtin.set_fact:
@@ -80,7 +85,7 @@
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
     ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
     ansible_user_dir: '{{ effective_home }}'
-    ansible_env: "{{ ansible_facts.get('env', {}) | combine({'HOME': effective_home}) }}"
+    ansible_env: "{{ (ansible_facts.get('env') or {}) | combine({'HOME': effective_home}) }}"
   when: effective_os_family != "Windows"
 - name: Includes xvfb role
   ansible.builtin.include_role:
@@ -92,7 +97,7 @@
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
     ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
     ansible_user_dir: '{{ effective_home }}'
-    ansible_env: "{{ ansible_facts.get('env', {}) | combine({'HOME': effective_home}) }}"
+    ansible_env: "{{ (ansible_facts.get('env') or {}) | combine({'HOME': effective_home}) }}"
   when: effective_os_family != "Windows"
 - name: Sets metatrader_local_facts fact
   ansible.builtin.set_fact:
