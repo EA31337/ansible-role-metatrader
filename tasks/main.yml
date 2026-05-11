@@ -63,27 +63,6 @@
       {{ (ansible_facts.get('env') or {}).get('XDG_RUNTIME_DIR')
       | default('/tmp/runtime-root', true) }}
   tags: [always, metatrader_verify]
-- name: Ensures facts are populated for dependencies
-  ansible.builtin.set_fact:
-    ansible_os_family: '{{ effective_os_family }}'
-    ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
-    ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
-    ansible_user_dir: '{{ effective_home }}'
-    os_family: '{{ effective_os_family }}'
-    distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
-- name: Updates ansible_facts for dependencies
-  ansible.builtin.set_fact:
-    ansible_facts: >-
-      {{ ansible_facts | combine({
-        'os_family': effective_os_family,
-        'distribution': ansible_facts.get('distribution') | default(effective_os_family, true),
-        'user_id': ansible_facts.get('user_id') | default('root', true),
-        'user_dir': effective_home,
-        'env': (ansible_facts.get('env') or {}) | combine({'HOME': effective_home})
-      }, recursive=True) }}
-- name: Updates environment facts for dependencies
-  ansible.builtin.set_fact:
-    ansible_env: '{{ ansible_facts.env }}'
 - name: Ensures home directory exists
   ansible.builtin.file:
     path: '{{ effective_home }}'
@@ -98,32 +77,6 @@
     fail_msg: >-
       Unsupported OS family: {{ effective_os_family | default('empty', true) }}.
       Supported: {{ metatrader_become_method.keys() | sort | join(', ') }}.
-- name: Includes wine role
-  ansible.builtin.include_role:
-    name: ea31337.wine
-  vars:
-    wine_install_winetricks: true
-    wine_version: '10.0'
-    wine_detected_os_family: '{{ effective_os_family }}'
-    detected_os_family: '{{ effective_os_family }}'
-    ansible_os_family: '{{ effective_os_family }}'
-    ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
-    ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
-    ansible_user_dir: '{{ effective_home }}'
-    ansible_env: "{{ (ansible_facts.get('env') or {}) | combine({'HOME': effective_home}) }}"
-  when: effective_os_family != "Windows"
-- name: Includes xvfb role
-  ansible.builtin.include_role:
-    name: ea31337.xvfb
-  vars:
-    xvfb_os_family: '{{ effective_os_family }}'
-    detected_os_family: '{{ effective_os_family }}'
-    ansible_os_family: '{{ effective_os_family }}'
-    ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
-    ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
-    ansible_user_dir: '{{ effective_home }}'
-    ansible_env: "{{ (ansible_facts.get('env') or {}) | combine({'HOME': effective_home}) }}"
-  when: effective_os_family != "Windows"
 - name: Sets metatrader_local_facts fact
   ansible.builtin.set_fact:
     metatrader_local_facts: "{{ ansible_facts.get('ansible_local', {}).get('metatrader', {}) }}"

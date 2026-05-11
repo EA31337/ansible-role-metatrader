@@ -5,13 +5,23 @@ name: Test
 on:
   pull_request:
     paths-ignore:
+      - '**.cfg'
       - '**.md'
       - '**.mmd'
+      - .github/workflows/check.yml
+      - .github/workflows/cogni-ai-agent.yml
+      - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/platform.yml
       - LICENSE
   push:
     paths-ignore:
+      - '**.cfg'
       - '**.md'
       - '**.mmd'
+      - .github/workflows/check.yml
+      - .github/workflows/cogni-ai-agent.yml
+      - .github/workflows/copilot-setup-steps.yml
+      - .github/workflows/platform.yml
       - LICENSE
   workflow_dispatch:
 permissions:
