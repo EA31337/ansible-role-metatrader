@@ -1,0 +1,40 @@
+%% docs/FACTS.mmd
+%% Note: Keep items in alphabetical order.
+mindmap
+  root(ansible-role-metatrader)
+    Architecture
+      "Driver Docker Molecule"
+      "Installer winetricks"
+    Context
+      "Documentation README.md"
+      "Instructions copilot-instructions.md"
+      "License GPL-3.0-or-later"
+      "Purpose Installs MetaTrader platform"
+      "Status Molecule tests passing on Linux (default, mt4, mt5)"
+      "Windows mt5-win fails on Linux runners (expected)"
+      "Workflow Updated to PR 221 standards"
+    Dependencies
+      Roles
+        "ea31337.wine v1.0.4"
+        "ea31337.xvfb v1.0.4"
+    Ecosystem
+      Agent
+        "Action cogni-ai-agent-action"
+        "Default cogni-ai-architect"
+      Collections
+        ansible.windows
+        community.docker
+        community.general
+      Requirements
+        Ansible
+        "Python 3.10 plus"
+    Network
+      "Firewall .github/FIREWALL.md"
+    Platforms
+      Debian
+      Ubuntu
+      Windows
+    Variables
+      metatrader_become_method
+      metatrader_setup_url
+      metatrader_version
