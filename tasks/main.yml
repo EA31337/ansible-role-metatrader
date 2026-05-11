@@ -12,25 +12,20 @@
     ansible_facts.get('os_family', '') == 'OtherLinux'
     or ansible_facts.get('distribution', '') == 'NixOS'
 - name: Sets effective OS facts
-  block:
-    - name: Sets detected OS family fact
-      ansible.builtin.set_fact:
-        detected_os_family: >-
-          {%- set f_os = ansible_facts.get('os_family') | default('', true) | string | trim -%}
-          {%- set f_dist = ansible_facts.get('distribution') | default('', true) | string | trim -%}
-          {{ f_os if (f_os and f_os != 'None') else (f_dist if (f_dist and f_dist != 'None') else 'OtherLinux') }}
-    - name: Sets effective OS family fact (NixOS override)
-      ansible.builtin.set_fact:
-        effective_os_family: NixOS
-      when: >-
-        ansible_facts.get('distribution', '') == 'NixOS'
-        or ansible_facts.get('os_family', '') == 'NixOS'
-        or (ansible_facts.get('os_family', '') == 'OtherLinux'
-            and nix_check is defined and nix_check.rc | default(1) == 0)
-    - name: Sets effective OS family fact (Default)
-      ansible.builtin.set_fact:
-        effective_os_family: "{{ (detected_os_family | trim | default('OtherLinux', true)) or 'OtherLinux' }}"
-      when: effective_os_family is not defined or not effective_os_family
+  ansible.builtin.set_fact:
+    effective_os_family: >-
+      {%- set f_os = ansible_facts.get('os_family', '') | default('', true) | string | trim -%}
+      {%- set f_dist = ansible_facts.get('distribution', '') | default('', true) | string | trim -%}
+      {%- if f_dist == 'NixOS' or f_os == 'NixOS'
+          or (f_os == 'OtherLinux' and nix_check is defined and nix_check.rc | default(1) == 0) -%}
+        NixOS
+      {%- elif f_os and f_os != 'None' -%}
+        {{ f_os }}
+      {%- elif f_dist and f_dist != 'None' -%}
+        {{ f_dist }}
+      {%- else -%}
+        OtherLinux
+      {%- endif -%}
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
     effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
@@ -43,26 +38,17 @@
     effective_xdg_runtime_dir: >-
       {{ (ansible_facts.get('env') or {}).get('XDG_RUNTIME_DIR')
       | default('/tmp/runtime-root', true) }}
-- name: Updates ansible_facts dictionary
+- name: Updates OS facts for dependencies
   ansible.builtin.set_fact:
-    ansible_facts: >-
-      {{ ansible_facts | combine({
-        'os_family': effective_os_family,
-        'distribution': ansible_facts.get('distribution') | default(effective_os_family, true),
-        'user_dir': effective_home,
-        'env': (ansible_facts.get('env') or {}) | combine({'HOME': effective_home})
-      }, recursive=True) }}
-- name: Ensures facts are populated for dependencies
-  ansible.builtin.set_fact:
-    ansible_os_family: '{{ effective_os_family }}'
+    ansible_os_family: "{{ effective_os_family }}"
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
     ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
-    ansible_user_dir: '{{ effective_home }}'
-    os_family: '{{ effective_os_family }}'
+    ansible_user_dir: "{{ effective_home }}"
+    os_family: "{{ effective_os_family }}"
     distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
-- name: Ensures facts are populated for legacy roles
+- name: Updates environment facts for dependencies
   ansible.builtin.set_fact:
-    ansible_env: "{{ ansible_facts.env }}"
+    ansible_env: "{{ (ansible_facts.get('env') or {}) | combine({'HOME': effective_home}) }}"
 - name: Ensures home directory exists
   ansible.builtin.file:
     path: '{{ effective_home }}'

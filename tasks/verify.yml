@@ -15,7 +15,7 @@
     - name: Store platform's path (Unix)
       ansible.builtin.set_fact:
         find_mt_path: '"{{ find_mt_res.files[0].path }}"'
-        find_mt_path_folder: '{{ find_mt_res.files[0].path | dirname }}'
+        find_mt_path_folder: "{{ find_mt_res.files[0].path | dirname }}"
       when:
         - effective_os_family != "Windows"
         - find_mt_res.files | length > 0
@@ -46,8 +46,8 @@
       when: effective_os_family != "Windows"
     - name: Store platform's editor path (Unix)
       ansible.builtin.set_fact:
-        find_mte_path: '{{ find_mte_res.files[0].path }}'
-        find_mte_path_folder: '{{ find_mte_res.files[0].path | dirname }}'
+        find_mte_path: "{{ find_mte_res.files[0].path }}"
+        find_mte_path_folder: "{{ find_mte_res.files[0].path | dirname }}"
       when:
         - effective_os_family != "Windows"
         - find_mte_res.files | length > 0
