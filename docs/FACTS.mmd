@@ -1,18 +1,13 @@
 %% docs/FACTS.mmd
 %% Note: Keep items in alphabetical order.
 mindmap
-  root((ansible-role-metatrader))
+  root(ansible-role-metatrader)
     Architecture
       "Driver Docker Molecule"
       "Installer winetricks"
-      Files
-        "Configuration defaults/main.yml, vars/main.yml, ansible.cfg"
-        "Logic tasks/main.yml, tasks/verify.yml"
-        "Testing molecule/"
-        "Workflows .github/workflows/"
     Context
       "Documentation README.md"
-      "Instructions .github/copilot-instructions.md"
+      "Instructions copilot-instructions.md"
       "License GPL-3.0-or-later"
       "Purpose Installs MetaTrader platform"
       "Status Builds passing on Linux"
@@ -21,17 +16,9 @@ mindmap
       Roles
         "ea31337.wine v1.0.4"
         "ea31337.xvfb v1.0.4"
-    Directives
-      "Always use FQCN for modules"
-      "End files with a newline"
-      "Ensure idempotency in tasks"
-      "Keep YAML keys sorted alphabetically"
-      "Run yamllint and ansible-lint before commit"
-      "Use true/false for truthy values"
-      "Wrap lines at 120 characters"
     Ecosystem
       Agent
-        "Action Cogni-AI-OU/cogni-ai-agent-action"
+        "Action cogni-ai-agent-action"
         "Default cogni-ai-architect"
       Collections
         ansible.windows
@@ -39,29 +26,16 @@ mindmap
         community.general
       Requirements
         Ansible
-        Python 3.10+
+        "Python 3.10 plus"
     Network
       "Firewall .github/FIREWALL.md"
-      Hosts
-        ansible.com
-        cache.nixos.org
-        cdn.mql5.com
-        download.mql5.com
-        galaxy.ansible.com
-        github.com
-        mql5.com
     Platforms
       Alpine
       Debian
       NixOS
       Ubuntu
       Windows
-    Scenarios
-      "default MT5 (default)"
-      "mt4 MT4"
-      "mt5 MT5 (Explicit)"
-      "mt5-win MT5 Windows"
     Variables
-      "metatrader_become_method Internal"
-      "metatrader_setup_url Default Main"
-      "metatrader_version Default Main"
+      metatrader_become_method
+      metatrader_setup_url
+      metatrader_version

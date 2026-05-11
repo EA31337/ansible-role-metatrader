@@ -1,16 +1,5 @@
 %% docs/FLOWS.mmd
 flowchart TD
-    subgraph Documentation [Project Documentation]
-        direction TB
-        R_README[README.md]
-        R_AGENTS[AGENTS.md]
-        R_FIREWALL[.github/FIREWALL.md]
-    end
-
-    click R_README "https://github.com/EA31337/ansible-role-metatrader/blob/master/README.md"
-    click R_AGENTS "https://github.com/EA31337/ansible-role-metatrader/blob/master/AGENTS.md"
-    click R_FIREWALL "https://github.com/EA31337/ansible-role-metatrader/blob/master/.github/FIREWALL.md"
-
     subgraph Ansible_Role_Execution [Ansible Role Execution Flow]
         direction TB
         A([Start Role Execution]) --> B{"Detect OS Family"}
@@ -38,10 +27,6 @@ flowchart TD
         J -->|No| J_ERR["Fail: metaeditor*.exe missing"]
 
         K --> L([Finish Role Execution])
-
-        A -.-> R_README
-        A -.-> R_AGENTS
-        F_ERR -.-> R_FIREWALL
     end
 
     subgraph CI_Pipeline [CI Pipeline Matrix]
@@ -53,8 +38,6 @@ flowchart TD
             CI4["ubuntu-noble"]
         end
         CI3 --> Molecule_Matrix
-
-        CI1 -.-> R_README
     end
 
     subgraph Molecule_Testing_Flow [Molecule Testing Sequence]
@@ -67,6 +50,4 @@ flowchart TD
         M6 --> M7["idempotence"]
         M7 --> M8["verify"]
         M8 --> M9["destroy"]
-
-        M1 -.-> R_README
     end
