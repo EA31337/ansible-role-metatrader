@@ -11,7 +11,7 @@
   tasks:
     - name: Retrieve information from path
       ansible.builtin.stat:
-        path: '{{ effective_home }}/.wine/drive_c/Program Files/MetaTrader 5'
+        path: '{{ effective_home }}/.wine/drive_c/Program Files/MetaTrader {{ metatrader_version | default(4) }}'
       register: stat_result
     - name: Verify platform directory exist
       ansible.builtin.assert:
@@ -26,15 +26,6 @@
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
-      when: ansible_facts.get('os_family', '') != "Windows"
-    - name: Checks if platform's editor exists
-      changed_when: false
-      failed_when: find_mte_res.matched == 0
-      ansible.builtin.find:
-        paths: '{{ effective_home }}/.wine/drive_c'
-        patterns: '[mM]eta[eE]ditor*.exe'
-        recurse: true
-      register: find_mte_res
       when: ansible_facts.get('os_family', '') != "Windows"
     - name: Checks if platform's editor exists
       changed_when: false
