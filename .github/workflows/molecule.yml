@@ -7,6 +7,7 @@ on:
     paths-ignore:
       - '**.cfg'
       - '**.md'
+      - '**.mmd'
       - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
@@ -18,6 +19,7 @@ on:
     paths-ignore:
       - '**.cfg'
       - '**.md'
+      - '**.mmd'
       - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
@@ -25,6 +27,7 @@ on:
       - .github/workflows/platform.yml
       - LICENSE
       - Pipfile*
+  workflow_dispatch:
 concurrency:
   cancel-in-progress: true
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -55,18 +58,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6.1.0
         with:
+          cache: pip
+          cache-dependency-path: |
+            Pipfile*
+            .devcontainer/requirements.txt
           python-version: '3.11'
-      - name: Cache pip
-        uses: actions/cache@v5
-        with:
-          key: >-
-            ${{ runner.os }}-pip-${{ hashFiles(
-              'Pipfile*',
-              '.devcontainer/requirements.txt'
-            ) }}
-          path: ~/.cache/pip
-          restore-keys: |
-            ${{ runner.os }}-pip-
       - name: Cache Ansible Galaxy
         uses: actions/cache@v5
         with:
@@ -97,6 +93,8 @@ jobs:
           ANSIBLE_COLLECTIONS_PATH: >-
             ${{ github.workspace }}/collections
           ANSIBLE_CALLBACK_RESULT_FORMAT: yaml
+          ANSIBLE_DISPLAY_OK_HOSTS: 'no'
+          ANSIBLE_DISPLAY_SKIPPED_HOSTS: 'no'
           ANSIBLE_FORCE_COLOR: '1'
           ANSIBLE_STDOUT_CALLBACK: >-
             ${{ runner.debug == '1' && 'debug' || 'ansible.builtin.default' }}
@@ -125,7 +123,6 @@ jobs:
                 grep -v "^$" | head -n 20
               echo '```'
 
-              # Extract Errors and Warnings
               echo "<details><summary>Errors and Warnings (click to expand)</summary>"
               echo ""
               echo '```'

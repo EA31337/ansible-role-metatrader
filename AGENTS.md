@@ -3,15 +3,18 @@
 Persistent context for autonomous agents working on this Ansible role.
 
 For project overview and install instructions, see [README.md](README.md).
+For project facts, key files and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
+For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
+For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 ## Setup & Environment Invariants
 
 - Ansible role: `ea31337.metatrader`
-- Supported OS: Debian/Ubuntu, NixOS (Nix), Windows
+- Supported OS: See [FACTS.mmd](docs/FACTS.mmd)
 - Driver: Docker (Molecule)
 - Python 3.10+ required; install via `pip install -r .devcontainer/requirements.txt`
-- Collections: `community.docker`, `community.general`, `ansible.windows`
-- Role dependencies: `ea31337.wine`, `ea31337.xvfb` (see `meta/main.yml`)
+- Collections: See [FACTS.mmd](docs/FACTS.mmd)
+- Role dependencies: See [FACTS.mmd](docs/FACTS.mmd)
 - `community.docker` MUST be installed before Molecule can create/destroy
   containers.
 - Install dependencies: `ansible-galaxy role install -r requirements.yml --force` and
@@ -230,8 +233,9 @@ molecule destroy -s default
 > `Failed to update apt cache after 5 retries`
 
 - **Root cause**: Firewall/network policy blocks `dl.winehq.org`, or
-  `debian:latest` codename (e.g. `trixie`) is not in the WineHQ repo.
-- **Fix**: Set `wine_release_codename: bookworm` for debian-latest in
+  `debian:latest` codename (e.g. `trixie`) or Ubuntu 26.04 (`resolute`)
+  is not in the WineHQ repo.
+- **Fix**: Set `wine_release_codename: bookworm` for debian-latest or `jammy` for ubuntu-latest in
   host_vars. Add `dl.winehq.org` to firewall allowlist.
 - **CI context**: Works on standard GitHub Actions runners with internet
   access.
@@ -490,15 +494,14 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 | `cache.nixos.org` | Nix binary cache (pre-built packages) |
 | `cdn.mql5.com` | CDN (MT5 platform files) |
 | `channels.nixos.org` | Nix channel metadata (redirects to releases) |
-| `codeload.github.com` | GitHub archive download (dependency) |
-| `dl-cdn.alpinelinux.org` | Alpine Linux package repository |
+| `codeload.github.com" | GitHub archive download (dependency) |
+| `dl-cdn.alpinelinux.org" | Alpine Linux package repository |
 | `dl.winehq.org` | WineHQ APT repository and GPG key |
 | `download.mql5.com` | MetaTrader setup executable download |
 | `galaxy.ansible.com` | Ansible Galaxy collections |
 | `github.com` | AutoHotkey download (used by winetricks verb) |
 | `mt5-trade.metaquotes.net` | Trade server (installer backend) |
 | `raw.githubusercontent.com` | OpenSymbol font download (winetricks verb) |
-
 | `releases.nixos.org` | Nix channel tarballs (redirect target) |
 | `trade.mql5.com` | Trade server (installer registration) |
 | `web.archive.org` | Winetricks fallback download mirror |
