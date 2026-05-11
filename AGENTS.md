@@ -3,8 +3,8 @@
 Persistent context for autonomous agents working on this Ansible role.
 
 For project overview and install instructions, see [README.md](README.md).
-For project facts and architecture mindmap, see [FACTS.md](docs/FACTS.md).
-For execution flows and logic diagrams, see [FLOWS.md](docs/FLOWS.md).
+For project facts and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
+For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
 
 ## Setup & Environment Invariants
 
