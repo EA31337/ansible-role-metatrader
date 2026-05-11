@@ -3,7 +3,7 @@ all:
   children:
     docker_containers:
       hosts:
-        metatrader-on-wine-latest:
+        metatrader-on-ubuntu-noble:
           ansible_connection: docker
-          ansible_host: metatrader-on-wine-latest
+          ansible_host: metatrader-on-ubuntu-noble
           ansible_python_interpreter: auto_silent

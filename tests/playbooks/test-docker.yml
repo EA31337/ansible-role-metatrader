@@ -18,7 +18,7 @@
   gather_facts: false
   hosts: docker_containers
   vars:
-    wine_image: ghcr.io/ea31337/ansible-role-wine:latest
+    wine_image: ubuntu:noble
   pre_tasks:
     - name: Manage Docker container lifecycle
       delegate_to: localhost
