@@ -38,8 +38,8 @@ provisioner:
       # Use the built-in default callback with result_format instead of community.general.yaml
       remote_tmp: /tmp/.ansible-tmp-$${USER}
       result_format: yaml
-      stdout_callback: ansible.builtin.default
-      verbosity: 1
+      stdout_callback: community.general.unixy
+      verbosity: 0
     ssh_connection:
       pipelining: true
   env:

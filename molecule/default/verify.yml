@@ -11,9 +11,9 @@
   tasks:
     - name: Retrieve information from path
       ansible.builtin.stat:
-        path: '{{ effective_home }}/.wine/drive_c/Program Files/MetaTrader {{ metatrader_version | default(5) }}'
+        path: '{{ effective_home }}/.wine/drive_c/Program Files'
       register: stat_result
-    - name: Verify platform directory exist
+    - name: Verify Program Files directory exist
       ansible.builtin.assert:
         that:
           - stat_result.stat.exists
