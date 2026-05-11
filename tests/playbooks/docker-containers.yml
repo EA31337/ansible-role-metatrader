@@ -80,7 +80,7 @@
 - name: Install ea31337.metatrader role on all containers
   # Note: NixOS coverage is handled by Molecule scenarios.
   hosts: docker_containers,!metatrader-on-nixos-latest
-  gather_facts: true
+  gather_facts: false
   tags: always
   vars:
     controller_python: '{{ ansible_playbook_python }}'
@@ -88,6 +88,10 @@
       {{ 'noble' if ansible_facts.get('distribution_release', '') == 'resolute'
       else ansible_facts.get('distribution_release', '') }}
   tasks:
+    - name: Gather facts explicitly
+      ansible.builtin.setup:
+        gather_subset:
+          - all
     - name: Installs metatrader role
       ansible.builtin.import_role:
         name: ea31337.metatrader
