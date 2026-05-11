@@ -1,11 +1,6 @@
 ---
 - name: Ensures essential facts are gathered
   ansible.builtin.setup:
-  when: >-
-    ansible_facts.get('os_family') is none
-    or not ansible_facts.get('os_family')
-    or ansible_facts.get('distribution') is none
-    or not ansible_facts.get('distribution')
 - name: Detects NixOS
   ansible.builtin.command: nix-env --version
   register: nix_check
@@ -20,7 +15,9 @@
     - name: Sets detected OS family fact
       ansible.builtin.set_fact:
         detected_os_family: >-
-          {{ (ansible_facts.get('os_family') or ansible_facts.get('distribution') or 'OtherLinux') | string | trim }}
+          {%- set f_os = ansible_facts.get('os_family') | default('', true) | string | trim -%}
+          {%- set f_dist = ansible_facts.get('distribution') | default('', true) | string | trim -%}
+          {{ f_os if (f_os and f_os != 'None') else (f_dist if (f_dist and f_dist != 'None') else 'OtherLinux') }}
     - name: Sets effective OS family fact (NixOS override)
       ansible.builtin.set_fact:
         effective_os_family: NixOS
@@ -31,38 +28,13 @@
             and nix_check is defined and nix_check.rc | default(1) == 0)
     - name: Sets effective OS family fact (Default)
       ansible.builtin.set_fact:
-        effective_os_family: "{{ detected_os_family | default('OtherLinux', true) }}"
+        effective_os_family: "{{ detected_os_family | trim | default('OtherLinux', true) }}"
       when: effective_os_family is not defined or not effective_os_family
-- name: Sets effective environment facts
-  ansible.builtin.set_fact:
-    effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
-    effective_home: >-
-      {%- set u_dir = (ansible_facts.get('user_dir') or '') | string | trim -%}
-      {%- set e_home = (ansible_facts.get('env', {}).get('HOME') or '') | string | trim -%}
-      {%- if u_dir and u_dir != '/github/home' -%}{{ u_dir -}}
-      {%- elif e_home and e_home != '/github/home' -%}{{ e_home -}}
-      {%- else -%}/root{%- endif -%}
-    effective_xdg_runtime_dir: >-
-      {{ (ansible_facts.get('env') or {}).get('XDG_RUNTIME_DIR')
-      | default('/tmp/runtime-root', true) }}
-- name: Ensures facts are populated for dependencies
-  ansible.builtin.set_fact:
-    ansible_os_family: '{{ effective_os_family }}'
-    ansible_distribution: >-
-      {{ ansible_facts.get('distribution') | default(effective_os_family, true) }}
-    ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
-    ansible_user_dir: '{{ effective_home }}'
-    os_family: '{{ effective_os_family }}'
-    distribution: >-
-      {{ ansible_facts.get('distribution') | default(effective_os_family, true) }}
-- name: Ensures facts are populated for legacy roles
-  ansible.builtin.set_fact:
-    ansible_env: "{{ (ansible_facts.get('env') or {}) | combine({'HOME': effective_home}) }}"
 - name: Ensures the detected OS family is supported by this role
   ansible.builtin.assert:
     that:
-      - effective_os_family | length > 0
-      - effective_os_family in metatrader_become_method
+      - effective_os_family | trim | length > 0
+      - effective_os_family | trim in metatrader_become_method
     fail_msg: >-
       Unsupported OS family: {{ effective_os_family | default('empty', true) }}.
       Supported: {{ metatrader_become_method.keys() | sort | join(', ') }}.
