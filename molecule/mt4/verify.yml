@@ -2,16 +2,19 @@
 - name: Verify
   hosts: all
   vars:
+  vars:
     effective_home: >-
-      {{ ansible_facts.get('user_dir')
-      | default(ansible_facts.get('env', {}).get('HOME'), true)
-      | default('/root', true) }}
+      {%- set u_dir = ansible_facts.get('user_dir') | default('', true) | string | trim -%}
+      {%- set e_home = ansible_facts.get('env', {}).get('HOME') | default('', true) | string | trim -%}
+      {%- if u_dir | length > 0 and u_dir != '/github/home' -%}{{ u_dir -}}
+      {%- elif e_home | length > 0 and e_home != '/github/home' -%}{{ e_home -}}
+      {%- else -%}/root{%- endif -%}
   tasks:
     - name: Retrieve information from path
       ansible.builtin.stat:
-        path: '{{ effective_home }}/.wine/drive_c/Program Files'
+        path: '{{ effective_home }}/.wine/drive_c/Program Files/MetaTrader 5'
       register: stat_result
-    - name: Verify Program Files directory exist
+    - name: Verify platform directory exist
       ansible.builtin.assert:
         that:
           - stat_result.stat.exists
@@ -24,6 +27,15 @@
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
+      when: ansible_facts.get('os_family', '') != "Windows"
+    - name: Checks if platform's editor exists
+      changed_when: false
+      failed_when: find_mte_res.matched == 0
+      ansible.builtin.find:
+        paths: '{{ effective_home }}/.wine/drive_c'
+        patterns: '[mM]eta[eE]ditor*.exe'
+        recurse: true
+      register: find_mte_res
       when: ansible_facts.get('os_family', '') != "Windows"
     - name: Checks if platform's editor exists
       changed_when: false

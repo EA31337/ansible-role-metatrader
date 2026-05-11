@@ -18,41 +18,36 @@
 - name: Sets effective OS facts
   ansible.builtin.set_fact:
     effective_os_family: >-
-      {%- if (ansible_facts.get('distribution', '') == 'NixOS'
-             or ansible_facts.get('os_family', '') == 'NixOS'
-             or (ansible_facts.get('os_family', '') == 'OtherLinux'
-                 and nix_check is defined
-                 and nix_check.rc | default(1) == 0)) -%}
-      NixOS
-      {%- else -%}
       {%- set f_os = ansible_facts.get('os_family') | default('', true) | string | trim -%}
       {%- set f_dist = ansible_facts.get('distribution') | default('', true) | string | trim -%}
+      {%- if (f_dist == 'NixOS' or f_os == 'NixOS'
+              or (f_os == 'OtherLinux' and nix_check is defined and nix_check.rc | default(1) == 0)) -%}
+      NixOS
+      {%- else -%}
       {%- set detected = f_os if (f_os | length > 0 and f_os != 'None')
           else (f_dist if (f_dist | length > 0 and f_dist != 'None') else 'OtherLinux') -%}
       {{ detected | trim }}
       {%- endif -%}
-- name: Ensures facts are populated for dependencies
-  ansible.builtin.set_fact:
-    ansible_facts: >-
-      {{ ansible_facts | default({}) | combine({
-        'os_family': effective_os_family,
-        'distribution': ansible_facts.get('distribution') | default(effective_os_family, true)
-      }) }}
-    # Legacy compatibility and explicit variables
-    ansible_os_family: "{{ effective_os_family }}"
-    ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
-    os_family: "{{ effective_os_family }}"
-    distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
 - name: Sets effective environment facts
   ansible.builtin.set_fact:
     effective_display: "{{ ansible_facts.get('env', {}).get('DISPLAY') | default(':0', true) }}"
     effective_home: >-
-      {{ ansible_facts.get('user_dir')
-      | default(ansible_facts.get('env', {}).get('HOME'), true)
-      | default('/root', true) }}
+      {%- set u_dir = ansible_facts.get('user_dir') | default('', true) | string | trim -%}
+      {%- set e_home = ansible_facts.get('env', {}).get('HOME') | default('', true) | string | trim -%}
+      {%- if u_dir | length > 0 and u_dir != '/github/home' -%}{{ u_dir -}}
+      {%- elif e_home | length > 0 and e_home != '/github/home' -%}{{ e_home -}}
+      {%- else -%}/root{%- endif -%}
     effective_xdg_runtime_dir: >-
       {{ ansible_facts.get('env', {}).get('XDG_RUNTIME_DIR')
       | default('/tmp/runtime-root', true) }}
+- name: Ensures facts are populated for dependencies
+  ansible.builtin.set_fact:
+    ansible_os_family: "{{ effective_os_family }}"
+    ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
+    ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
+    ansible_user_dir: "{{ effective_home }}"
+    os_family: "{{ effective_os_family }}"
+    distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
 - name: Ensures the detected OS family is supported by this role
   ansible.builtin.assert:
     that:
@@ -72,7 +67,8 @@
     ansible_os_family: "{{ effective_os_family }}"
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
     ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
-    ansible_env: "{{ ansible_facts.get('env') | default({}, true) }}"
+    ansible_user_dir: "{{ effective_home }}"
+    ansible_env: "{{ ansible_facts.get('env', {}) | combine({'HOME': effective_home}) }}"
   when: effective_os_family != "Windows"
 - name: Includes xvfb role
   ansible.builtin.include_role:
@@ -83,7 +79,8 @@
     ansible_os_family: "{{ effective_os_family }}"
     ansible_distribution: "{{ ansible_facts.get('distribution') | default(effective_os_family, true) }}"
     ansible_user_id: "{{ ansible_facts.get('user_id') | default('root', true) }}"
-    ansible_env: "{{ ansible_facts.get('env') | default({}, true) }}"
+    ansible_user_dir: "{{ effective_home }}"
+    ansible_env: "{{ ansible_facts.get('env', {}) | combine({'HOME': effective_home}) }}"
   when: effective_os_family != "Windows"
 - name: Sets metatrader_local_facts fact
   ansible.builtin.set_fact:
@@ -116,7 +113,7 @@
     - name: Checks if platform is already installed
       register: file_mt_installed_exists
       ansible.builtin.stat:
-        path: ~/.wine/.installed-mt{{ metatrader_version }}
+        path: "{{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}"
       when:
         - effective_os_family != "Windows"
     - name: Ensures Curl is present (standard distros)
@@ -198,8 +195,8 @@
         # noqa command-instead-of-shell
         cmd: >
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
-          && touch ~/.wine/.installed-mt{{ metatrader_version }}
-        creates: ~/.wine/.installed-mt{{ metatrader_version }}
+          && touch {{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}
+        creates: "{{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}"
       async: 1200
       poll: 10
       environment:

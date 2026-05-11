@@ -2,10 +2,13 @@
 - name: Verify
   hosts: all
   vars:
+  vars:
     effective_home: >-
-      {{ ansible_facts.get('user_dir')
-      | default(ansible_facts.get('env', {}).get('HOME'), true)
-      | default('/root', true) }}
+      {%- set u_dir = ansible_facts.get('user_dir') | default('', true) | string | trim -%}
+      {%- set e_home = ansible_facts.get('env', {}).get('HOME') | default('', true) | string | trim -%}
+      {%- if u_dir | length > 0 and u_dir != '/github/home' -%}{{ u_dir -}}
+      {%- elif e_home | length > 0 and e_home != '/github/home' -%}{{ e_home -}}
+      {%- else -%}/root{%- endif -%}
   tasks:
     - name: Retrieve information from path
       ansible.builtin.stat:
