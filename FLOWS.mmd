@@ -1,0 +1,37 @@
+flowchart TD
+    %% Role execution flow
+    A([Start Role Execution]) --> B{"Detect OS Family"}
+    
+    B -->|NixOS| C["Set OS to NixOS"]
+    B -->|Debian/Alpine/Ubuntu| D{"Is MetaTrader Installed?"}
+    B -->|Windows| H["Proceed to Verification"]
+    
+    C --> D
+    
+    D -->|Yes| H
+    D -->|No| E["Install System Dependencies (curl, x11-utils)"]
+    E --> F{"Verify X11 Display (xdpyinfo)"}
+    
+    F -->|Failed| F_ERR["Fail: Display not available"]
+    F -->|Success| G["Run Winetricks Installer"]
+    
+    G --> H["Verify Installation (tasks/verify.yml)"]
+    
+    H --> I{"Check terminal*.exe exists"}
+    I --> J{"Check metaeditor*.exe exists"}
+    
+    J --> K["Save Ansible Local Facts"]
+    K --> L([Finish Role Execution])
+
+    %% References to markdown files
+    R_AGENTS@{ shape: docs, label: "AGENTS.md" }
+    R_FIREWALL@{ shape: docs, label: "FIREWALL.md" }
+    R_README@{ shape: docs, label: "README.md" }
+
+    A -.-> R_README
+    A -.-> R_AGENTS
+    F_ERR -.-> R_FIREWALL
+
+    click R_AGENTS "AGENTS.md"
+    click R_FIREWALL ".github/FIREWALL.md"
+    click R_README "README.md"

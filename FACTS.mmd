@@ -1,18 +1,38 @@
----
-title: Project Facts
----
-graph TD
-    Project[Ansible Role: MetaTrader] --> RoleName[ea31337.metatrader]
-    Project --> CI[GitHub Actions]
-    Project --> Test[Molecule + Docker]
-    Project --> Agent[Cogni AI Agent]
-
-    subgraph AgentConfig
-        Agent --> DefaultAgent[cogni-ai-architect]
-        Agent --> Action[Cogni-AI-OU/cogni-ai-agent-action]
-    end
-
-    subgraph Status
-        BuildStatus[Builds: Partially failing Molecule tests]
-        WorkflowStatus[Workflows: Updated to match PR 221 standards]
-    end
+%% Note: Keep items in alphabetical order.
+mindmap
+  root((ansible-role-metatrader))
+    Architecture
+      "Driver::Docker_Molecule"
+      "Installer::winetricks"
+    Context
+      "Documentation::README.md"
+      "Instructions::.github/copilot-instructions.md"
+      "License::GPL-3.0-or-later"
+      "Purpose::Installs_MetaTrader_platform"
+    Dependencies
+      Roles
+        "ea31337.wine::v1.0.4"
+        "ea31337.xvfb::v1.0.4"
+    Ecosystem
+      Collections
+        ansible.windows
+        community.docker
+        community.general
+      Requirements
+        Ansible
+        Python_3.10+
+    Platforms
+      Alpine
+      Debian
+      NixOS
+      Ubuntu
+      Windows
+    Scenarios
+      "default::MT5"
+      "mt4::MT4"
+      "mt5-win::MT5_Windows"
+      "mt5::MT5"
+    Variables
+      "metatrader_become_method::Internal"
+      "metatrader_setup_url::Default_Main"
+      "metatrader_version::Default_Main"
