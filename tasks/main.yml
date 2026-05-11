@@ -20,7 +20,7 @@
     effective_os_family: >-
       {%- set f_os = (ansible_facts.get('os_family') or ansible_os_family or '') | string | trim -%}
       {%- set f_dist = (ansible_facts.get('distribution') or ansible_distribution or '') | string | trim -%}
-      {%- set f_rel = (os_release_id.stdout or '') | string | trim -%}
+      {%- set f_rel = (os_release_id.stdout | default('')) | string | trim -%}
       {%- if f_os != '' and f_os != 'None' -%}
         {{ f_os }}
       {%- elif f_dist != '' and f_dist != 'None' -%}
