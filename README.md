@@ -1,22 +1,57 @@
-# Ansible Role: MetaTrader
+# Ansible Role: Metatrader
 
-[![Build Status](https://github.com/EA31337/ansible-role-metatrader/workflows/Molecule/badge.svg)](https://github.com/EA31337/ansible-role-metatrader/actions)
-[![Ansible Galaxy](https://img.shields.io/badge/galaxy-ea31337.metatrader-blue.svg)](https://galaxy.ansible.com/ea31337/metatrader/)
+[![License][license-badge]][license-link]
+[![Check][check-badge]][check-link]
+[![Molecule][molecule-badge]][molecule-link]
+[![Pull Requests][pr-badge]][pr-link]
+[![Test][test-badge]][test-link]
+[![Edit][gh-edit-badge]][gh-edit-link]
 
-Role to install MetaTrader platform on Linux (via Wine) or Windows.
+Ansible role to install MetaTrader platform.
+
+For project facts, key files and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
+For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
+For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 ## Requirements
 
-None.
+This role requires:
+
+- Ansible
+- Python
+- Administrative/root access on target hosts
+- Supported operating systems: Debian/Ubuntu (see [FACTS.mmd](docs/FACTS.mmd))
+
+## Install
+
+### Install from Ansible Galaxy
+
+To install this role from Ansible Galaxy, run the following command:
+
+```console
+ansible-galaxy install ea31337.metatrader
+```
+
+### Install from GitHub
+
+To install this role, you can use the following terminal command:
+
+```shell
+ansible-galaxy install git+https://github.com/EA31337/ansible-role-metatrader.git
+```
 
 ## Role Variables
 
-Available variables are listed below, along with default values (see `defaults/main.yml`):
+For available variables,
+check [`defaults/main.yml`][defaults-link].
 
-```yaml
-metatrader_setup_url: "https://download.mql5.com/cdn/web/metaquotes/mt5/mt5setup.exe"
-metatrader_version: 5
-```
+### Variables
+
+- `metatrader_setup_url`
+  The URL of the setup file to run.
+- `metatrader_version`
+  Platform version to install.
+  Default 5.
 
 ## Dependencies
 
@@ -33,10 +68,63 @@ metatrader_version: 5
         metatrader_version: 5
 ```
 
+## Testing
+
+### Docker
+
+Steps to test role on Docker containers.
+
+1. Install the current role by running the following commands in shell:
+
+    ```shell
+    ansible-galaxy install -r requirements.yml
+    jinja2 requirements-local.yml.j2 -D "pwd=$PWD" -o requirements-local.yml
+    ansible-galaxy install -r requirements-local.yml
+    ```
+
+    Alternatively, for development purposes, you can consider using symbolic link, e.g.
+
+    ```shell
+    ln -vs "$PWD" ~/.ansible/roles/ea31337.metatrader
+    ```
+
+2. Ensure Docker service (e.g. Docker Desktop) is running.
+3. Run playbook from `tests/`:
+
+    ```shell
+    ansible-playbook -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
+    ```
+
+### Molecule
+
+To test using Molecule, run:
+
+```shell
+molecule test
+```
+
 ## License
 
-GPL-3.0-or-later
+GNU GPL v3
+
+See: [LICENSE](./LICENSE)
 
 ## Author Information
 
 This role was created in 2025 by [kenorb](https://github.com/kenorb).
+
+<!-- Named links -->
+
+[license-badge]: https://img.shields.io/badge/license-GPLv3-brightgreen.svg
+[license-link]: ./LICENSE
+[check-badge]: https://img.shields.io/github/actions/workflow/status/EA31337/ansible-role-metatrader/check.yml?label=Check
+[check-link]: https://github.com/EA31337/ansible-role-metatrader/actions/workflows/check.yml
+[molecule-badge]: https://img.shields.io/github/actions/workflow/status/EA31337/ansible-role-metatrader/molecule.yml?label=Molecule
+[molecule-link]: https://github.com/EA31337/ansible-role-metatrader/actions/workflows/molecule.yml
+[pr-badge]: https://img.shields.io/github/issues-pr/EA31337/ansible-role-metatrader.svg
+[pr-link]: https://github.com/EA31337/ansible-role-metatrader/pulls
+[test-badge]: https://img.shields.io/github/actions/workflow/status/EA31337/ansible-role-metatrader/test.yml?label=Test
+[test-link]: https://github.com/EA31337/ansible-role-metatrader/actions/workflows/test.yml
+[gh-edit-badge]: https://img.shields.io/badge/GitHub-edit-purple.svg?logo=github
+[gh-edit-link]: https://github.dev/EA31337/ansible-role-metatrader
+[defaults-link]: defaults/main.yml
