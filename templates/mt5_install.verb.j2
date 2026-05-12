@@ -73,7 +73,7 @@ load_mt5_install()
         SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        loop 60
+        loop 600
         {
             if (WinExist("MetaTrader 5"))
                 break
@@ -83,7 +83,7 @@ load_mt5_install()
                 Send, {Esc}
             }
             Sleep, 1000
-            if (A_Index == 60)
+            if (A_Index == 600)
                 ExitApp, 1
         }
 

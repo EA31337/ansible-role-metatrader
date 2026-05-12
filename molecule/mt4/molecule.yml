@@ -5,6 +5,7 @@
 dependency:
   name: galaxy
   options:
+    force: true
     ignore-certs: false
     ignore-errors: false
     requirements-file: requirements.yml
