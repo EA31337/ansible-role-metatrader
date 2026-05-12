@@ -20,7 +20,7 @@ This role requires:
 - Ansible
 - Python
 - Administrative/root access on target hosts
-- Supported operating systems: Alpine, Debian/Ubuntu, NixOS (see [FACTS.mmd](docs/FACTS.mmd))
+- Supported operating systems: Debian/Ubuntu (see [FACTS.mmd](docs/FACTS.mmd))
 
 ## Install
 
@@ -52,6 +52,21 @@ check [`defaults/main.yml`][defaults-link].
 - `metatrader_version`
   Platform version to install.
   Default 5.
+
+## Dependencies
+
+- [ea31337.wine](https://github.com/EA31337/ansible-role-wine)
+- [ea31337.xvfb](https://github.com/EA31337/ansible-role-xvfb)
+
+## Example Playbook
+
+```yaml
+- hosts: all
+  roles:
+    - role: ea31337.metatrader
+      vars:
+        metatrader_version: 5
+```
 
 ## Testing
 

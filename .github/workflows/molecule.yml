@@ -5,24 +5,42 @@ name: Molecule
 on:
   pull_request:
     paths-ignore:
-      - '**.cfg'
       - '**.md'
       - '**.mmd'
+      - .ansible-lint
+      - .coderabbit.yaml
+      - .devcontainer/**
+      - .gitignore
+      - .markdown-link-check.json
+      - .markdownlint.yaml
+      - .yamlfix.toml
+      - .yamllint
+      - .vscode/**
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
       - .github/workflows/platform.yml
       - LICENSE
+      - Pipfile*
   push:
     paths-ignore:
-      - '**.cfg'
       - '**.md'
       - '**.mmd'
+      - .ansible-lint
+      - .coderabbit.yaml
+      - .devcontainer/**
+      - .gitignore
+      - .markdown-link-check.json
+      - .markdownlint.yaml
+      - .yamlfix.toml
+      - .yamllint
+      - .vscode/**
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
       - .github/workflows/platform.yml
       - LICENSE
+      - Pipfile*
   workflow_dispatch:
 concurrency:
   cancel-in-progress: true
@@ -117,6 +135,8 @@ jobs:
                 awk '/PLAY RECAP/ {p=1} p; /^[[:space:]]*$/ && p {p=0}' | \
                 grep -v "^$" | head -n 20
               echo '```'
+
+              # Extract Errors and Warnings
               echo "<details><summary>Errors and Warnings (click to expand)</summary>"
               echo ""
               echo '```'

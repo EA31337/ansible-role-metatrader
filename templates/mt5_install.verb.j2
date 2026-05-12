@@ -73,65 +73,26 @@ load_mt5_install()
         SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        ; Wine <= 10 shows "MetaTrader 5 Setup (64 bit)",
-        ; Wine 11+ shows "mt5setup.exe" as the bootstrapper title.
-        SetupTitle := ""
-        loop 120
+        loop 60
         {
             if (WinExist("MetaTrader 5"))
-            {
-                SetupTitle := "MetaTrader 5"
                 break
-            }
-            if (WinExist("mt5setup.exe"))
-            {
-                SetupTitle := "mt5setup.exe"
-                break
-            }
             if (WinExist("Proxy Server"))
             {
                 WinActivate, Proxy Server
                 Send, {Esc}
             }
             Sleep, 1000
-            if (A_Index == 120)
+            if (A_Index == 60)
                 ExitApp, 1
         }
 
-        ; If bootstrapper appeared first, wait for the main installer window.
-        if (SetupTitle == "mt5setup.exe")
-        {
-            loop 120
-            {
-                if (WinExist("MetaTrader 5"))
-                {
-                    SetupTitle := "MetaTrader 5"
-                    break
-                }
-                if (WinExist("Proxy Server"))
-                {
-                    WinActivate, Proxy Server
-                    Send, {Esc}
-                    Sleep, 1000
-                }
-                Sleep, 1000
-                if (A_Index == 120)
-                {
-                    ; Bootstrapper never transitioned; interact with it directly.
-                    break
-                }
-            }
-        }
-
-        if (SetupTitle == "")
-            ExitApp, 1
-
-        WinActivate, %SetupTitle%
-        Sleep, 2000
+        WinActivate, MetaTrader 5
+        Sleep, 1000
 
         ; Clicking "Next".
         Send, !n
-        Sleep, 2000
+        Sleep, 1000
 
         StartTime := A_TickCount
 
@@ -159,10 +120,6 @@ load_mt5_install()
                 break
             }
 
-            ; Re-activate setup window in case it lost focus.
-            if (WinExist(SetupTitle))
-                WinActivate, %SetupTitle%
-
             ; Sleeping for a short while before checking again.
             Sleep, 1000
         }
@@ -172,7 +129,7 @@ load_mt5_install()
         Sleep, 5000
 
         ; Awaiting for terminal process and window to appear.
-        loop 90
+        loop 60
         {
             Process, Exist, terminal64.exe
             if (ErrorLevel)
@@ -195,8 +152,8 @@ load_mt5_install()
         Sleep, 1000
         Send, !{F4}
 
-        ; Awaiting terminal window to close for 30s.
-        loop 30
+        ; Awaiting terminal window to close for 20s.
+        loop 20
         {
             Process, Exist, terminal64.exe
             if (!ErrorLevel)
@@ -207,7 +164,7 @@ load_mt5_install()
             Sleep, 1000
         }
 
-        ; If terminal didn't close in 30s then we are forcing it to close.
+        ; If terminal didn't close in 20s then we are forcing it to close.
         Process, Close, terminal64.exe
         Process, Close, terminal.exe
 EOF

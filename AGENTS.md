@@ -10,7 +10,7 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 ## Setup & Environment Invariants
 
 - Ansible role: `ea31337.metatrader`
-- Supported OS: See [FACTS.mmd](docs/FACTS.mmd)
+- Supported OS: Debian/Ubuntu, Windows
 - Driver: Docker (Molecule)
 - Python 3.10+ required; install via `pip install -r .devcontainer/requirements.txt`
 - Collections: See [FACTS.mmd](docs/FACTS.mmd)
@@ -90,8 +90,8 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: jammy` |
-| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: jammy` |
+| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: noble` |
+| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: noble` |
 
 ### Running Tests
 
@@ -108,7 +108,7 @@ molecule test
 molecule test -s default
 
 # Single platform in a scenario
-molecule test -s default --platform-name ubuntu-latest
+molecule test -s default --platform-name ubuntu-noble
 
 # Step-by-step debugging (useful for troubleshooting)
 molecule destroy -s default              # clean up any leftover state
@@ -131,11 +131,11 @@ For CI or automated environments, use timeouts:
 
 ```bash
 # Test a single platform with timeout (15 minutes)
-timeout 900 molecule test -s default --platform-name ubuntu-latest
+timeout 900 molecule test -s default --platform-name ubuntu-noble
 
 # If converge fails, debug interactively:
-molecule create -s default --platform-name ubuntu-latest
-molecule converge -s default --platform-name ubuntu-latest
+molecule create -s default --platform-name ubuntu-noble
+molecule converge -s default --platform-name ubuntu-noble
 # (inspect container state, then clean up)
 molecule destroy -s default
 ```
@@ -235,7 +235,7 @@ molecule destroy -s default
 - **Root cause**: Firewall/network policy blocks `dl.winehq.org`, or
   `debian:latest` codename (e.g. `trixie`) or Ubuntu 26.04 (`resolute`)
   is not in the WineHQ repo.
-- **Fix**: Set `wine_release_codename: bookworm` for debian-latest or `jammy` for ubuntu-latest in
+- **Fix**: Set `wine_release_codename: bookworm` for debian-latest or `noble` for ubuntu-latest in
   host_vars. Add `dl.winehq.org` to firewall allowlist.
 - **CI context**: Works on standard GitHub Actions runners with internet
   access.
@@ -317,7 +317,7 @@ How to analyze the output:
 - If the screenshot shows an AutoHotkey syntax error instead of the MetaTrader
   installer window, inspect the generated `.ahk` file before investigating
   network access.
-- In the 2026-04-24 `metatrader-on-ubuntu-latest` manual debug session, the
+- In the 2026-04-24 `metatrader-on-ubuntu-noble` manual debug session, the
   screenshot matched a broken generated script:
 
   ```text
@@ -350,28 +350,6 @@ How to analyze the output:
   DNS failures for `cdn.mql5.com` or `mt5-trade.metaquotes.net` can leave
   the installer window open indefinitely and cause the AutoHotkey timeout.
 
-### Wine 11+ window title mismatch
-
-> AHK script exits after ~60s with `ExitApp, 1` even though `mt5setup.exe`
-> is still running in the container.
-
-- **Root cause**: Wine 11.0+ displays the `mt5setup.exe` bootstrapper window
-  with title `"mt5setup.exe"` (the executable name), whereas Wine <= 10.0
-  shows `"MetaTrader 5 Setup (64 bit)"`. The AHK script was checking only
-  for `WinExist("MetaTrader 5")`, which never matched the Wine 11 title.
-- **Fix**: The verb templates (`mt5_install.verb.j2`, `mt4_install.verb.j2`)
-  now detect both window titles. They first look for the bootstrapper
-  (`mt5setup.exe` / `xm4setup.exe`) and then wait for it to transition
-  to the main installer window (`MetaTrader 5` / `4 Setup`). If the
-  transition never occurs, they interact with the bootstrapper directly.
-- **Prevention**: Always use `wine_release_codename: jammy` for Ubuntu
-  platforms to install Wine 10.0 (stable) from the WineHQ repo. The
-  `noble` codename installs Wine 11.0, which has different window title
-  behavior. The AHK scripts handle both, but Wine 10.0 is the tested default.
-- **Diagnosis**: Use `xdotool search --onlyvisible --name "."` inside the
-  container to see actual window titles. Compare with the AHK script's
-  expected titles.
-
 ## Test Results Matrix
 
 Results from testing on 2026-04-24 (step-by-step Molecule re-test,
@@ -379,48 +357,48 @@ all Linux scenarios):
 
 ### `default`
 
-| Step | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: |
-| destroy | ✅ | ✅ |
-| create | ✅ | ✅ |
-| prepare | ✅ | ✅ |
-| converge | ✅ | ✅ |
-| — wine | ✅ | ✅ |
-| — xvfb | ✅ | ✅ |
-| — metatrader | ✅ | ✅ |
-| idempotence | ✅ | ✅ |
-| verify | ✅ | ✅ |
-| destroy (final) | ✅ | ✅ |
+| Step | ubuntu-noble |
+| --- | :---: |
+| destroy | ✅ |
+| create | ✅ |
+| prepare | ✅ |
+| converge | ✅ |
+| — wine | ✅ |
+| — xvfb | ✅ |
+| — metatrader | ✅ |
+| idempotence | ✅ |
+| verify | ✅ |
+| destroy (final) | ✅ |
 
 ### `mt4`
 
-| Step | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: |
-| destroy | ✅ | ✅ |
-| create | ✅ | ✅ |
-| prepare | ✅ | ✅ |
-| converge | ✅ | ✅ |
-| — wine | ✅ | ✅ |
-| — xvfb | ✅ | ✅ |
-| — metatrader | ✅ | ✅ |
-| idempotence | ✅ | ✅ |
-| verify | ✅ | ✅ |
-| destroy (final) | ✅ | ✅ |
+| Step | ubuntu-noble |
+| --- | :---: |
+| destroy | ✅ |
+| create | ✅ |
+| prepare | ✅ |
+| converge | ✅ |
+| — wine | ✅ |
+| — xvfb | ✅ |
+| — metatrader | ✅ |
+| idempotence | ✅ |
+| verify | ✅ |
+| destroy (final) | ✅ |
 
 ### `mt5`
 
-| Step | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: |
-| destroy | ✅ | ✅ |
-| create | ✅ | ✅ |
-| prepare | ✅ | ✅ |
-| converge | ✅ | ✅ |
-| — wine | ✅ | ✅ |
-| — xvfb | ✅ | ✅ |
-| — metatrader | ✅ | ✅ |
-| idempotence | ✅ | ✅ |
-| verify | ✅ | ✅ |
-| destroy (final) | ✅ | ✅ |
+| Step | ubuntu-noble |
+| --- | :---: |
+| destroy | ✅ |
+| create | ✅ |
+| prepare | ✅ |
+| converge | ✅ |
+| — wine | ✅ |
+| — xvfb | ✅ |
+| — metatrader | ✅ |
+| idempotence | ✅ |
+| verify | ✅ |
+| destroy (final) | ✅ |
 
 ### Improvements applied
 
@@ -494,8 +472,8 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 | `cache.nixos.org` | Nix binary cache (pre-built packages) |
 | `cdn.mql5.com` | CDN (MT5 platform files) |
 | `channels.nixos.org` | Nix channel metadata (redirects to releases) |
-| `codeload.github.com" | GitHub archive download (dependency) |
-| `dl-cdn.alpinelinux.org" | Alpine Linux package repository |
+| `codeload.github.com` | GitHub archive download (dependency) |
+| `dl-cdn.alpinelinux.org` | Alpine Linux package repository |
 | `dl.winehq.org` | WineHQ APT repository and GPG key |
 | `download.mql5.com` | MetaTrader setup executable download |
 | `galaxy.ansible.com` | Ansible Galaxy collections |

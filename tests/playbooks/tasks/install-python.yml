@@ -6,6 +6,7 @@
   changed_when: false
   when: container_image | default('') is search("alpine")
   no_log: '{{ metatrader_no_log | default(false) }}'
+
 - name: Install Python 3 on Ubuntu/Debian
   ansible.builtin.raw: |
     command -v python3 >/dev/null 2>&1 || \
@@ -15,6 +16,7 @@
   changed_when: false
   when: container_image | default('') is search("ubuntu") or container_image | default('') is search("debian")
   no_log: '{{ metatrader_no_log | default(false) }}'
+
 - name: Install or verify Python on NixOS
   ansible.builtin.raw: |
     PATH=/root/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin:$PATH
@@ -25,6 +27,7 @@
   changed_when: false
   when: container_image | default('') is search("nixos")
   no_log: '{{ metatrader_no_log | default(false) }}'
+
 - name: Bootstrap Python 3 (generic)
   ansible.builtin.raw: |
     if command -v python3 >/dev/null 2>&1; then
@@ -43,6 +46,7 @@
   changed_when: false
   when: (container_image | default('') | length) == 0
   no_log: '{{ metatrader_no_log | default(false) }}'
+
 - name: Discover Python interpreter
   ansible.builtin.raw: |
     if [ -x /root/.nix-profile/bin/python3 ]; then
@@ -55,6 +59,7 @@
   register: discovered_python
   changed_when: false
   no_log: '{{ metatrader_no_log | default(false) }}'
+
 - name: Set ansible_python_interpreter
   ansible.builtin.set_fact:
     ansible_python_interpreter: '{{ discovered_python.stdout | trim }}'

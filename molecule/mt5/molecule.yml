@@ -18,9 +18,9 @@ lint: |
   molecule syntax
 platforms:
   - name: ubuntu-latest
-    image: ghcr.io/ea31337/ansible-role-wine:ubuntu-latest
+    image: ubuntu:latest
   - name: ubuntu-noble
-    image: ghcr.io/ea31337/ansible-role-wine:ubuntu-noble
+    image: ubuntu:noble
 provisioner:
   config_options:
     defaults:
@@ -31,13 +31,15 @@ provisioner:
       callbacks_enabled: ansible.posix.profile_tasks
       # Ensure collections installed to ./collections are found by ansible-playbook.
       collections_path: ${MOLECULE_PROJECT_DIRECTORY}/collections:~/.ansible/collections:/usr/share/ansible/collections
-      deprecation_warnings: false
+      deprecation_warnings: true
       host_key_checking: false
-      # Use the built-in default callback with result_format instead of community.general.yaml
+      # Disable fact injection into the global variable space.
+      inject_facts_as_vars: false
+      # Use the condensed unixy callback.
       remote_tmp: /tmp/.ansible-tmp-$${USER}
       result_format: yaml
-      stdout_callback: ansible.builtin.default
-      verbosity: 1
+      stdout_callback: community.general.unixy
+      verbosity: 0
     ssh_connection:
       pipelining: true
   env:
@@ -52,9 +54,9 @@ provisioner:
         wine_winetricks_winver: win10
     host_vars:
       ubuntu-latest:
-        wine_release_codename: jammy
+        wine_release_codename: noble
       ubuntu-noble:
-        wine_release_codename: jammy
+        wine_release_codename: noble
   name: ansible
   options:
     diff: true
