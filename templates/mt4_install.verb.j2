@@ -59,6 +59,10 @@ load_mt4_install()
     # No documented silent install option, unfortunately.
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do <<'EOF'
+        ; Window titles.
+        SetupTitle := "4 Setup"
+        ProxyTitle := "Proxy Server"
+
         ; Maximum time for setup to complete.
         Timeout := 600000 ; 10 min.
 
@@ -70,25 +74,30 @@ load_mt4_install()
         }
 
         ; Running setup.
-        Run, %ExePath%
+        Run, "%ExePath%",,, SetupPID
         SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
         loop 60
         {
-            if (WinExist("4 Setup"))
+            if (WinExist(SetupTitle))
                 break
-            if (WinExist("Proxy Server"))
+            if (WinExist(ProxyTitle))
             {
-                WinActivate, Proxy Server
+                WinActivate, %ProxyTitle%
+                WinWaitActive, %ProxyTitle%,, 5
                 Send, {Esc}
+                Sleep, 1000
             }
             Sleep, 1000
             if (A_Index == 60)
+            {
+                Process, Close, %SetupPID%
                 ExitApp, 1
+            }
         }
 
-        WinActivate, 4 Setup
+        WinActivate, %SetupTitle%
         Sleep, 1000
 
         ; Clicking "Next".
@@ -102,19 +111,22 @@ load_mt4_install()
             ; Check if timeout have passed.
             if (A_TickCount - StartTime > Timeout)
             {
+                Process, Close, %SetupPID%
                 ExitApp, 1 ; Exit with error on timeout
             }
 
             ; Close a blocking "Proxy Server" dialog if it appears.
-            if (WinExist("Proxy Server"))
+            if (WinExist(ProxyTitle))
             {
-                WinActivate, Proxy Server
+                WinActivate, %ProxyTitle%
+                WinWaitActive, %ProxyTitle%,, 5
                 Send, {Esc}
                 Sleep, 1000
             }
 
             ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
+            ; We use explicit window title to avoid looking in the Proxy Server dialog.
+            ControlGet, FinishVisible, Visible,, Finish, %SetupTitle%
 
             if (FinishVisible)
             {
@@ -137,13 +149,23 @@ load_mt4_install()
                 break
             Sleep, 1000
         }
-        WinWaitActive, MetaTrader,, 60
+        TerminalTitle := "MetaTrader"
+        WinActivate, %TerminalTitle%
+        WinWaitActive, %TerminalTitle%,, 60
 
         ; Closing dialogs and exiting from the terminal.
-        Send, {Esc}
-        Sleep, 1000
-        Send, {Esc}
-        Sleep, 1000
+        loop 3
+        {
+            if (WinExist(ProxyTitle))
+            {
+                WinActivate, %ProxyTitle%
+                Send, {Esc}
+                Sleep, 1000
+            }
+            WinActivate, %TerminalTitle%
+            Send, {Esc}
+            Sleep, 1000
+        }
         Send, !f
         Sleep, 1000
         Send, x
