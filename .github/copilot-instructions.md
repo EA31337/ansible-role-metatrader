@@ -128,7 +128,7 @@ To verify locally, run `pre-commit run markdownlint -a`.
 │   └── main.yml              # Internal variables (become methods per OS)
 ├── AGENTS.md                 # AI agent guidance and troubleshooting
 ├── README.md                 # Project documentation
-└── requirements.yml          # Galaxy collection + role requirements
+├── requirements.yml          # Galaxy collection + role requirements
 ```
 
 ### Key Variables
@@ -193,8 +193,8 @@ pre-commit run -a
 | --------- | ----- | ----- |
 | `debian-latest` | `debian:latest` | WineHQ apt repo; codename: `bookworm` |
 | `nixos-latest` | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
-| `ubuntu-jammy` | `ubuntu:jammy` | WineHQ repo; codename: `jammy` |
-| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo; codename: `noble` |
+| `ubuntu-jammy` | `ghcr.io/ea31337/ansible-role-wine:1.0.4-ubuntu-jammy` | Wine already pre-provisioned |
+| `ubuntu-noble` | `ghcr.io/ea31337/ansible-role-wine:1.0.4-ubuntu-noble` | Wine already pre-provisioned |
 
 ## Troubleshooting
 

@@ -10,7 +10,7 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 ## Setup & Environment Invariants
 
 - Ansible role: `ea31337.metatrader`
-- Supported OS: Debian/Ubuntu, Windows
+- Supported OS: See [FACTS.mmd](docs/FACTS.mmd)
 - Driver: Docker (Molecule)
 - Python 3.10+ required; install via `pip install -r .devcontainer/requirements.txt`
 - Collections: See [FACTS.mmd](docs/FACTS.mmd)
@@ -90,8 +90,7 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: noble` |
-| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: noble` |
+| `ubuntu-noble` | `ghcr.io/ea31337/ansible-role-wine:1.0.4-ubuntu-noble` | Wine already pre-provisioned |
 
 ### Running Tests
 
@@ -235,7 +234,7 @@ molecule destroy -s default
 - **Root cause**: Firewall/network policy blocks `dl.winehq.org`, or
   `debian:latest` codename (e.g. `trixie`) or Ubuntu 26.04 (`resolute`)
   is not in the WineHQ repo.
-- **Fix**: Set `wine_release_codename: bookworm` for debian-latest or `noble` for ubuntu-latest in
+- **Fix**: Set `wine_release_codename: bookworm` for debian-latest in
   host_vars. Add `dl.winehq.org` to firewall allowlist.
 - **CI context**: Works on standard GitHub Actions runners with internet
   access.
