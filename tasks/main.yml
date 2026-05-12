@@ -156,7 +156,7 @@
       until: curl_install is success
       retries: 3
       delay: 5
-      no_log: "{{ ansible_verbosity | default(0) < 1 }}"
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - effective_os_family not in ["Windows", "NixOS"]
         - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
@@ -181,7 +181,7 @@
       until: x11_utils_install is success
       retries: 5
       delay: 5
-      no_log: "{{ ansible_verbosity | default(0) < 1 }}"
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - effective_os_family not in ["Windows", "NixOS"]
         - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
