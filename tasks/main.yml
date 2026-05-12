@@ -16,7 +16,8 @@
   check_mode: false
   when: >-
     ((ansible_facts | default({})).get('os_family') | default(ansible_os_family | default('unknown'))) == 'OtherLinux'
-    or ((ansible_facts | default({})).get('distribution') | default(ansible_distribution | default('unknown'))) == 'NixOS'
+    or ((ansible_facts | default({})).get('distribution')
+    | default(ansible_distribution | default('unknown'))) == 'NixOS'
   tags:
     - always
     - metatrader_verify
