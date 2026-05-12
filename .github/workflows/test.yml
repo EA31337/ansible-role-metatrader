@@ -7,6 +7,7 @@ on:
     paths-ignore:
       - '**.cfg'
       - '**.md'
+      - '**.mmd'
       - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
@@ -23,6 +24,7 @@ on:
     paths-ignore:
       - '**.cfg'
       - '**.md'
+      - '**.mmd'
       - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
