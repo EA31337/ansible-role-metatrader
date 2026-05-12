@@ -66,15 +66,30 @@ load_mt4_install()
         ; Maximum time for setup to complete.
         Timeout := 300000 ; 5 min.
 
+        ; Set a global timer for emergency exit.
+        SetTimer, GlobalTimeout, % Timeout + 60000 ; Timeout + 1 min buffer.
+
         ; Searching for a setup EXE file.
+        ExePath := ""
         loop, Files, *.exe
         {
             ExePath := A_LoopFileFullPath
             break
         }
 
+        if (ExePath = "")
+        {
+            FileAppend, Error: No EXE found in %A_WorkingDir%`n, *
+            ExitApp, 1
+        }
+
         ; Running setup.
         Run, "%ExePath%",,, SetupPID
+        if (ErrorLevel)
+        {
+            FileAppend, Error: Failed to launch %ExePath% (ErrorLevel: %ErrorLevel%)`n, *
+            ExitApp, 1
+        }
         SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
@@ -86,18 +101,23 @@ load_mt4_install()
             {
                 WinActivate, %ProxyTitle%
                 WinWaitActive, %ProxyTitle%,, 5
-                Send, {Esc}
-                Sleep, 1000
+                if (!ErrorLevel)
+                {
+                    Send, {Esc}
+                    Sleep, 1000
+                }
             }
             Sleep, 1000
             if (A_Index == 300)
             {
+                FileAppend, Error: Setup window did not appear in 5 minutes`n, *
                 Process, Close, %SetupPID%
                 ExitApp, 1
             }
         }
 
         WinActivate, %SetupTitle%
+        WinWaitActive, %SetupTitle%,, 10
         Sleep, 1000
 
         ; Clicking "Next".
@@ -111,6 +131,7 @@ load_mt4_install()
             ; Check if timeout have passed.
             if (A_TickCount - StartTime > Timeout)
             {
+                FileAppend, Error: Installation timed out`n, *
                 Process, Close, %SetupPID%
                 ExitApp, 1 ; Exit with error on timeout
             }
@@ -120,8 +141,11 @@ load_mt4_install()
             {
                 WinActivate, %ProxyTitle%
                 WinWaitActive, %ProxyTitle%,, 5
-                Send, {Esc}
-                Sleep, 1000
+                if (!ErrorLevel)
+                {
+                    Send, {Esc}
+                    Sleep, 1000
+                }
             }
 
             ; Is "Finish" button visible?
@@ -138,6 +162,8 @@ load_mt4_install()
         }
 
         ; Clicking "Finish".
+        WinActivate, %SetupTitle%
+        WinWaitActive, %SetupTitle%,, 10
         Send, {Enter}
         Sleep, 5000
 
@@ -159,18 +185,34 @@ load_mt4_install()
             if (WinExist(ProxyTitle))
             {
                 WinActivate, %ProxyTitle%
-                Send, {Esc}
-                Sleep, 1000
+                WinWaitActive, %ProxyTitle%,, 5
+                if (!ErrorLevel)
+                {
+                    Send, {Esc}
+                    Sleep, 1000
+                }
             }
-            WinActivate, %TerminalTitle%
-            Send, {Esc}
-            Sleep, 1000
+            if (WinExist(TerminalTitle))
+            {
+                WinActivate, %TerminalTitle%
+                WinWaitActive, %TerminalTitle%,, 5
+                if (!ErrorLevel)
+                {
+                    Send, {Esc}
+                    Sleep, 1000
+                }
+            }
         }
-        Send, !f
-        Sleep, 1000
-        Send, x
-        Sleep, 1000
-        Send, !{F4}
+        WinActivate, %TerminalTitle%
+        WinWaitActive, %TerminalTitle%,, 5
+        if (!ErrorLevel)
+        {
+            Send, !f
+            Sleep, 1000
+            Send, x
+            Sleep, 1000
+            Send, !{F4}
+        }
 
         ; Awaiting terminal window to close for 20s.
         loop 20
@@ -183,5 +225,10 @@ load_mt4_install()
 
         ; If terminal didn't close in 20s then we are forcing it to close.
         Process, Close, terminal.exe
+        ExitApp, 0
+
+        GlobalTimeout:
+        FileAppend, Error: Global timeout reached`n, *
+        ExitApp, 1
 EOF
 }

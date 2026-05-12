@@ -173,6 +173,20 @@
       when:
         - effective_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists
+    - name: Ensures 7zip is present (standard distros)
+      ansible.builtin.package:
+        name: p7zip-full
+        state: present
+      become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
+      register: p7zip_install
+      until: p7zip_install is success
+      retries: 3
+      delay: 5
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
+      when:
+        - effective_os_family not in ["Windows", "NixOS"]
+        - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
+        - not file_mt_installed_exists.stat.exists
     - name: Ensures X11 utilities are present (standard distros)
       ansible.builtin.package:
         name: "{{ 'xdpyinfo' if effective_os_family == 'Alpine' else 'x11-utils' }}"
@@ -181,6 +195,20 @@
       register: x11_utils_install
       until: x11_utils_install is success
       retries: 5
+      delay: 5
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
+      when:
+        - effective_os_family not in ["Windows", "NixOS"]
+        - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
+        - not file_mt_installed_exists.stat.exists
+    - name: Ensures procps is present (standard distros)
+      ansible.builtin.package:
+        name: procps
+        state: present
+      become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
+      register: procps_install
+      until: procps_install is success
+      retries: 3
       delay: 5
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
@@ -197,7 +225,6 @@
       become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
       when:
         - effective_os_family == "NixOS"
-        - not file_mt_installed_exists.stat.exists
         - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
