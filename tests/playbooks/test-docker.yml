@@ -74,12 +74,12 @@
       changed_when: false
     - name: Install x11-utils if xdpyinfo is missing
       ansible.builtin.package:
-        name: "{{ 'xdpyinfo' if ansible_os_family == 'Alpine' else 'x11-utils' }}"
+        name: "{{ 'xdpyinfo' if (ansible_facts | default({})).get('os_family') == 'Alpine' else 'x11-utils' }}"
         state: present
       become: true
       when:
         - xdpyinfo_installed.rc != 0
-        - ansible_os_family in ['Debian', 'Alpine']
+        - (ansible_facts | default({})).get('os_family') in ['Debian', 'Alpine']
   tasks:
     - name: Installs ea31337.metatrader role
       ansible.builtin.import_role:

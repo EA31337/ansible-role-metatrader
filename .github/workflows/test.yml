@@ -8,7 +8,6 @@ on:
       - '**.cfg'
       - '**.md'
       - '**.mmd'
-      - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml
@@ -25,7 +24,6 @@ on:
       - '**.cfg'
       - '**.md'
       - '**.mmd'
-      - .*
       - .github/workflows/check.yml
       - .github/workflows/cogni-ai-agent.yml
       - .github/workflows/copilot-setup-steps.yml

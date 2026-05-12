@@ -6,7 +6,6 @@ on:
     paths-ignore:
       - '**.md'
       - '**.cfg'
-      - .*
       - LICENSE
   push:
     branches-ignore:
@@ -14,7 +13,6 @@ on:
     paths-ignore:
       - '**.md'
       - '**.cfg'
-      - .*
       - LICENSE
   workflow_dispatch:
 jobs:
