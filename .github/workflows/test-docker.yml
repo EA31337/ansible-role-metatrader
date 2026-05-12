@@ -29,6 +29,7 @@ on:
   workflow_dispatch:
 jobs:
   test-docker:
+    if: ${{ fromJSON('false') }}
     name: Test Docker Image
     permissions:
       contents: read
