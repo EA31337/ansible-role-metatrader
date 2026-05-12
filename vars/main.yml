@@ -8,5 +8,7 @@ metatrader_become_method:
   Debian: ansible.builtin.su
   NixOS: ansible.builtin.su
   OtherLinux: ansible.builtin.su
+  RedHat: ansible.builtin.su
+  Suse: ansible.builtin.su
   Ubuntu: ansible.builtin.su
   Windows: ansible.builtin.runas

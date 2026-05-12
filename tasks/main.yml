@@ -1,36 +1,146 @@
 ---
+- name: Ensures essential facts are gathered
+  ansible.builtin.setup:
+    gather_subset: all
+  when: >-
+    not (ansible_facts | default({})).get('os_family')
+    or not (ansible_facts | default({})).get('distribution')
+  tags:
+    - always
+    - metatrader_verify
+
+- name: Detect OS family from /etc/os-release
+  ansible.builtin.shell: |
+    set -o pipefail
+    grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"' | sed 's/./\u&/'
+  args:
+    executable: /bin/bash
+  register: os_release_id
+  changed_when: false
+  failed_when: false
+  when: not (ansible_facts | default({})).get('os_family')
+  tags:
+    - always
+    - metatrader_verify
+
 - name: Detects NixOS
   ansible.builtin.command: nix-env --version
   register: nix_check
   changed_when: false
   failed_when: false
   check_mode: false
-  when: ansible_facts.os_family == 'OtherLinux' or ansible_facts.distribution == 'NixOS'
-- name: Sets detected_os_family fact
+  when: >-
+    (ansible_facts | default({})).get('os_family') == 'OtherLinux'
+    or (ansible_facts | default({})).get('distribution') == 'NixOS'
+  tags:
+    - always
+    - metatrader_verify
+
+- name: Sets effective OS facts
   ansible.builtin.set_fact:
-    detected_os_family: >-
-      {{ 'NixOS' if (ansible_facts.distribution == 'NixOS'
-      or ansible_facts.os_family == 'NixOS'
-      or (ansible_facts.os_family == 'OtherLinux'
-      and nix_check.rc | default(1) == 0))
-      else 'Cygwin' if (ansible_facts.os_family is string
-      and ansible_facts.os_family.startswith('CYGWIN'))
-      else ansible_facts.os_family }}
-- name: Sets ansible_os_family to NixOS if detected
+    effective_os_family: >-
+      {%- set f_os = ((ansible_facts | default({})).get('os_family')
+      or (ansible_os_family | default('')) or '') | string | trim -%}
+      {%- set f_dist = ((ansible_facts | default({})).get('distribution')
+      or (ansible_distribution | default('')) or '') | string | trim -%}
+      {%- set f_rel = (os_release_id.stdout | default('')) | string | trim -%}
+      {%- set is_nix = nix_check.rc | default(1) == 0 -%}
+      {%- if f_dist == 'NixOS' or f_os == 'NixOS' or (f_os == 'OtherLinux' and is_nix) -%}
+        NixOS
+      {%- elif f_os != '' and f_os != 'None' -%}
+        {{ f_os }}
+      {%- elif f_dist != '' and f_dist != 'None' -%}
+        {{ f_dist }}
+      {%- elif f_rel != '' -%}
+        {{ f_rel }}
+      {%- elif (ansible_facts | default({})).get('pkg_mgr') == 'apt' -%}
+        Debian
+      {%- else -%}
+        OtherLinux
+      {%- endif -%}
+  tags:
+    - always
+    - metatrader_verify
+
+- name: Ensure effective OS family is not empty
   ansible.builtin.set_fact:
-    ansible_os_family: NixOS
-  when: detected_os_family == 'NixOS'
+    effective_os_family: OtherLinux
+  when: >-
+    effective_os_family is not defined
+    or (effective_os_family | trim | length == 0)
+    or effective_os_family == "None"
+  tags:
+    - always
+    - metatrader_verify
+
+- name: Updates facts for dependency compatibility
+  ansible.builtin.set_fact:
+    ansible_os_family: '{{ effective_os_family }}'
+    ansible_distribution: "{{ (ansible_facts | default({})).get('distribution') | default(effective_os_family, true) }}"
+    ansible_user_id: "{{ (ansible_facts | default({})).get('user_id') | default('root', true) }}"
+    ansible_user_dir: >-
+      {{ ((ansible_facts | default({})).get('user_dir') or (ansible_facts | default({})).get('env', {}).get('HOME')
+      or '/root') | string | trim }}
+  tags:
+    - always
+    - metatrader_verify
+
+- name: Debug OS facts
+  ansible.builtin.debug:
+    msg: effective_os_family is '{{ effective_os_family }}'
+  when: ansible_verbosity | default(0) >= 1
+  tags:
+    - always
+    - metatrader_verify
+
+- name: Sets effective environment facts
+  ansible.builtin.set_fact:
+    effective_display: >-
+      {{ (ansible_facts | default({})).get('env', {}).get('DISPLAY') | default(':0', true) }}
+    effective_home: >-
+      {%- set u_dir = ((ansible_facts | default({})).get('user_dir') or '') | string | trim -%}
+      {%- set e_home = ((ansible_facts | default({})).get('env', {}).get('HOME') or '') | string | trim -%}
+      {%- if u_dir != '' -%}{{ u_dir -}}
+      {%- elif e_home != '' -%}{{ e_home -}}
+      {%- else -%}/root{%- endif -%}
+    effective_xdg_runtime_dir: >-
+      {{ ((ansible_facts | default({})).get('env') or {}).get('XDG_RUNTIME_DIR')
+      | default('/tmp/runtime-root', true) }}
+  tags:
+    - always
+    - metatrader_verify
+
+- name: Ensures home directory exists
+  ansible.builtin.file:
+    path: '{{ effective_home }}'
+    state: directory
+    # Omitting mode to avoid loosening permissions on existing home directories.
+    # noqa: risky-file-permissions
+  when: effective_os_family != "Windows"
+
+- name: Ensures the detected OS family is supported by this role
+  ansible.builtin.assert:
+    that:
+      - effective_os_family | trim | length > 0
+      - effective_os_family | trim in metatrader_become_method
+    fail_msg: >-
+      Unsupported OS family: {{ effective_os_family | default('empty', true) }}.
+      Supported: {{ metatrader_become_method.keys() | sort | join(', ') }}.
+
 - name: Sets platform facts
   ansible.builtin.set_fact:
-    is_unix: "{{ (detected_os_family not in ['Windows', 'Cygwin']) | bool }}"
+    is_unix: "{{ (effective_os_family not in ['Windows', 'Cygwin']) | bool }}"
     metatrader_saved_path: >-
-      {{ (((ansible_local['metatrader'] | default({}))[metatrader_version | string] | default({})).path)
-      | default('') }}
+      {{ (((ansible_facts | default({})).get('ansible_local', {}).get('metatrader', {})
+      | default({}))[metatrader_version | string] | default({})).path | default('') }}
     needs_privilege_escalation: >-
-      {{ (detected_os_family == 'Cygwin'
+      {{ (effective_os_family == 'Cygwin'
       or (ansible_facts.user_id is defined and ansible_facts.user_id != 'root')
-      or detected_os_family == 'Windows') | bool }}
-    platform_name: '{{ detected_os_family }}'
+      or effective_os_family == 'Windows') | bool }}
+    platform_name: '{{ effective_os_family }}'
+  tags:
+    - always
+    - metatrader_verify
 - name: Populate paths
   ansible.builtin.include_tasks: paths.yml
   args:
@@ -39,6 +149,10 @@
         - metatrader_paths
   tags:
     - metatrader_paths
+- name: Sets metatrader_local_facts fact
+  ansible.builtin.set_fact:
+    metatrader_local_facts: "{{ (ansible_facts | default({})).get('ansible_local', {}).get('metatrader', {}) }}"
+
 - name: Checks if platform already exists
   ansible.builtin.stat:
     path: '{{ mt_runner_mt_path_host }}'
@@ -52,6 +166,7 @@
 - name: Ensures platform is installed
   # On Windows, ansible_local is not populated, so it relies on stat_mt check.
   when:
+    - effective_os_family != "Windows" # gather_facts is required.
     - >-
       not stat_mt.stat.exists
       or (platform_name != 'Windows'
@@ -64,9 +179,13 @@
           - metatrader_setup_url | length > 0
     - name: Checks if platform is already installed
       ansible.builtin.stat:
-        path: ~/.wine/.installed-mt{{ metatrader_version }}
+        path: "{{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}"
       register: file_mt_installed_exists
       when: is_unix
+    - name: Ensures Curl is present (standard distros)
+      ansible.builtin.package:
+        name: curl
+        state: present
     - name: Ensures Curl is present (standard distros)
       ansible.builtin.package:
         name: curl
@@ -74,13 +193,12 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - is_unix
-        - detected_os_family != 'NixOS'
-        - ansible_facts.pkg_mgr not in ['unknown', '']
+        - effective_os_family != "NixOS"
+        - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
         - not file_mt_installed_exists.stat.exists | default(false)
     - name: Ensures Curl is present (NixOS)
       ansible.builtin.command:
-        # Redirect output to /dev/null to reduce logs.
-        cmd: nix-env -iA nixpkgs.curl > /dev/null
+        cmd: nix-env -iA nixpkgs.curl
       register: nix_curl_install
       changed_when: >-
         'installing' in nix_curl_install.stderr
@@ -88,7 +206,7 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - is_unix
-        - detected_os_family == 'NixOS'
+        - effective_os_family == 'NixOS'
         - not file_mt_installed_exists.stat.exists | default(false)
     - name: Ensures X11 utilities are present (standard distros)
       ansible.builtin.package:
@@ -97,13 +215,12 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - is_unix
-        - detected_os_family != 'NixOS'
-        - ansible_facts.pkg_mgr not in ['unknown', '']
+        - effective_os_family != "NixOS"
+        - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
         - not file_mt_installed_exists.stat.exists | default(false)
     - name: Ensures X11 utilities are present (NixOS)
       ansible.builtin.command:
-        # Redirect output to /dev/null to reduce logs.
-        cmd: nix-env -iA nixpkgs.xorg.xdpyinfo > /dev/null
+        cmd: nix-env -iA nixpkgs.xorg.xdpyinfo
       register: nix_xdpyinfo_install
       changed_when: >-
         'installing' in nix_xdpyinfo_install.stderr
@@ -111,7 +228,7 @@
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - is_unix
-        - detected_os_family == 'NixOS'
+        - effective_os_family == 'NixOS'
         - not file_mt_installed_exists.stat.exists | default(false)
     - name: Ensures verb installation file is present (Unix)
       ansible.builtin.template:
@@ -121,17 +238,61 @@
       when:
         - is_unix
         - not file_mt_installed_exists.stat.exists | default(false)
+
+    - name: Ensure Temp directory exists (Windows)
+      ansible.windows.win_file:
+        path: C:\Temp
+        state: directory
+      when:
+        - platform_name == "Windows"
+        - not file_mt_installed_exists.stat.exists | default(false)
+
+    - name: Ensures verb installation file is present (Cygwin)
+      ansible.builtin.template:
+        src: mt{{ metatrader_version }}_install.ahk.j2
+        dest: /tmp/mt{{ metatrader_version }}_install.ahk
+        mode: '0640'
+      when:
+        - platform_name == "Cygwin"
+        - not file_mt_installed_exists.stat.exists | default(false)
+
+    - name: Ensures verb installation file is present (Windows)
+      ansible.builtin.template:
+        src: mt{{ metatrader_version }}_install.ahk.j2
+        dest: C:\Temp\mt{{ metatrader_version }}_install.ahk
+        mode: '0640'
+      when:
+        - platform_name == "Windows"
+        - not file_mt_installed_exists.stat.exists | default(false)
+
+    - name: Checks if Xvfb process is running
+      ansible.builtin.command: pgrep -x Xvfb
+      register: xvfb_pgrep
+      changed_when: false
+      failed_when: false
+      when:
+        - is_unix
+        - not file_mt_installed_exists.stat.exists | default(false)
+
+    - name: Debug Xvfb status
+      ansible.builtin.debug:
+        msg: "Xvfb pgrep rc: {{ xvfb_pgrep.rc | default('N/A') }}"
+      when:
+        - is_unix
+        - not file_mt_installed_exists.stat.exists | default(false)
+        - ansible_verbosity | default(0) >= 1
     - name: Verifies X display is available for Wine
       ansible.builtin.shell: xdpyinfo >/dev/null 2>&1
       register: xdpyinfo_check
       failed_when: false
       changed_when: false
       until: xdpyinfo_check.rc == 0
-      retries: 10
-      delay: 3
+      retries: 20
+      delay: 5
       environment:
-        DISPLAY: "{{ ansible_env.DISPLAY | default(':0') }}"
-        XDG_RUNTIME_DIR: "{{ ansible_env.XDG_RUNTIME_DIR | default('/tmp/runtime-root') }}"
+        DISPLAY: '{{ effective_display }}'
+        HOME: '{{ effective_home }}'
+        XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
       when:
         - is_unix
         - not file_mt_installed_exists.stat.exists | default(false)
@@ -144,7 +305,7 @@
           {% if xdpyinfo_check.rc | default(0) == 127 %}
           The 'xdpyinfo' command is missing. Ensure 'x11-utils' or equivalent is installed.
           {% else %}
-          X display is not available (DISPLAY={{ ansible_env.DISPLAY | default(':0') }}).
+          X display is not available (DISPLAY={{ effective_display }}).
           Ensure Xvfb or another X server is running.
           {% endif %}
       when:
@@ -172,22 +333,25 @@
         # noqa command-instead-of-shell
         cmd: >
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
-          && touch ~/.wine/.installed-mt{{ metatrader_version }}
-        creates: ~/.wine/.installed-mt{{ metatrader_version }}
+          && touch {{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}
+        creates: '{{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}'
+        executable: /bin/bash
       async: 1200
       poll: 10
       environment:
-        DISPLAY: "{{ ansible_env.DISPLAY | default(':0') }}"
+        DISPLAY: '{{ effective_display }}'
+        HOME: '{{ effective_home }}'
         WINEDEBUG: -all
         WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
         WINETRICKS_DOWNLOADER: curl
-        XDG_RUNTIME_DIR: "{{ ansible_env.XDG_RUNTIME_DIR | default('/tmp/runtime-root') }}"
+        XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
         FONTCONFIG_FILE: >-
-          {{ '/etc/fonts/fonts.conf' if (detected_os_family | default(ansible_os_family)) != 'NixOS'
-             else (ansible_env.FONTCONFIG_FILE | default('/run/current-system/sw/etc/fonts/fonts.conf')) }}
+          {{ '/etc/fonts/fonts.conf' if effective_os_family != 'NixOS'
+             else (ansible_facts.env.FONTCONFIG_FILE | default('/run/current-system/sw/etc/fonts/fonts.conf')) }}
       when:
         - is_unix
         - not file_mt_installed_exists.stat.exists | default(false)
+
     - name: Set AutoHotkey facts (Cygwin)
       ansible.builtin.set_fact:
         ahk_exe_path: '{{ ansible_facts.env.HOME }}/ahk-portable/AutoHotkeyU64.exe'
@@ -197,6 +361,7 @@
         ahk_zip_path: '{{ ansible_facts.env.HOME }}/ahk-portable.zip'
         mt_setup_path: '{{ ansible_facts.env.HOME }}/ahk-portable/mt/setup.exe'
       when: platform_name == 'Cygwin'
+
     - name: Set AutoHotkey facts (Windows)
       ansible.builtin.set_fact:
         ahk_exe_path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\AutoHotkeyU64.exe'
@@ -206,6 +371,7 @@
         ahk_zip_path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable.zip'
         mt_setup_path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt\setup.exe'
       when: platform_name == 'Windows'
+
     - name: Install AutoHotkey
       ansible.builtin.include_tasks: install_ahk.yml
       when: platform_name in ['Cygwin', 'Windows']
@@ -225,37 +391,47 @@
       ansible.windows.win_shell: >-
         & '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\AutoHotkeyU64.exe'
         'C:\Temp\mt{{ metatrader_version }}_install.ahk'
-      args:
-        chdir: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable\mt'
       register: ahk_install_win_res
       failed_when: ahk_install_win_res.rc != 0
       changed_when: true
       when: platform_name == 'Windows'
+
     - name: Ensures verb installation file is absent (Unix)
       ansible.builtin.file:
         path: /tmp/mt{{ metatrader_version }}_install.verb
         state: absent
       when: is_unix
+
     - name: Ensures AutoHotkey installation file is absent (Cygwin)
       ansible.builtin.file:
         path: /tmp/mt{{ metatrader_version }}_install.ahk
         state: absent
       when: platform_name == 'Cygwin'
+
     - name: Ensures AutoHotkey installation file is absent (Windows)
       ansible.windows.win_file:
         path: C:\Temp\mt{{ metatrader_version }}_install.ahk
         state: absent
       when: platform_name == 'Windows'
+
     - name: Ensures AutoHotkey ZIP is absent (Cygwin)
       ansible.builtin.file:
         path: '{{ ansible_facts.env.HOME }}/ahk-portable.zip'
         state: absent
       when: platform_name == 'Cygwin'
+
     - name: Ensures AutoHotkey ZIP is absent (Windows)
       ansible.windows.win_file:
         path: '{{ ansible_facts.env.USERPROFILE }}\ahk-portable.zip'
         state: absent
       when: platform_name == 'Windows'
+
+    - name: Refreshes local facts
+      ansible.builtin.setup:
+        filter:
+          - ansible_local
+      when: is_unix
+
 - name: Verifies
   ansible.builtin.include_tasks: verify.yml
   args:
@@ -264,12 +440,13 @@
         - metatrader_verify
   tags:
     - metatrader_verify
+
 - name: Saves platform facts
   become: '{{ needs_privilege_escalation | bool }}'
-  become_method: '{{ metatrader_become_method[detected_os_family] }}'
+  become_method: '{{ metatrader_become_method[effective_os_family] }}'
   when:
     - >-
-      (ansible_local['metatrader'] is not defined)
+      (ansible_facts | default({})).get('ansible_local', {}).get('metatrader', {}) is not defined
       or (metatrader_saved_path | length == 0)
       or (find_mt_path_folder is defined
           and find_mt_path_folder != metatrader_saved_path)
@@ -285,20 +462,31 @@
         - find_mt_path_folder is defined
         - find_mt_path_folder | length > 0
         - metatrader_version is defined
+
     - name: Ensures that Ansible local facts directory exists (Unix)
       ansible.builtin.file:
         path: /etc/ansible/facts.d
         state: directory
         mode: '0755'
-      when: is_unix or platform_name == 'Cygwin'
+      when: is_unix
+
+    - name: Ensures that Ansible local facts directory exists (Cygwin)
+      ansible.builtin.file:
+        path: /etc/ansible/facts.d
+        state: directory
+        mode: "0755"
+      become: false
+      when: platform_name == "Cygwin"
+
     - name: Ensures that Ansible local facts directory exists (Windows)
       ansible.windows.win_file:
         # yamllint disable-line rule:line-length
         path: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts
         state: directory
       become: true
-      become_user: '{{ ansible_facts.env.USERNAME }}'
-      when: platform_name == 'Windows'
+      become_user: "{{ (ansible_facts | default({})).get('env', {}).get('USERNAME') | default('Administrator', true) }}"
+      when: platform_name == "Windows"
+
     - name: Saves role's facts (Unix)
       ansible.builtin.copy:
         content: '{{ metatrader | to_nice_json }}'
@@ -307,13 +495,14 @@
       when:
         - is_unix or platform_name == 'Cygwin'
         - metatrader is defined
+
     - name: Saves role's facts (Windows)
       ansible.windows.win_copy:
         content: '{{ metatrader | to_nice_json }}'
         # yamllint disable-line rule:line-length
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
-      become_user: '{{ ansible_facts.env.USERNAME }}'
+      become_user: "{{ (ansible_facts | default({})).get('env', {}).get('USERNAME') | default('Administrator', true) }}"
       when:
         - platform_name == 'Windows'
         - metatrader is defined

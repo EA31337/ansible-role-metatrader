@@ -5,13 +5,24 @@ dependencies:
   - role: ea31337.wine
     vars:
       wine_install_winetricks: true
-      wine_version: "{{ '9' if ansible_facts.os_family == 'Alpine' else '10.0' }}"
+      wine_version: "{{ '9' if (ansible_facts.get('os_family') | default('', true)) == 'Alpine' else '10.0' }}"
+      # Explicitly pass facts to support inject_facts_as_vars = False
+      ansible_os_family: "{{ ansible_facts.get('os_family') | default('Debian', true) }}"
+      ansible_distribution: "{{ ansible_facts.get('distribution') | default('Ubuntu', true) }}"
+      ansible_user_id: "{{ ansible_facts.get('user_id', 'root') }}"
+      ansible_env: >-
+        {{ ansible_facts.get('env', {})
+        | combine({'HOME': ansible_facts.get('user_dir', '/root')}, recursive=True) }}
     version: v1.0.4  # This should match version in requirements.yml
-    when: ansible_facts.os_family != "Windows"
-  - name: ea31337.xvfb
-    role: ea31337.xvfb
+    when: (ansible_facts.get('os_family') | default('', true)) not in ["Windows", ""]
+  - role: ea31337.xvfb
+    vars:
+      # Explicitly pass facts to support inject_facts_as_vars = False
+      ansible_os_family: "{{ ansible_facts.get('os_family') | default('Debian', true) }}"
+      ansible_distribution: "{{ ansible_facts.get('distribution') | default('Ubuntu', true) }}"
+      ansible_user_id: "{{ ansible_facts.get('user_id', 'root') }}"
     version: v1.0.4  # This should match version in requirements.yml
-    when: ansible_facts.os_family != "Windows"
+    when: (ansible_facts.get('os_family') | default('', true)) not in ["Windows", ""]
 galaxy_info:
   author: kenorb
   company: EA31337 Ltd

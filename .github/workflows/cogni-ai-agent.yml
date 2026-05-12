@@ -201,7 +201,7 @@ jobs:
             || github.event.pull_request.body
             || github.event.discussion.body
             || inputs.prompt }}
-    timeout-minutes: 60
+    timeout-minutes: 120
   summary:
     name: Generate Summary (post-run)
     needs: cogni-ai-agent

@@ -10,7 +10,7 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 ## Setup & Environment Invariants
 
 - Ansible role: `ea31337.metatrader`
-- Supported OS: See [FACTS.mmd](docs/FACTS.mmd)
+- Supported OS: Debian/Ubuntu, NixOS (Nix), Windows
 - Driver: Docker (Molecule)
 - Python 3.10+ required; install via `pip install -r .devcontainer/requirements.txt`
 - Collections: See [FACTS.mmd](docs/FACTS.mmd)
@@ -360,6 +360,8 @@ How to analyze the output:
 
 Results from testing on 2026-04-24 (step-by-step Molecule re-test,
 all Linux scenarios):
+
+### `default`
 
 ### `default`
 

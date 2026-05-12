@@ -11,6 +11,7 @@
             - metatrader_paths
       tags:
         - metatrader_paths
+
     - name: Checks if platform's terminal exists
       module_defaults:
         ansible.builtin.find:
@@ -32,13 +33,16 @@
             paths: '{{ mt_runner_mt_path_host }}'
           register: find_mt_res_win
           when: platform_name == 'Windows'
+
     - name: Consolidate terminal find result
       ansible.builtin.set_fact:
         find_mt_res: "{{ find_mt_res_win if platform_name == 'Windows' else find_mt_res_unix }}"
+
     - name: Verify terminal was found
       ansible.builtin.assert:
         that: find_mt_res.matched > 0
         msg: MetaTrader terminal not found in {{ mt_runner_mt_path_host }}
+
     - name: Store platform's path
       ansible.builtin.set_fact:
         find_mt_path: >-
@@ -48,6 +52,7 @@
           {{ find_mt_res.files[0].path | win_dirname if platform_name == 'Windows'
           else find_mt_res.files[0].path | dirname }}
       when: find_mt_res.files | length > 0
+
     - name: Checks if platform's editor exists
       module_defaults:
         ansible.builtin.find:
@@ -69,13 +74,16 @@
             paths: '{{ mt_runner_mt_path_host }}'
           register: find_mte_res_win
           when: platform_name == 'Windows'
+
     - name: Consolidate editor find result
       ansible.builtin.set_fact:
         find_mte_res: "{{ find_mte_res_win if platform_name == 'Windows' else find_mte_res_unix }}"
+
     - name: Verify editor was found
       ansible.builtin.assert:
         that: find_mte_res.matched > 0
         msg: MetaTrader editor not found in {{ mt_runner_mt_path_host }}
+
     - name: Store platform's editor path
       ansible.builtin.set_fact:
         find_mte_path: >-
@@ -85,6 +93,7 @@
           {{ find_mte_res.files[0].path | win_dirname if platform_name == 'Windows'
           else find_mte_res.files[0].path | dirname }}
       when: find_mte_res.files | length > 0
+
     - name: Check WSL's default distribution name (Windows)
       ansible.windows.win_powershell:
         script: >
@@ -93,6 +102,7 @@
       register: wsl_distribution_name_result
       changed_when: false
       when: platform_name == 'Windows'
+
     - name: Store WSL's default distribution name (Windows)
       ansible.builtin.set_fact:
         wsl_distribution_name: >-
@@ -101,11 +111,13 @@
       when:
         - platform_name == 'Windows'
         - wsl_distribution_name_result.output | length > 0
+
     - name: Check WSL's default user name (Windows)
       ansible.windows.win_command: ubuntu -c "whoami"
       register: wsl_user_name_result
       changed_when: false
       when: platform_name == 'Windows'
+
     - name: Store WSL's default user name (Windows)
       ansible.builtin.set_fact:
         wsl_user_name: '{{ wsl_user_name_result.stdout_lines[0] }}'

@@ -1,10 +1,17 @@
 ---
 - name: Verify
   hosts: all
+  vars:
+    effective_home: >-
+      {%- set u_dir = (ansible_facts.get('user_dir') or '') | string | trim -%}
+      {%- set e_home = (ansible_facts.get('env', {}).get('HOME') or '') | string | trim -%}
+      {%- if u_dir != '' -%}{{ u_dir -}}
+      {%- elif e_home != '' -%}{{ e_home -}}
+      {%- else -%}/root{%- endif -%}
   tasks:
     - name: Retrieve information from path
       ansible.builtin.stat:
-        path: '{{ ansible_facts.env.HOME }}/.wine/drive_c/Program Files'
+        path: '{{ effective_home }}/.wine/drive_c/Program Files'
       register: stat_result
     - name: Verify Program Files directory exist
       ansible.builtin.assert:
@@ -15,17 +22,17 @@
       changed_when: false
       failed_when: find_mt_res.matched == 0
       ansible.builtin.find:
-        paths: '{{ ansible_facts.env.HOME }}/.wine/drive_c'
+        paths: '{{ effective_home }}/.wine/drive_c'
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
-      when: detected_os_family | default(ansible_facts.os_family) != "Windows"
+      when: ansible_facts.get('os_family', '') != "Windows"
     - name: Checks if platform's editor exists
       changed_when: false
       failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
-        paths: '{{ ansible_facts.env.HOME }}/.wine/drive_c'
+        paths: '{{ effective_home }}/.wine/drive_c'
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res
-      when: detected_os_family | default(ansible_facts.os_family) != "Windows"
+      when: ansible_facts.get('os_family', '') != "Windows"
