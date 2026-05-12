@@ -259,8 +259,8 @@
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
           && touch {{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}
         creates: '{{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}'
-      async: 1200
-      poll: 10
+      async: 3600
+      poll: 30
       environment:
         DISPLAY: '{{ effective_display }}'
         HOME: '{{ effective_home }}'
