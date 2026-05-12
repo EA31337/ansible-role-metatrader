@@ -62,7 +62,7 @@
     controller_python: '{{ ansible_playbook_python }}'
     container_image_map:
       metatrader-on-alpine-latest: alpine:3.20
-      metatrader-on-debian-latest: debian:latest
+      metatrader-on-debian-latest: ghcr.io/ea31337/ansible-role-wine:1.0.4-debian-latest
       metatrader-on-nixos-latest: nixos/nix
       metatrader-on-ubuntu-jammy: ghcr.io/ea31337/ansible-role-wine:1.0.4-ubuntu-jammy
       metatrader-on-ubuntu-noble: ghcr.io/ea31337/ansible-role-wine:1.0.4-ubuntu-noble

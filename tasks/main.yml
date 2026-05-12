@@ -94,6 +94,18 @@
     # Omitting mode to avoid loosening permissions on existing home directories.
     # noqa: risky-file-permissions
   when: effective_os_family != "Windows"
+- name: Ensures Wine prefix is healthy
+  ansible.builtin.shell: |
+    set -e
+    if [ -d "{{ effective_home }}/.wine" ] && [ ! -f "{{ effective_home }}/.wine/system.reg" ]; then
+      echo "Broken Wine prefix detected (missing registry files). Repairing..."
+      rm -rf "{{ effective_home }}/.wine"
+    fi
+  args:
+    executable: /bin/bash
+  register: wine_prefix_health
+  changed_when: "'Repairing' in wine_prefix_health.stdout"
+  when: effective_os_family != "Windows"
 - name: Ensures the detected OS family is supported by this role
   ansible.builtin.assert:
     that:
