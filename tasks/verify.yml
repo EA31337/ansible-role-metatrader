@@ -9,15 +9,14 @@
         - metatrader_paths
 
     - name: Checks if platform's terminal exists (Unix)
+      changed_when: false
+      failed_when: find_mt_res.matched == 0
       ansible.builtin.find:
         paths: '{{ mt_runner_mt_path_unix }}'
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
-      changed_when: false
-      failed_when: find_mt_res.matched == 0
       when: is_unix
-
     - name: Store platform's path (Unix)
       ansible.builtin.set_fact:
         find_mt_path: '"{{ find_mt_res.files[0].path }}"'
@@ -27,15 +26,15 @@
         - find_mt_res.files | length > 0
 
     - name: Checks if platform's terminal exists (Windows)
+      changed_when: false
+      failed_when: find_mt_res.matched == 0
       ansible.windows.win_find:
-        paths: '{{ mt_runner_mt_path_host }}'
+        # Search in Program Files as folder name can vary.
+        paths: C:/Program Files
         patterns: terminal*.exe
         recurse: true
       register: find_mt_res
-      changed_when: false
-      failed_when: find_mt_res.matched == 0
       when: platform_name == "Windows"
-
     - name: Store platform's path (Windows)
       ansible.builtin.set_fact:
         find_mt_path: '{{ find_mt_res.files[0].path }}'
@@ -63,15 +62,14 @@
         - find_mt_res.files | length > 0
 
     - name: Checks if platform's editor exists (Unix)
+      changed_when: false
+      failed_when: find_mte_res.matched == 0
       ansible.builtin.find:
         paths: '{{ mt_runner_mt_path_unix }}'
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res
-      changed_when: false
-      failed_when: find_mte_res.matched == 0
       when: is_unix
-
     - name: Store platform's editor path (Unix)
       ansible.builtin.set_fact:
         find_mte_path: '{{ find_mte_res.files[0].path }}'
@@ -81,17 +79,15 @@
         - find_mte_res.files | length > 0
 
     - name: Checks if platform's editor exists (Windows)
+      changed_when: false
+      failed_when: find_mte_res.matched == 0
       ansible.windows.win_find:
-        paths:
-          - C:/Program Files/MetaTrader 5
-          - C:/Program Files (x86)/MetaTrader 4
+        # Search in Program Files as folder name can vary.
+        paths: C:/Program Files
         patterns: '[mM]eta[eE]ditor*.exe'
         recurse: true
       register: find_mte_res
-      changed_when: false
-      failed_when: find_mte_res.matched == 0
       when: platform_name == "Windows"
-
     - name: Store platform's editor path (Windows)
       ansible.builtin.set_fact:
         find_mte_path: '{{ find_mte_res.files[0].path }}'

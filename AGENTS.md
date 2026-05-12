@@ -3,6 +3,9 @@
 Persistent context for autonomous agents working on this Ansible role.
 
 For project overview and install instructions, see [README.md](README.md).
+For project facts, key files and architecture mindmap, see [FACTS.mmd](docs/FACTS.mmd).
+For execution flows and logic diagrams, see [FLOWS.mmd](docs/FLOWS.mmd).
+For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 ## Setup & Environment Invariants
 
@@ -10,8 +13,8 @@ For project overview and install instructions, see [README.md](README.md).
 - Supported OS: Debian/Ubuntu, NixOS (Nix), Windows
 - Driver: Docker (Molecule)
 - Python 3.10+ required; install via `pip install -r .devcontainer/requirements.txt`
-- Collections: `community.docker`, `community.general`, `ansible.windows`
-- Role dependencies: `ea31337.wine`, `ea31337.xvfb` (see `meta/main.yml`)
+- Collections: See [FACTS.mmd](docs/FACTS.mmd)
+- Role dependencies: See [FACTS.mmd](docs/FACTS.mmd)
 - `community.docker` MUST be installed before Molecule can create/destroy
   containers.
 - Install dependencies: `ansible-galaxy role install -r requirements.yml --force` and
@@ -87,8 +90,8 @@ For project overview and install instructions, see [README.md](README.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: jammy` |
-| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: jammy` |
+| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: noble` |
+| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: noble` |
 
 ### Running Tests
 
@@ -105,7 +108,7 @@ molecule test
 molecule test -s default
 
 # Single platform in a scenario
-molecule test -s default --platform-name ubuntu-latest
+molecule test -s default --platform-name ubuntu-noble
 
 # Step-by-step debugging (useful for troubleshooting)
 molecule destroy -s default              # clean up any leftover state
@@ -128,11 +131,11 @@ For CI or automated environments, use timeouts:
 
 ```bash
 # Test a single platform with timeout (15 minutes)
-timeout 900 molecule test -s default --platform-name ubuntu-latest
+timeout 900 molecule test -s default --platform-name ubuntu-noble
 
 # If converge fails, debug interactively:
-molecule create -s default --platform-name ubuntu-latest
-molecule converge -s default --platform-name ubuntu-latest
+molecule create -s default --platform-name ubuntu-noble
+molecule converge -s default --platform-name ubuntu-noble
 # (inspect container state, then clean up)
 molecule destroy -s default
 ```
@@ -230,8 +233,9 @@ molecule destroy -s default
 > `Failed to update apt cache after 5 retries`
 
 - **Root cause**: Firewall/network policy blocks `dl.winehq.org`, or
-  `debian:latest` codename (e.g. `trixie`) is not in the WineHQ repo.
-- **Fix**: Set `wine_release_codename: bookworm` for debian-latest in
+  `debian:latest` codename (e.g. `trixie`) or Ubuntu 26.04 (`resolute`)
+  is not in the WineHQ repo.
+- **Fix**: Set `wine_release_codename: bookworm` for debian-latest or `noble` for ubuntu-latest in
   host_vars. Add `dl.winehq.org` to firewall allowlist.
 - **CI context**: Works on standard GitHub Actions runners with internet
   access.
@@ -313,7 +317,7 @@ How to analyze the output:
 - If the screenshot shows an AutoHotkey syntax error instead of the MetaTrader
   installer window, inspect the generated `.ahk` file before investigating
   network access.
-- In the 2026-04-24 `metatrader-on-ubuntu-latest` manual debug session, the
+- In the 2026-04-24 `metatrader-on-ubuntu-noble` manual debug session, the
   screenshot matched a broken generated script:
 
   ```text
@@ -353,48 +357,50 @@ all Linux scenarios):
 
 ### `default`
 
-| Step | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: |
-| destroy | ✅ | ✅ |
-| create | ✅ | ✅ |
-| prepare | ✅ | ✅ |
-| converge | ✅ | ✅ |
-| — wine | ✅ | ✅ |
-| — xvfb | ✅ | ✅ |
-| — metatrader | ✅ | ✅ |
-| idempotence | ✅ | ✅ |
-| verify | ✅ | ✅ |
-| destroy (final) | ✅ | ✅ |
+### `default`
+
+| Step | ubuntu-noble |
+| --- | :---: |
+| destroy | ✅ |
+| create | ✅ |
+| prepare | ✅ |
+| converge | ✅ |
+| — wine | ✅ |
+| — xvfb | ✅ |
+| — metatrader | ✅ |
+| idempotence | ✅ |
+| verify | ✅ |
+| destroy (final) | ✅ |
 
 ### `mt4`
 
-| Step | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: |
-| destroy | ✅ | ✅ |
-| create | ✅ | ✅ |
-| prepare | ✅ | ✅ |
-| converge | ✅ | ✅ |
-| — wine | ✅ | ✅ |
-| — xvfb | ✅ | ✅ |
-| — metatrader | ✅ | ✅ |
-| idempotence | ✅ | ✅ |
-| verify | ✅ | ✅ |
-| destroy (final) | ✅ | ✅ |
+| Step | ubuntu-noble |
+| --- | :---: |
+| destroy | ✅ |
+| create | ✅ |
+| prepare | ✅ |
+| converge | ✅ |
+| — wine | ✅ |
+| — xvfb | ✅ |
+| — metatrader | ✅ |
+| idempotence | ✅ |
+| verify | ✅ |
+| destroy (final) | ✅ |
 
 ### `mt5`
 
-| Step | ubuntu-noble | ubuntu-latest |
-| --- | :---: | :---: |
-| destroy | ✅ | ✅ |
-| create | ✅ | ✅ |
-| prepare | ✅ | ✅ |
-| converge | ✅ | ✅ |
-| — wine | ✅ | ✅ |
-| — xvfb | ✅ | ✅ |
-| — metatrader | ✅ | ✅ |
-| idempotence | ✅ | ✅ |
-| verify | ✅ | ✅ |
-| destroy (final) | ✅ | ✅ |
+| Step | ubuntu-noble |
+| --- | :---: |
+| destroy | ✅ |
+| create | ✅ |
+| prepare | ✅ |
+| converge | ✅ |
+| — wine | ✅ |
+| — xvfb | ✅ |
+| — metatrader | ✅ |
+| idempotence | ✅ |
+| verify | ✅ |
+| destroy (final) | ✅ |
 
 ### Improvements applied
 
@@ -476,7 +482,6 @@ If network requests fail during molecule tests (e.g. `dl.winehq.org`,
 | `github.com` | AutoHotkey download (used by winetricks verb) |
 | `mt5-trade.metaquotes.net` | Trade server (installer backend) |
 | `raw.githubusercontent.com` | OpenSymbol font download (winetricks verb) |
-
 | `releases.nixos.org` | Nix channel tarballs (redirect target) |
 | `trade.mql5.com` | Trade server (installer registration) |
 | `web.archive.org` | Winetricks fallback download mirror |
