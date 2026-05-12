@@ -84,7 +84,7 @@ load_mt5_install()
             }
             Sleep, 1000
             if (A_Index == 60)
-                ExitApp, 1
+                ExitApp, 3
         }
 
         WinActivate, MetaTrader 5
@@ -101,7 +101,7 @@ load_mt5_install()
             ; Check if timeout have passed.
             if (A_TickCount - StartTime > Timeout)
             {
-                ExitApp, 1 ; Exit with error on timeout
+                ExitApp, 2
             }
 
             ; Close a blocking "Proxy Server" dialog if it appears.
@@ -112,8 +112,8 @@ load_mt5_install()
                 Sleep, 1000
             }
 
-            ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
+            ; Is "Finish" button visible? (target the MT5 setup window explicitly)
+            ControlGet, FinishVisible, Visible,, Finish, MetaTrader 5
 
             if (FinishVisible)
             {
@@ -139,7 +139,11 @@ load_mt5_install()
                 break
             Sleep, 1000
         }
-        WinWaitActive, MetaTrader,, 60
+        WinWaitActive, ahk_class MetaQuotes::MetaTrader::5.00,, 30
+        if (ErrorLevel)
+        {
+            ExitApp, 4
+        }
 
         ; Closing dialogs and exiting from the terminal.
         Send, {Esc}

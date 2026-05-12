@@ -2,7 +2,7 @@
 name: Platform (Linux)
 env:
   ARTIFACT_NAME: ${{ inputs.artifact || 'platform' }}
-  CLEANUP: ${{ inputs.cleanup || true }}
+  CLEANUP: ${{ inputs.cleanup || false }}
   VERSION: ${{ inputs.version || 5 }}
 # yamllint disable-line rule:truthy
 on:
@@ -46,6 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: ${{ inputs.ref || github.ref }}
           persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
       - name: Set up Python
         uses: actions/setup-python@v6.1.0
