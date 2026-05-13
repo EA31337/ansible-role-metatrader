@@ -21,7 +21,9 @@ RUN nix-channel --update && \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ansible \
+    ca-certificates \
     git \
+    lsb-release \
     p7zip-full \
     procps \
     python3-apt \
@@ -29,6 +31,7 @@ RUN apt-get update && \
     python3-setuptools \
     python3-wheel \
     sudo \
+    wget \
     x11-utils \
     xvfb && \
     pip3 install --no-cache-dir "ansible-core>=2.14" --break-system-packages || \
@@ -38,13 +41,32 @@ RUN apt-get update && \
 
 # Copy the role into the container
 WORKDIR /etc/ansible/roles/ea31337.metatrader
-COPY . .
+COPY defaults/ defaults/
+COPY meta/ meta/
+COPY tasks/ tasks/
+COPY templates/ templates/
+COPY vars/ vars/
+COPY ansible.cfg .
+COPY requirements.yml .
+COPY README.md .
 
 # Create a local playbook to apply the role
-RUN ansible-galaxy install -r requirements.yml && \
-    printf -- "---\n- hosts: localhost\n  connection: local\n  roles:\n    - role: ea31337.metatrader\n" > /tmp/playbook.yml && \
-    xvfb-run -a ansible-playbook /tmp/playbook.yml && \
-    rm /tmp/playbook.yml
+RUN ansible-galaxy role install -r requirements.yml --force && \
+    ansible-galaxy collection install -r requirements.yml --upgrade && \
+    printf -- "---\n- hosts: localhost\n  connection: local\n  roles:\n    - role: /etc/ansible/roles/ea31337.metatrader\n" > /tmp/playbook.yml && \
+    ANSIBLE_PYTHON_INTERPRETER=auto_silent xvfb-run -a ansible-playbook /tmp/playbook.yml && \
+    rm /tmp/playbook.yml && \
+    if [ -f /usr/bin/apt-get ]; then \
+        export SUDO_FORCE_REMOVE=yes && \
+        apt-get update && \
+        apt-get purge -y --auto-remove \
+            git \
+            python3-pip \
+            python3-setuptools \
+            python3-wheel && \
+        apt-get clean && \
+        rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; \
+    fi
 
 # Default CMD
 CMD ["wine", "--version"]
