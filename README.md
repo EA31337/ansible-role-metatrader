@@ -20,7 +20,11 @@ This role requires:
 - Ansible
 - Python
 - Administrative/root access on target hosts
-- Supported operating systems: Debian/Ubuntu (see [FACTS.mmd](docs/FACTS.mmd))
+- One of the following operating systems:
+  - Alpine Linux
+  - Debian/Ubuntu
+  - NixOS or systems with Nix package manager
+  - Windows (via WSL)
 
 ## Install
 

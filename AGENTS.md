@@ -10,7 +10,7 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 ## Setup & Environment Invariants
 
 - Ansible role: `ea31337.metatrader`
-- Supported OS: Debian/Ubuntu, Windows
+- Supported OS: Debian/Ubuntu, NixOS (Nix), Windows
 - Driver: Docker (Molecule)
 - Python 3.10+ required; install via `pip install -r .devcontainer/requirements.txt`
 - Collections: See [FACTS.mmd](docs/FACTS.mmd)
@@ -218,7 +218,8 @@ molecule destroy -s default
 
 ### GitHub Actions Molecule report step fails with summary size limit
 
-- **Root cause**: GitHub job summaries are capped at 1 MiB, but full Molecule HTML-to-Markdown conversions can exceed it.
+- **Root cause**: GitHub job summaries are capped at 1 MiB, but full Molecule HTML-to-Markdown conversions can
+  exceed it.
 - **Fix**: Upload full Molecule HTML reports as workflow artifacts and append only a concise filtered summary
   (e.g., Play Recap, errors, and warnings) to `$GITHUB_STEP_SUMMARY`.
 
@@ -404,7 +405,8 @@ all Linux scenarios):
 
 - **Robustness**: AHK scripts now exit with code 1 on timeout, preventing false positives if the installer fails.
 - **Connectivity**: AHK script now handles "Proxy Server" dialog while waiting for the main window.
-- **Startup/Shutdown**: Improved terminal startup and shutdown sequence with longer wait times and multiple process checks.
+- **Startup/Shutdown**: Improved terminal startup and shutdown sequence with longer wait times and multiple
+  process checks.
 - **Reliability**: Corrected `Send` command syntax and added `WinActivate` for more reliable key delivery.
 - **Compatibility**: The `w_ahk_do` override now joins arguments with a space to prevent splitting into multiple lines.
 

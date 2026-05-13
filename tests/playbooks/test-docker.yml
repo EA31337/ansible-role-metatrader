@@ -1,0 +1,102 @@
+---
+- name: Configure Docker container
+  # Note: Since facts are not gathered, we're checking for ansible_user_id, connection_user or UID instead.
+  become: >-
+    {{
+      (connection_user | default('root')) != 'root'
+      or (ansible_user_id | default('root')) != 'root'
+      or (ansible_user_uid | default(0) | int) != 0
+      or (((ansible_env | default({}))['UID'] | default(0) | int) != 0)
+      or (
+        ((ansible_env | default({}))['USER']
+        | default(((ansible_env | default({}))['LOGNAME'] | default('root'))) )
+        != 'root'
+      )
+    }}
+  # Use sudo as become_method as it's more standard and reliable in these containers.
+  become_method: ansible.builtin.sudo
+  gather_facts: false
+  hosts: docker_containers
+  vars:
+    wine_image: ubuntu:noble
+  pre_tasks:
+    - name: Manage Docker container lifecycle
+      delegate_to: localhost
+      vars:
+        ansible_python_interpreter: '{{ ansible_playbook_python }}'
+      block:
+        - name: Ensure container is started
+          community.docker.docker_container:
+            name: '{{ inventory_hostname }}'
+            image: '{{ wine_image }}'
+            state: started
+            command: sleep infinity
+            recreate: true
+            pull: true
+        - name: Wait for container to be ready
+          community.docker.docker_container_info:
+            name: '{{ inventory_hostname }}'
+          register: container_info
+          until:
+            - container_info is defined
+            - container_info.container.State.Running | default(false) | bool
+          changed_when: false
+          delay: 2
+          retries: 10
+- name: Install ea31337.metatrader role on the container
+  hosts: docker_containers
+  gather_facts: false
+  pre_tasks:
+    - name: Bootstrap Python and Sudo
+      ansible.builtin.raw: |
+        if command -v python3 >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
+          exit 0
+        fi
+        if command -v apk >/dev/null 2>&1; then
+          apk update && apk add -q --no-cache python3 py3-pip sudo ca-certificates
+        elif command -v apt-get >/dev/null 2>&1; then
+          apt-get update -qq && \
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+            python3 python3-apt python3-debian \
+            sudo ca-certificates lsb-release
+        elif command -v nix-env >/dev/null 2>&1; then
+          nix-channel --update && nix-env -iA nixpkgs.python3 nixpkgs.sudo nixpkgs.cacert
+        fi
+      changed_when: false
+    - name: Gather facts
+      ansible.builtin.setup:
+    - name: Set facts for dependency roles
+      ansible.builtin.set_fact:
+        wine_release_codename: >-
+          {{ 'noble' if (ansible_facts | default({})).get('distribution_release', '') == 'resolute'
+          else (ansible_facts | default({})).get('distribution_release', '') }}
+    - name: Ensure connection user is root if needed
+      ansible.builtin.set_fact:
+        ansible_user: root
+      when: not (ansible_user_id | default(''))
+    - name: Check if xdpyinfo is available
+      ansible.builtin.command: xdpyinfo -version
+      register: xdpyinfo_installed
+      failed_when: false
+      changed_when: false
+    - name: Install x11-utils if xdpyinfo is missing
+      ansible.builtin.package:
+        name: "{{ 'xdpyinfo' if (ansible_facts | default({})).get('os_family') == 'Alpine' else 'x11-utils' }}"
+        state: present
+      become: true
+      when:
+        - xdpyinfo_installed.rc != 0
+        - (ansible_facts | default({})).get('os_family') in ['Debian', 'Alpine']
+  tasks:
+    - name: Installs ea31337.metatrader role
+      ansible.builtin.import_role:
+        name: ea31337.metatrader
+  post_tasks:
+    - name: Stop Docker containers
+      community.docker.docker_container:
+        name: '{{ inventory_hostname }}'
+        state: absent
+      delegate_to: localhost
+      failed_when: false
+      vars:
+        ansible_python_interpreter: '{{ ansible_playbook_python }}'
