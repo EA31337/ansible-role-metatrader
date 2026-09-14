@@ -3,10 +3,10 @@
 ## Project Overview
 
 Ansible role (`ea31337.metatrader`) to install and configure MetaTrader
-trading platform on UNIX-like systems using Wine and Xvfb:
+trading platform using Wine and Xvfb:
 
 - **Debian/Ubuntu**: Uses apt with WineHQ repository
-- **NixOS / Nix**: Uses nix-env in lightweight Nix environments
+- **Windows**: Installs via WSL (molecule `mt5-win` scenario, disabled in CI)
 
 Key contents:
 
@@ -30,7 +30,8 @@ You are expected to be an expert in:
 - Python
 - Jinja2
 - Molecule
-- Linux (Alpine, Debian/Ubuntu, Nix)
+- Linux (Debian/Ubuntu)
+- Windows (WSL)
 - YAML
 
 ## Coding Standards
@@ -191,9 +192,7 @@ pre-commit run -a
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `debian-latest` | `debian:latest` | WineHQ apt repo; codename: `bookworm` |
-| `nixos-latest` | `nixos/nix:latest` | Custom Dockerfile; privileged mode |
-| `ubuntu-jammy` | `ubuntu:jammy` | WineHQ repo; codename: `jammy` |
+| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo; codename: `noble` |
 | `ubuntu-noble` | `ubuntu:noble` | WineHQ repo; codename: `noble` |
 
 ## Troubleshooting
