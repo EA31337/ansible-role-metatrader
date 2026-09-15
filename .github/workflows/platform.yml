@@ -48,7 +48,7 @@ jobs:
         with:
           persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
       - name: Set up Python
-        uses: actions/setup-python@v6.1.0
+        uses: actions/setup-python@v6
         with:
           cache: pip
           cache-dependency-path: |
@@ -77,7 +77,7 @@ jobs:
             --extra-vars "metatrader_version=${{ env.VERSION }}"
           playbook: molecule/default/converge.yml
           requirements: requirements.yml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: |

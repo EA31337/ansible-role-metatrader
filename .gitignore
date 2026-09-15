@@ -14,6 +14,7 @@ __pycache__
 requirements-local.yml
 *.swp
 *.txt
+.venv/
 *.verb
 *.json
 roles/

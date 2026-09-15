@@ -69,7 +69,7 @@ jobs:
         with:
           persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
       - name: Set up Python
-        uses: actions/setup-python@v6.1.0
+        uses: actions/setup-python@v6
         with:
           cache: pip
           cache-dependency-path: |
@@ -148,7 +148,7 @@ jobs:
           fi
       - if: always()
         name: Upload Molecule report artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: molecule-${{ matrix.scenario }}-${{ matrix.platform }}-report
@@ -163,7 +163,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build results table
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |-
             const { data: { jobs } } = await github.rest.actions
