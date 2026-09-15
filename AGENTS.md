@@ -64,6 +64,8 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 - NEVER remove or modify unrelated tests.
 - NEVER use `git add .` without verifying staged files.
 - On variable changes, update both `defaults/main.yml` and `README.md`.
+- MUST reference GitHub Actions by simple major version tags (e.g. `actions/checkout@v6`),
+  not pinned patch versions (e.g. `@v6.1.0`), so minor/patch updates apply automatically.
 
 ## Agent Directives (Contract Style)
 
@@ -102,27 +104,51 @@ ansible-galaxy role install -r requirements.yml --force
 ansible-galaxy collection install -r requirements.yml -p collections
 
 # Full test (all scenarios)
-molecule test
+pipenv run molecule test
 
 # Single scenario
-molecule test -s default
+pipenv run molecule test -s default
 
 # Single platform in a scenario
-molecule test -s default --platform-name ubuntu-noble
+pipenv run molecule test -s default --platform-name ubuntu-noble
 
 # Step-by-step debugging (useful for troubleshooting)
-molecule destroy -s default              # clean up any leftover state
-molecule create -s default               # build images + start containers
-molecule prepare -s default              # install Python, sudo, CA certs
-molecule converge -s default             # run the role
-molecule idempotence -s default          # verify idempotency (no changes)
-molecule verify -s default               # run verification playbook
-molecule destroy -s default              # clean up
+pipenv run molecule destroy -s default              # clean up any leftover state
+pipenv run molecule create -s default               # build images + start containers
+pipenv run molecule prepare -s default              # install Python, sudo, CA certs
+pipenv run molecule converge -s default             # run the role
+pipenv run molecule idempotence -s default          # verify idempotency (no changes)
+pipenv run molecule verify -s default               # run verification playbook
+pipenv run molecule destroy -s default              # clean up
 
 # Syntax check only (fast validation)
-molecule syntax -s default
-molecule syntax -s mt4
-molecule syntax -s mt5
+pipenv run molecule syntax -s default
+pipenv run molecule syntax -s mt4
+pipenv run molecule syntax -s mt5
+```
+
+Molecule and Ansible are installed via the project `Pipfile`, so run every command through `pipenv`
+(they are not on `PATH`).
+
+### Sandboxed / firewalled environments
+
+Sandboxed or firewalled environments may block outbound NAT on the default Docker bridge, resolve
+DNS to unroutable IPv6 addresses, or already run an X server on `:0`. Opt in to the following
+environment variables as needed:
+
+| Variable | Purpose | Example |
+| -------- | ------- | ------- |
+| `MOLECULE_DOCKER_FORCE_IPV4` | Prefer IPv4 for DNS resolution in containers. | `true` |
+| `MOLECULE_DOCKER_NETWORK` | Docker network for containers and image builds. | `host` |
+| `MOLECULE_XVFB_DISPLAY_BASE` | Unique X display per host when sharing the host network. | `90` |
+
+Example invocation:
+
+```bash
+MOLECULE_DOCKER_FORCE_IPV4=true \
+MOLECULE_DOCKER_NETWORK=host \
+MOLECULE_XVFB_DISPLAY_BASE=90 \
+pipenv run molecule test -s default
 ```
 
 ### Step-by-step Testing With Timeout
@@ -131,24 +157,24 @@ For CI or automated environments, use timeouts:
 
 ```bash
 # Test a single platform with timeout (15 minutes)
-timeout 900 molecule test -s default --platform-name ubuntu-noble
+timeout 900 pipenv run molecule test -s default --platform-name ubuntu-noble
 
 # If converge fails, debug interactively:
-molecule create -s default --platform-name ubuntu-noble
-molecule converge -s default --platform-name ubuntu-noble
+pipenv run molecule create -s default --platform-name ubuntu-noble
+pipenv run molecule converge -s default --platform-name ubuntu-noble
 # (inspect container state, then clean up)
-molecule destroy -s default
+pipenv run molecule destroy -s default
 ```
 
 ## Testing & Verification Gates
 
-- `molecule syntax` — YAML + playbook syntax validation
-- `molecule converge` — full role execution on all containers
-- `molecule idempotence` — re-run must produce zero changes
-- `molecule verify` — asserts terminal.exe and metaeditor.exe exist
-- `yamllint .` — YAML lint (config: `.yamllint`)
-- `ansible-lint` — Ansible best practices (config: `.ansible-lint`)
-- `pre-commit run -a` — all pre-commit hooks
+- `pipenv run molecule syntax` - YAML + playbook syntax validation
+- `pipenv run molecule converge` - full role execution on all containers
+- `pipenv run molecule idempotence` - re-run must produce zero changes
+- `pipenv run molecule verify` - asserts terminal.exe and metaeditor.exe exist
+- `yamllint .` - YAML lint (config: `.yamllint`)
+- `ansible-lint` - Ansible best practices (config: `.ansible-lint`)
+- `pre-commit run -a` - all pre-commit hooks
 
 ## Troubleshooting Matrix
 
@@ -363,9 +389,9 @@ all Linux scenarios):
 | create | ✅ |
 | prepare | ✅ |
 | converge | ✅ |
-| — wine | ✅ |
-| — xvfb | ✅ |
-| — metatrader | ✅ |
+| - wine | ✅ |
+| - xvfb | ✅ |
+| - metatrader | ✅ |
 | idempotence | ✅ |
 | verify | ✅ |
 | destroy (final) | ✅ |
@@ -378,9 +404,9 @@ all Linux scenarios):
 | create | ✅ |
 | prepare | ✅ |
 | converge | ✅ |
-| — wine | ✅ |
-| — xvfb | ✅ |
-| — metatrader | ✅ |
+| - wine | ✅ |
+| - xvfb | ✅ |
+| - metatrader | ✅ |
 | idempotence | ✅ |
 | verify | ✅ |
 | destroy (final) | ✅ |
@@ -393,9 +419,9 @@ all Linux scenarios):
 | create | ✅ |
 | prepare | ✅ |
 | converge | ✅ |
-| — wine | ✅ |
-| — xvfb | ✅ |
-| — metatrader | ✅ |
+| - wine | ✅ |
+| - xvfb | ✅ |
+| - metatrader | ✅ |
 | idempotence | ✅ |
 | verify | ✅ |
 | destroy (final) | ✅ |
@@ -415,7 +441,7 @@ all Linux scenarios):
 - Verify changes: `git diff --no-color`.
 - NEVER use `git add .` without reviewing staged files.
 - Run linters: `pre-commit run -a`.
-- Run `molecule syntax` to catch playbook errors early.
+- Run `pipenv run molecule syntax` to catch playbook errors early.
 
 ### Linting and Validation
 

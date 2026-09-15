@@ -9,6 +9,14 @@
   vars:
     # Use controller Python (Ansible's interpreter)
     ansible_python_interpreter: '{{ ansible_playbook_python }}'
+    # Opt-in: prefer IPv4 for DNS resolution inside containers. Required in
+    # environments whose resolver returns IPv6 addresses that are not routable.
+    # Usage: MOLECULE_DOCKER_FORCE_IPV4=true molecule test
+    molecule_docker_force_ipv4: "{{ lookup('env', 'MOLECULE_DOCKER_FORCE_IPV4') | default('', true) | bool }}"
+    # Opt-in: Docker network for containers and image builds. Required in
+    # sandboxed environments where the default bridge has no outbound NAT.
+    # Usage: MOLECULE_DOCKER_NETWORK=host molecule test
+    molecule_docker_network: "{{ lookup('env', 'MOLECULE_DOCKER_NETWORK') | default('default', true) }}"
   tasks:
     - name: Ensure Python dependencies are installed on controller
       ansible.builtin.command:
@@ -55,6 +63,7 @@
         build:
           path: '{{ molecule_ephemeral_directory }}'
           dockerfile: '{{ item.name }}.Dockerfile'
+          network: '{{ molecule_docker_network }}'
         source: build
         force_source: true
       loop: "{{ molecule_yml.platforms | selectattr('dockerfile', 'defined') | list }}"
@@ -65,6 +74,7 @@
         name: '{{ item.name }}'
         image: "{{ (item.name ~ ':molecule') if item.dockerfile is defined else item.image }}"
         command: sleep infinity
+        network_mode: '{{ molecule_docker_network }}'
         init: '{{ item.init | default(omit) }}'
         # NixOS containers require privileged mode due to non-standard filesystem layout.
         privileged: "{{ item.privileged | default('nixos' in item.name) }}"
@@ -91,6 +101,18 @@
       until: async_job_results.finished
       retries: 300
       delay: 5
+    - name: Prefer IPv4 for DNS resolution in containers
+      community.docker.docker_container_exec:
+        container: '{{ item.name }}'
+        command: >-
+          sh -c 'if [ -L /etc/gai.conf ]; then rm -f /etc/gai.conf; fi;
+          grep -q "precedence ::ffff:0:0/96" /etc/gai.conf 2>/dev/null ||
+          echo "precedence ::ffff:0:0/96  100" >> /etc/gai.conf'
+      loop: '{{ molecule_yml.platforms }}'
+      loop_control:
+        label: '{{ item.name }}'
+      changed_when: false
+      when: molecule_docker_force_ipv4 | bool
     - name: Write molecule instance config
       ansible.builtin.copy:
         content: |
