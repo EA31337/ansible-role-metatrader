@@ -172,7 +172,7 @@ molecule test
 molecule test -s default
 
 # Single platform in a scenario
-molecule test -s default --platform-name metatrader-ubuntu-noble
+molecule test -s default --platform-name metatrader-default-ubuntu-noble
 
 # Individual steps (step-by-step debugging)
 molecule create -s default
@@ -190,10 +190,16 @@ pre-commit run -a
 
 ### Platforms
 
+Platform names follow the `<role>-<scenario>-<platform>` convention, so each
+scenario gets its own containers. For the `default` scenario:
+
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `metatrader-ubuntu-latest` | `ubuntu:latest` | WineHQ repo; codename: `noble` |
-| `metatrader-ubuntu-noble` | `ubuntu:noble` | WineHQ repo; codename: `noble` |
+| `metatrader-default-ubuntu-latest` | `ubuntu:latest` | WineHQ repo; codename: `noble` |
+| `metatrader-default-ubuntu-noble` | `ubuntu:noble` | WineHQ repo; codename: `noble` |
+
+The other scenarios use the same suffixes with their own scenario segment, e.g.
+`metatrader-mt4-ubuntu-noble`, `metatrader-mt5-ubuntu-noble`.
 
 ## Troubleshooting
 

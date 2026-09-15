@@ -50,7 +50,7 @@ permissions:
   contents: read
 jobs:
   test:
-    name: ${{ matrix.scenario }} / ${{ matrix.platform }}
+    name: ${{ matrix.scenario }} / metatrader-${{ matrix.scenario }}-${{ matrix.platform }}
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
@@ -58,7 +58,7 @@ jobs:
       fail-fast: true
       matrix:
         platform:
-          - metatrader-ubuntu-noble
+          - ubuntu-noble
         scenario:
           - default
           - mt4
@@ -96,7 +96,7 @@ jobs:
           PLATFORM="${{ matrix.platform }}"
           MOL_FILE="molecule/${SCENARIO}/molecule.yml"
           yq -i \
-            ".platforms = [.platforms[] | select(.name == \"${PLATFORM}\")]" \
+            ".platforms = [.platforms[] | select(.name | test(\"-${PLATFORM}$\"))]" \
             "$MOL_FILE"
           echo "Filtered platforms:"
           yq '.platforms[].name' "$MOL_FILE"
@@ -176,7 +176,9 @@ jobs:
             // Keep in sync with the strategy.matrix above.
             const scenarios = ['default', 'mt4', 'mt5'];
             const platforms = [
-              'metatrader-ubuntu-noble',
+              'metatrader-default-ubuntu-noble',
+              'metatrader-mt4-ubuntu-noble',
+              'metatrader-mt5-ubuntu-noble',
             ];
             const icon = (c) => ({
               success: '✅', failure: '❌', cancelled: '⚪', skipped: '⏭️',

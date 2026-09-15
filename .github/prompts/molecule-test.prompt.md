@@ -44,11 +44,17 @@ and troubleshooting guidance.
 | `mt4`     | `4`                  | MT4 install with custom setup URL  |
 | `mt5`     | `5`                  | Explicit MT5 install               |
 
-## Platforms (shared by all Linux scenarios)
+## Platforms (per scenario)
 
-| Container                 | Image              | Notes                              |
-| ------------------------- | ------------------ | ---------------------------------- |
-| `metatrader-ubuntu-noble` | `ubuntu:noble`     | WineHQ repo; codename: `noble`     |
+Platform names follow the `<role>-<scenario>-<platform>` convention, so each
+scenario gets its own containers. For the `default` scenario:
+
+| Container                         | Image          | Notes                          |
+| --------------------------------- | -------------- | ------------------------------ |
+| `metatrader-default-ubuntu-noble` | `ubuntu:noble` | WineHQ repo; codename: `noble` |
+
+The other scenarios use the same suffix with their own scenario segment, e.g.
+`metatrader-mt4-ubuntu-noble`, `metatrader-mt5-ubuntu-noble`.
 
 ## Results Template
 
@@ -59,23 +65,23 @@ Use ✅ for pass, ❌ for fail, ⏭️ for skipped.
 
 For each scenario, report per-platform step results:
 
-| Platform                  | create | prepare | converge | idempotence | verify |
-| ------------------------- | :----: | :-----: | :------: | :---------: | :----: |
-| `metatrader-ubuntu-noble` |        |         |          |             |        |
+| Platform                             | create | prepare | converge | idempotence | verify |
+| ------------------------------------ | :----: | :-----: | :------: | :---------: | :----: |
+| `metatrader-<scenario>-ubuntu-noble` |        |         |          |             |        |
 
 ### Converge Sub-Step Results
 
 For converge failures, break down by sub-step:
 
-| Platform                  | wine | xvfb | metatrader |
-| ------------------------- | :--: | :--: | :--------: |
-| `metatrader-ubuntu-noble` |      |      |            |
+| Platform                             | wine | xvfb | metatrader |
+| ------------------------------------ | :--: | :--: | :--------: |
+| `metatrader-<scenario>-ubuntu-noble` |      |      |            |
 
 ### Summary (all scenarios)
 
-| Platform                  | default | mt4 | mt5 |
-| ------------------------- | :-----: | :-: | :-: |
-| `metatrader-ubuntu-noble` |         |     |     |
+| Platform                             | default | mt4 | mt5 |
+| ------------------------------------ | :-----: | :-: | :-: |
+| `metatrader-<scenario>-ubuntu-noble` |         |     |     |
 
 ### Failure Details
 
