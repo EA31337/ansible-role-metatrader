@@ -92,8 +92,12 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: noble` |
-| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: noble` |
+| `metatrader-ubuntu-noble` | `ubuntu:noble` | WineHQ repo with `wine_release_codename: noble` |
+| `metatrader-ubuntu-latest` | `ubuntu:latest` | WineHQ repo with `wine_release_codename: noble` |
+
+Platform names are prefixed with the role name (`metatrader-`) because Molecule's Docker
+driver names each container exactly after its platform. Generic names such as
+`ubuntu-noble` would collide with concurrent Molecule runs of other roles.
 
 ### Running Tests
 
@@ -110,7 +114,7 @@ pipenv run molecule test
 pipenv run molecule test -s default
 
 # Single platform in a scenario
-pipenv run molecule test -s default --platform-name ubuntu-noble
+pipenv run molecule test -s default --platform-name metatrader-ubuntu-noble
 
 # Step-by-step debugging (useful for troubleshooting)
 pipenv run molecule destroy -s default              # clean up any leftover state
@@ -157,11 +161,11 @@ For CI or automated environments, use timeouts:
 
 ```bash
 # Test a single platform with timeout (15 minutes)
-timeout 900 pipenv run molecule test -s default --platform-name ubuntu-noble
+timeout 900 pipenv run molecule test -s default --platform-name metatrader-ubuntu-noble
 
 # If converge fails, debug interactively:
-pipenv run molecule create -s default --platform-name ubuntu-noble
-pipenv run molecule converge -s default --platform-name ubuntu-noble
+pipenv run molecule create -s default --platform-name metatrader-ubuntu-noble
+pipenv run molecule converge -s default --platform-name metatrader-ubuntu-noble
 # (inspect container state, then clean up)
 pipenv run molecule destroy -s default
 ```
@@ -261,8 +265,8 @@ pipenv run molecule destroy -s default
 - **Root cause**: Firewall/network policy blocks `dl.winehq.org`, or
   `debian:latest` codename (e.g. `trixie`) or Ubuntu 26.04 (`resolute`)
   is not in the WineHQ repo.
-- **Fix**: Set `wine_release_codename: bookworm` for debian-latest or `noble` for ubuntu-latest in
-  host_vars. Add `dl.winehq.org` to firewall allowlist.
+- **Fix**: Set `wine_release_codename: bookworm` for debian-latest or `noble` for
+  metatrader-ubuntu-latest in host_vars. Add `dl.winehq.org` to firewall allowlist.
 - **CI context**: Works on standard GitHub Actions runners with internet
   access.
 
@@ -383,7 +387,7 @@ all Linux scenarios):
 
 ### `default`
 
-| Step | ubuntu-noble |
+| Step | metatrader-ubuntu-noble |
 | --- | :---: |
 | destroy | ✅ |
 | create | ✅ |
@@ -398,7 +402,7 @@ all Linux scenarios):
 
 ### `mt4`
 
-| Step | ubuntu-noble |
+| Step | metatrader-ubuntu-noble |
 | --- | :---: |
 | destroy | ✅ |
 | create | ✅ |
@@ -413,7 +417,7 @@ all Linux scenarios):
 
 ### `mt5`
 
-| Step | ubuntu-noble |
+| Step | metatrader-ubuntu-noble |
 | --- | :---: |
 | destroy | ✅ |
 | create | ✅ |

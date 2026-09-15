@@ -16,10 +16,14 @@ lint: |
   yamllint .
   ansible-lint
   molecule syntax
+# Platform names are prefixed with the role name so the Docker containers
+# (named after the platform) stay unique across roles. Molecule's Docker driver
+# names each container exactly after its platform, so generic names such as
+# `ubuntu-noble` collide with concurrent Molecule runs of other roles.
 platforms:
-  - name: ubuntu-latest
+  - name: metatrader-ubuntu-latest
     image: ubuntu:latest
-  - name: ubuntu-noble
+  - name: metatrader-ubuntu-noble
     image: ubuntu:noble
 provisioner:
   config_options:
@@ -56,9 +60,9 @@ provisioner:
         wine_release: stable
         wine_winetricks_winver: win10
     host_vars:
-      ubuntu-latest:
+      metatrader-ubuntu-latest:
         wine_release_codename: noble
-      ubuntu-noble:
+      metatrader-ubuntu-noble:
         wine_release_codename: noble
   name: ansible
   options:

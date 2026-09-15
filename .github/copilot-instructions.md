@@ -172,7 +172,7 @@ molecule test
 molecule test -s default
 
 # Single platform in a scenario
-molecule test -s default --platform-name debian-latest
+molecule test -s default --platform-name metatrader-ubuntu-noble
 
 # Individual steps (step-by-step debugging)
 molecule create -s default
@@ -192,8 +192,8 @@ pre-commit run -a
 
 | Container | Image | Notes |
 | --------- | ----- | ----- |
-| `ubuntu-latest` | `ubuntu:latest` | WineHQ repo; codename: `noble` |
-| `ubuntu-noble` | `ubuntu:noble` | WineHQ repo; codename: `noble` |
+| `metatrader-ubuntu-latest` | `ubuntu:latest` | WineHQ repo; codename: `noble` |
+| `metatrader-ubuntu-noble` | `ubuntu:noble` | WineHQ repo; codename: `noble` |
 
 ## Troubleshooting
 
