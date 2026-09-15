@@ -50,7 +50,8 @@ repos:
             \.github/copilot-instructions\.md |
             \.github/prompts/.* |
             \.github/workflows/molecule\.yml |
-            AGENTS\.md
+            AGENTS\.md |
+            molecule/AGENTS\.md
           )$
       - id: script-must-have-extension
   - repo: https://github.com/lyz-code/yamlfix
