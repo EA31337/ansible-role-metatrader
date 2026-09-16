@@ -83,8 +83,9 @@ environment deterministically. Installing `ansible`/`ansible-lint` ad hoc instea
 2. **Install ea31337.metatrader role** - normalises `wine_release_codename` for the dependency role,
    applies the role to every container, then stops the containers.
 
-The playbook does not recreate containers, so a re-run reuses the containers that are already there
-(see Idempotency below).
+The playbook does not recreate containers, so a re-run reuses the containers that are already there.
+It does stop them at the end of every run, which is why the two-run check below cannot report
+`changed=0` (see Idempotency).
 
 ## Verifying the Result
 
@@ -100,14 +101,53 @@ Both files must be present; this mirrors what `tasks/verify.yml` asserts in the 
 
 ### Idempotency
 
-`AGENTS.md` requires idempotent tasks. Because `docker-containers.yml` does not recreate containers,
-running it twice against the same containers is a valid idempotency check - the second run must
-report `changed=0`:
+`AGENTS.md` requires idempotent tasks, but running `docker-containers.yml` twice is **not** a valid
+idempotency check, and the second run can never report `changed=0`. Two things guarantee changes:
+
+- **`Stop Docker containers`** (post-task) unconditionally stops the containers, so it reports
+  `changed` on every run.
+- **A container restart resets running services.** The next run's pre-tasks start the containers
+  again, so anything the role started as a process is no longer running. In `ea31337.xvfb`, three
+  tasks in `tasks/supervisord.yml` are gated on `supervisord_status.rc != 0` and so re-fire:
+  `Remove stale supervisor socket if not running`, `Remove stale supervisor pid if not running`, and
+  `Start supervisord daemon`.
+
+A second run of the full playbook therefore reports `changed=4` per host (1 stop + 3 xvfb start-up
+tasks). That is expected, not a role bug.
+
+To test idempotency, keep the containers up between runs and apply the role twice. The stop post-task
+inherits the play's `tags: always`, so `--skip-tags` cannot drop it without dropping the whole play;
+use a probe playbook that omits it:
+
+```yaml
+---
+- name: Idempotency check
+  hosts: docker_containers
+  gather_facts: true
+  vars:
+    controller_python: '{{ ansible_playbook_python }}'
+  tasks:
+    - name: Set facts for dependency roles
+      ansible.builtin.set_fact:
+        wine_release_codename: >-
+          {{ 'noble' if ansible_facts.get('distribution_release', '') == 'resolute'
+          else ansible_facts.get('distribution_release', '') }}
+    - name: Installs metatrader role
+      ansible.builtin.include_role:
+        name: ea31337.metatrader
+```
 
 ```bash
-pipenv run ansible-playbook -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
-pipenv run ansible-playbook -i tests/inventory/docker-containers.yml tests/playbooks/docker-containers.yml
+# The playbook leaves the containers stopped, so start them first.
+docker start metatrader-on-debian-latest metatrader-on-ubuntu-jammy metatrader-on-ubuntu-noble
+
+# Run 1 may change the xvfb start-up tasks; run 2 must report changed=0.
+pipenv run ansible-playbook -i tests/inventory/docker-containers.yml /tmp/idempotency.yml
+pipenv run ansible-playbook -i tests/inventory/docker-containers.yml /tmp/idempotency.yml
 ```
+
+Verified 2026-09-16: run 1 changed only the three xvfb start-up tasks, run 2 reported `changed=0` on
+all three hosts.
 
 ## Troubleshooting Matrix
 
