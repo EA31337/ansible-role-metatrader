@@ -79,6 +79,11 @@ For firewall configuration, see [.github/FIREWALL.md](.github/FIREWALL.md).
 - It uses Molecule for testing and ansible-lint for linting.
 - It depends on external roles such as `ea31337.wine` and `ea31337.xvfb`.
 
+## Docker Tests
+
+The standalone Docker test playbooks in `tests/`, how to run them via `pipenv`, and
+their troubleshooting matrix live in [tests/AGENTS.md](tests/AGENTS.md).
+
 ## Molecule Testing
 
 Molecule scenarios, the platform matrix, how to run the tests, and Molecule-specific
