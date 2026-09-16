@@ -44,7 +44,7 @@ COPY README.md .
 RUN ansible-galaxy role install -r requirements.yml --force && \
     ansible-galaxy collection install -r requirements.yml --upgrade && \
     printf -- "---\n- hosts: localhost\n  connection: local\n  roles:\n    - role: /etc/ansible/roles/ea31337.metatrader\n" > /tmp/playbook.yml && \
-    ANSIBLE_PYTHON_INTERPRETER=auto_silent xvfb-run -a ansible-playbook /tmp/playbook.yml && \
+    ANSIBLE_PYTHON_INTERPRETER=auto_silent ansible-playbook /tmp/playbook.yml && \
     rm /tmp/playbook.yml && \
     if [ -f /usr/bin/apt-get ]; then \
         export SUDO_FORCE_REMOVE=yes && \

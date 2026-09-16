@@ -8,6 +8,7 @@ Pipfile
 Pipfile.lock
 requirements-local.yml.j2
 *.md
+!README.md
 LICENSE
 .ansible-lint
 .markdownlint.yaml
