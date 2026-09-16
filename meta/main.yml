@@ -7,9 +7,7 @@ dependencies:
     src: https://github.com/EA31337/ansible-role-wine.git
     vars:
       wine_install_winetricks: true
-      wine_version: >-
-        {{ '9' if (ansible_facts.get('os_family') | default(ansible_os_family | default('unknown'))) == 'Alpine'
-           else '10.0' }}
+      wine_version: '10.0'
       # Explicitly pass facts to support inject_facts_as_vars = False
       ansible_os_family: "{{ ansible_facts.get('os_family') | default('Debian', true) }}"
       ansible_distribution: "{{ ansible_facts.get('distribution') | default('Ubuntu', true) }}"
@@ -51,9 +49,6 @@ galaxy_info:
   min_ansible_version: '2.7'
   namespace: ea31337
   platforms:
-    - name: Alpine
-      versions:
-        - all
     - name: Debian
       versions:
         - all

@@ -8,19 +8,6 @@
   tags:
     - always
     - metatrader_verify
-- name: Detects NixOS
-  ansible.builtin.command: nix-env --version
-  register: nix_check
-  changed_when: false
-  failed_when: false
-  check_mode: false
-  when: >-
-    ((ansible_facts | default({})).get('os_family') | default(ansible_os_family | default('unknown'))) == 'OtherLinux'
-    or ((ansible_facts | default({})).get('distribution')
-    | default(ansible_distribution | default('unknown'))) == 'NixOS'
-  tags:
-    - always
-    - metatrader_verify
 - name: Detect OS family from /etc/os-release
   ansible.builtin.shell: |
     set -o pipefail
@@ -42,9 +29,7 @@
       {%- set f_dist = ((ansible_facts | default({})).get('distribution')
       or (ansible_distribution | default('')) or '') | string | trim -%}
       {%- set f_rel = (os_release_id.stdout | default('')) | string | trim -%}
-      {%- if f_dist == 'NixOS' or f_os == 'NixOS' or (f_os == 'OtherLinux' and nix_check.rc | default(1) == 0) -%}
-        NixOS
-      {%- elif f_os != '' and f_os != 'None' -%}
+      {%- if f_os != '' and f_os != 'None' -%}
         {{ f_os }}
       {%- elif f_dist != '' and f_dist != 'None' -%}
         {{ f_dist }}
@@ -159,19 +144,8 @@
       delay: 5
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
-        - effective_os_family not in ["Windows", "NixOS"]
+        - effective_os_family not in ["Windows"]
         - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
-        - not file_mt_installed_exists.stat.exists
-    - name: Ensures Curl is present (NixOS)
-      ansible.builtin.command:
-        # Redirect output to /dev/null to reduce logs.
-        cmd: nix-env -iA nixpkgs.curl > /dev/null
-      register: nix_curl_install
-      changed_when: "'installing' in nix_curl_install.stderr or 'copying path' in nix_curl_install.stderr"
-      failed_when: false
-      become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
-      when:
-        - effective_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists
     - name: Ensures 7zip is present (standard distros)
       ansible.builtin.package:
@@ -184,12 +158,12 @@
       delay: 5
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
-        - effective_os_family not in ["Windows", "NixOS"]
+        - effective_os_family not in ["Windows"]
         - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures X11 utilities are present (standard distros)
       ansible.builtin.package:
-        name: "{{ 'xdpyinfo' if effective_os_family == 'Alpine' else 'x11-utils' }}"
+        name: x11-utils
         state: present
       become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
       register: x11_utils_install
@@ -198,7 +172,7 @@
       delay: 5
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
-        - effective_os_family not in ["Windows", "NixOS"]
+        - effective_os_family not in ["Windows"]
         - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
         - not file_mt_installed_exists.stat.exists
     - name: Ensures procps is present (standard distros)
@@ -212,19 +186,8 @@
       delay: 5
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
-        - effective_os_family not in ["Windows", "NixOS"]
+        - effective_os_family not in ["Windows"]
         - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
-        - not file_mt_installed_exists.stat.exists
-    - name: Ensures X11 utilities are present (NixOS)
-      ansible.builtin.command:
-        # Redirect output to /dev/null to reduce logs.
-        cmd: nix-env -iA nixpkgs.xorg.xdpyinfo > /dev/null
-      register: nix_xdpyinfo_install
-      changed_when: "'installing' in nix_xdpyinfo_install.stderr or 'copying path' in nix_xdpyinfo_install.stderr"
-      failed_when: false
-      become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
-      when:
-        - effective_os_family == "NixOS"
         - not file_mt_installed_exists.stat.exists
     - name: Ensures verb installation file is present
       ansible.builtin.template:
@@ -295,10 +258,7 @@
         WINEDLLOVERRIDES: mscoree=,mshtml=,winebrowser.exe=,dbghelp=b
         WINETRICKS_DOWNLOADER: curl
         XDG_RUNTIME_DIR: '{{ effective_xdg_runtime_dir }}'
-        FONTCONFIG_FILE: >-
-          {{ '/etc/fonts/fonts.conf' if effective_os_family != 'NixOS'
-             else ((ansible_facts | default({})).get('env', {}).get('FONTCONFIG_FILE')
-             | default('/run/current-system/sw/etc/fonts/fonts.conf', true)) }}
+        FONTCONFIG_FILE: /etc/fonts/fonts.conf
       when:
         - effective_os_family != "Windows"
         - not file_mt_installed_exists.stat.exists
