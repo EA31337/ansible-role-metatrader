@@ -3,6 +3,8 @@
 # Documentation: https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
 dependencies:
   - role: ea31337.wine
+    scm: git
+    src: https://github.com/EA31337/ansible-role-wine.git
     vars:
       wine_install_winetricks: true
       wine_version: '10.0'
@@ -16,6 +18,8 @@ dependencies:
     version: v1.0.4  # This should match version in requirements.yml
     when: (ansible_facts.get('os_family') | default('', true)) not in ["Windows", ""]
   - role: ea31337.xvfb
+    scm: git
+    src: https://github.com/EA31337/ansible-role-xvfb.git
     vars:
       # Explicitly pass facts to support inject_facts_as_vars = False
       ansible_os_family: "{{ ansible_facts.get('os_family') | default('Debian', true) }}"

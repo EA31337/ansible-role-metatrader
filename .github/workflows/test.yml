@@ -49,7 +49,7 @@ jobs:
         with:
           persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
       - name: Set up Python
-        uses: actions/setup-python@v6.1.0
+        uses: actions/setup-python@v6
         with:
           cache: pip
           cache-dependency-path: |
