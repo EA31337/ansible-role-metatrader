@@ -30,7 +30,7 @@ jobs:
         run: git clone --depth=1 https://github.com/Cogni-AI-OU/cogni-ai-agent-instructions .github/instructions
       - name: Clone skills
         run: git clone --depth=1 https://github.com/Cogni-AI-OU/cogni-ai-agent-skills .github/skills
-      - uses: actions/setup-python@v6.1.0
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Restore Python user site

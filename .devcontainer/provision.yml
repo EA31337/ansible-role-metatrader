@@ -7,8 +7,12 @@
   connection: local
   become: true
   vars:
+    ansible_python_requirements:
+      - docker>=7.1
+      - requests==2.33.1
     apt_packages:
       - coreutils
+      - curl
       - direnv
       - figlet
       - findutils
@@ -19,9 +23,6 @@
       - sed
       - time
       - vim
-    ansible_python_requirements:
-      - docker>=7.1
-      - requests==2.32.5
   tasks:
     - name: Update apt cache
       ansible.builtin.apt:
@@ -34,14 +35,19 @@
       ansible.builtin.pip:
         requirements: '{{ playbook_dir }}/requirements.txt'
         state: present
-    - name: Install ansible via pipx
-      ansible.builtin.command: pipx install --include-deps --force ansible
+    - name: Check if ansible is installed via pipx
+      ansible.builtin.command: pipx list
+      register: pipx_list
       become: false
-      register: pipx_install
-      changed_when: "'already installed' not in pipx_install.stderr"
-      failed_when: pipx_install.rc != 0 and 'already installed' not in pipx_install.stderr
+      changed_when: false
+      failed_when: false
+    - name: Install ansible via pipx
+      ansible.builtin.command: pipx install --include-deps ansible
+      become: false
+      when: "'package ansible ' not in pipx_list.stdout"
+      changed_when: true
     - name: Check ansible python requirements already injected
-      ansible.builtin.command: pipx runpip ansible show {{ item }}
+      ansible.builtin.command: pipx runpip ansible show {{ item | regex_replace('[<>=!].*', '') }}
       loop: '{{ ansible_python_requirements }}'
       register: pipx_injected
       become: false

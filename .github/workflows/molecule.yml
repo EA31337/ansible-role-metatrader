@@ -62,7 +62,7 @@ permissions:
   contents: read
 jobs:
   test:
-    name: ${{ matrix.scenario }} / ${{ matrix.platform }}
+    name: ${{ matrix.scenario }} / metatrader-${{ matrix.scenario }}-${{ matrix.platform }}
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
@@ -81,7 +81,7 @@ jobs:
         with:
           persist-credentials: false  # Prevents Duplicate header: "Authorization" error.
       - name: Set up Python
-        uses: actions/setup-python@v6.1.0
+        uses: actions/setup-python@v6
         with:
           cache: pip
           cache-dependency-path: |
@@ -108,7 +108,7 @@ jobs:
           PLATFORM="${{ matrix.platform }}"
           MOL_FILE="molecule/${SCENARIO}/molecule.yml"
           yq -i \
-            ".platforms = [.platforms[] | select(.name == \"${PLATFORM}\")]" \
+            ".platforms = [.platforms[] | select(.name | test(\"-${PLATFORM}$\"))]" \
             "$MOL_FILE"
           echo "Filtered platforms:"
           yq '.platforms[].name' "$MOL_FILE"
@@ -160,7 +160,7 @@ jobs:
           fi
       - if: always()
         name: Upload Molecule report artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: molecule-${{ matrix.scenario }}-${{ matrix.platform }}-report
@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build results table
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |-
             const { data: { jobs } } = await github.rest.actions
@@ -188,7 +188,9 @@ jobs:
             // Keep in sync with the strategy.matrix above.
             const scenarios = ['default', 'mt4', 'mt5'];
             const platforms = [
-              'ubuntu-noble',
+              'metatrader-default-ubuntu-noble',
+              'metatrader-mt4-ubuntu-noble',
+              'metatrader-mt5-ubuntu-noble',
             ];
             const icon = (c) => ({
               success: '✅', failure: '❌', cancelled: '⚪', skipped: '⏭️',

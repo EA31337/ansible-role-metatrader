@@ -6,6 +6,7 @@
 line_length = 120
 preserve_block_scalars = true
 preserve_formatting = true
+preserve_quotes = true
 
 excludes = [
     ".github/workflows/test.yml",
