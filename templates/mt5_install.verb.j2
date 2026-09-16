@@ -58,36 +58,65 @@ load_mt5_install()
 
     w_try_cd "$W_CACHE/$W_PACKAGE"
     w_ahk_do <<'EOF'
+        ; Window titles.
+        SetupTitle := "MetaTrader 5"
+        ProxyTitle := "Proxy Server"
+
         ; Maximum time for setup to complete.
-        Timeout := 600000 ; 10 min.
+        Timeout := 300000 ; 5 min.
+
+        ; Set a global timer for emergency exit.
+        SetTimer, GlobalTimeout, % Timeout + 60000 ; Timeout + 1 min buffer.
 
         ; Searching for a setup EXE file.
+        ExePath := ""
         loop, Files, *.exe
         {
             ExePath := A_LoopFileFullPath
             break
         }
 
+        if (ExePath = "")
+        {
+            FileAppend, Error: No EXE found in %A_WorkingDir%`n, *
+            ExitApp, 1
+        }
+
         ; Running setup.
-        Run, %ExePath%
+        Run, "%ExePath%",,, SetupPID
+        if (ErrorLevel)
+        {
+            FileAppend, Error: Failed to launch %ExePath% (ErrorLevel: %ErrorLevel%)`n, *
+            ExitApp, 1
+        }
         SetTitleMatchMode, 2 ; Match anywhere in title
 
         ; Awaiting for setup window to appear.
-        loop 60
+        loop 300
         {
-            if (WinExist("MetaTrader 5"))
+            if (WinExist(SetupTitle))
                 break
-            if (WinExist("Proxy Server"))
+            if (WinExist(ProxyTitle))
             {
-                WinActivate, Proxy Server
-                Send, {Esc}
+                WinActivate, %ProxyTitle%
+                WinWaitActive, %ProxyTitle%,, 5
+                if (!ErrorLevel)
+                {
+                    Send, {Esc}
+                    Sleep, 1000
+                }
             }
             Sleep, 1000
-            if (A_Index == 60)
+            if (A_Index == 300)
+            {
+                FileAppend, Error: Setup window did not appear in 5 minutes`n, *
+                Process, Close, %SetupPID%
                 ExitApp, 1
+            }
         }
 
-        WinActivate, MetaTrader 5
+        WinActivate, %SetupTitle%
+        WinWaitActive, %SetupTitle%,, 10
         Sleep, 1000
 
         ; Clicking "Next".
@@ -101,19 +130,26 @@ load_mt5_install()
             ; Check if timeout have passed.
             if (A_TickCount - StartTime > Timeout)
             {
+                FileAppend, Error: Installation timed out`n, *
+                Process, Close, %SetupPID%
                 ExitApp, 1 ; Exit with error on timeout
             }
 
             ; Close a blocking "Proxy Server" dialog if it appears.
-            if (WinExist("Proxy Server"))
+            if (WinExist(ProxyTitle))
             {
-                WinActivate, Proxy Server
-                Send, {Esc}
-                Sleep, 1000
+                WinActivate, %ProxyTitle%
+                WinWaitActive, %ProxyTitle%,, 5
+                if (!ErrorLevel)
+                {
+                    Send, {Esc}
+                    Sleep, 1000
+                }
             }
 
             ; Is "Finish" button visible?
-            ControlGet, FinishVisible, Visible,, Finish
+            ; We use explicit window title to avoid looking in the Proxy Server dialog.
+            ControlGet, FinishVisible, Visible,, Finish, %SetupTitle%
 
             if (FinishVisible)
             {
@@ -125,6 +161,8 @@ load_mt5_install()
         }
 
         ; Clicking "Finish".
+        WinActivate, %SetupTitle%
+        WinWaitActive, %SetupTitle%,, 10
         Send, {Enter}
         Sleep, 5000
 
@@ -139,27 +177,53 @@ load_mt5_install()
                 break
             Sleep, 1000
         }
-        WinWaitActive, MetaTrader,, 60
+        TerminalTitle := "MetaTrader"
+        WinActivate, %TerminalTitle%
+        WinWaitActive, %TerminalTitle%,, 60
 
         ; Closing dialogs and exiting from the terminal.
-        Send, {Esc}
-        Sleep, 1000
-        Send, {Esc}
-        Sleep, 1000
-        Send, !f
-        Sleep, 1000
-        Send, x
-        Sleep, 1000
-        Send, !{F4}
+        loop 3
+        {
+            if (WinExist(ProxyTitle))
+            {
+                WinActivate, %ProxyTitle%
+                WinWaitActive, %ProxyTitle%,, 5
+                if (!ErrorLevel)
+                {
+                    Send, {Esc}
+                    Sleep, 1000
+                }
+            }
+            if (WinExist(TerminalTitle))
+            {
+                WinActivate, %TerminalTitle%
+                WinWaitActive, %TerminalTitle%,, 5
+                if (!ErrorLevel)
+                {
+                    Send, {Esc}
+                    Sleep, 1000
+                }
+            }
+        }
+        WinActivate, %TerminalTitle%
+        WinWaitActive, %TerminalTitle%,, 5
+        if (!ErrorLevel)
+        {
+            Send, !f
+            Sleep, 1000
+            Send, x
+            Sleep, 1000
+            Send, !{F4}
+        }
 
         ; Awaiting terminal window to close for 20s.
         loop 20
         {
             Process, Exist, terminal64.exe
-            if (!ErrorLevel)
-                break
+            T64Exist := ErrorLevel
             Process, Exist, terminal.exe
-            if (!ErrorLevel)
+            TExist := ErrorLevel
+            if (!T64Exist && !TExist)
                 break
             Sleep, 1000
         }
@@ -167,5 +231,10 @@ load_mt5_install()
         ; If terminal didn't close in 20s then we are forcing it to close.
         Process, Close, terminal64.exe
         Process, Close, terminal.exe
+        ExitApp, 0
+
+        GlobalTimeout:
+        FileAppend, Error: Global timeout reached`n, *
+        ExitApp, 1
 EOF
 }

@@ -137,6 +137,25 @@
       ansible.builtin.package:
         name: curl
         state: present
+      become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
+      register: curl_install
+      until: curl_install is success
+      retries: 3
+      delay: 5
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
+      when:
+        - effective_os_family not in ["Windows"]
+        - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
+        - not file_mt_installed_exists.stat.exists
+    - name: Ensures 7zip is present (standard distros)
+      ansible.builtin.package:
+        name: p7zip-full
+        state: present
+      become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
+      register: p7zip_install
+      until: p7zip_install is success
+      retries: 3
+      delay: 5
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - effective_os_family not in ["Windows"]
@@ -146,6 +165,25 @@
       ansible.builtin.package:
         name: x11-utils
         state: present
+      become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
+      register: x11_utils_install
+      until: x11_utils_install is success
+      retries: 5
+      delay: 5
+      no_log: '{{ ansible_verbosity | default(0) < 1 }}'
+      when:
+        - effective_os_family not in ["Windows"]
+        - (ansible_facts | default({})).get('pkg_mgr') not in ["unknown", "", None]
+        - not file_mt_installed_exists.stat.exists
+    - name: Ensures procps is present (standard distros)
+      ansible.builtin.package:
+        name: procps
+        state: present
+      become: "{{ ((ansible_facts | default({})).get('user_id', 'root') | default('root', true)) != 'root' }}"
+      register: procps_install
+      until: procps_install is success
+      retries: 3
+      delay: 5
       no_log: '{{ ansible_verbosity | default(0) < 1 }}'
       when:
         - effective_os_family not in ["Windows"]
@@ -179,7 +217,7 @@
       failed_when: false
       changed_when: false
       until: xdpyinfo_check.rc == 0
-      retries: 20
+      retries: 30
       delay: 5
       environment:
         DISPLAY: '{{ effective_display }}'
@@ -195,7 +233,7 @@
         fail_msg: >-
           X display check failed (rc={{ xdpyinfo_check.rc | default('undefined') }}).
           {% if xdpyinfo_check.rc | default(0) == 127 %}
-          The 'xdpyinfo' command is missing. Ensure 'x11-utils' or equivalent is installed.
+          The 'xdpyinfo' command is missing. Ensure 'x11-utils', 'xdpyinfo' or equivalent is installed.
           {% else %}
           X display is not available (DISPLAY={{ effective_display }}).
           Ensure Xvfb or another X server is running.
@@ -211,7 +249,7 @@
           winetricks -q /tmp/mt{{ metatrader_version }}_install.verb
           && touch {{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}
         creates: '{{ effective_home }}/.wine/.installed-mt{{ metatrader_version }}'
-      async: 1200
+      async: 1800
       poll: 10
       environment:
         DISPLAY: '{{ effective_display }}'
@@ -241,9 +279,9 @@
   when:
     - >-
       metatrader_local_facts is not defined
-      or metatrader_local_facts[metatrader_version | string] is not defined
+      or metatrader_local_facts.get(metatrader_version | string) is not defined
       or (find_mt_path_folder | default(''))
-      != metatrader_local_facts[metatrader_version | string].path | default('')
+      != metatrader_local_facts.get(metatrader_version | string, {}).get('path') | default('')
   block:
     - name: Sets fact
       ansible.builtin.set_fact:
@@ -284,7 +322,7 @@
         dest: \\wsl.localhost\{{ wsl_distribution_name }}\home\{{ wsl_user_name }}\ansible\facts\metatrader.fact
       become: true
       become_method: "{{ metatrader_become_method.get(effective_os_family, 'ansible.builtin.su') }}"
-      become_user: "{{ ansible_facts.get('env', {}).get('USERNAME') | default('Administrator', true) }}"
+      become_user: "{{ (ansible_facts | default({})).get('env', {}).get('USERNAME') | default('Administrator', true) }}"
       when:
         - effective_os_family == "Windows"
         - metatrader is defined
