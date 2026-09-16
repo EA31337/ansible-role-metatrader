@@ -9,15 +9,6 @@ ENV XDG_RUNTIME_DIR=/tmp/runtime-root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Ansible and dependencies
-{% if 'alpine' in (docker_image | default('ubuntu:noble')) %}
-RUN grep -E '^[^#].*/main$' /etc/apk/repositories | sed 's/main$/community/' >> /etc/apk/repositories && \
-    apk update && \
-    apk add --no-cache ansible bash ca-certificates cabextract curl fontconfig gawk git p7zip python3 sudo ttf-freefont unzip xauth xdpyinfo xvfb-run && \
-    update-ca-certificates
-{% elif 'nixos' in (docker_image | default('ubuntu:noble')) %}
-RUN nix-channel --update && \
-    nix-env -iA nixpkgs.ansible nixpkgs.curl nixpkgs.git nixpkgs.p7zip nixpkgs.procps nixpkgs.python3 nixpkgs.python3Packages.pip nixpkgs.sudo nixpkgs.unzip nixpkgs.xorg.xdpyinfo nixpkgs.xvfb-run
-{% else %}
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ansible \
@@ -37,7 +28,6 @@ RUN apt-get update && \
     pip3 install --no-cache-dir "ansible-core>=2.14" --break-system-packages || \
     pip3 install --no-cache-dir "ansible-core>=2.14" && \
     rm -rf /var/lib/apt/lists/*
-{% endif %}
 
 # Copy the role into the container
 WORKDIR /etc/ansible/roles/ea31337.metatrader
